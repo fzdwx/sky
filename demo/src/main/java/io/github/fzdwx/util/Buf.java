@@ -1,6 +1,7 @@
 package io.github.fzdwx.util;
 
 import io.netty.buffer.ByteBuf;
+import io.netty.buffer.Unpooled;
 
 /**
  * byteBuf tool.
@@ -16,5 +17,9 @@ public final class Buf {
         buf.readBytes(dest);
 
         return new String(dest);
+    }
+
+    public static ByteBuf allocInt() {
+        return Unpooled.buffer(4);
     }
 }

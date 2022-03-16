@@ -35,12 +35,7 @@ public class DiscardServ {
         try {
             b.group(boss, worker)
                     .channel(NioServerSocketChannel.class)
-                    .childHandler(new ChannelInitializer<SocketChannel>() {
-                        @Override
-                        protected void initChannel(final SocketChannel ch) throws Exception {
-                            ch.pipeline().addLast(new DiscardHandler());
-                        }
-                    })
+                    .childHandler(initChannel())
                     .option(ChannelOption.SO_BACKLOG, 128)
                     .childOption(ChannelOption.SO_KEEPALIVE, true)
                     // bind port to start serv
@@ -56,6 +51,15 @@ public class DiscardServ {
         final var discardServ = new DiscardServ(8888);
         log.error("start");
         discardServ.run();
+    }
+
+    protected ChannelInitializer<SocketChannel> initChannel() {
+        return new ChannelInitializer<>() {
+            @Override
+            protected void initChannel(final SocketChannel ch) throws Exception {
+                ch.pipeline().addLast(new DiscardHandler());
+            }
+        };
     }
 
     private void close() {
