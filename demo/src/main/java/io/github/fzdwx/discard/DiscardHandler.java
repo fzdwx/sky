@@ -1,5 +1,6 @@
 package io.github.fzdwx.discard;
 
+import io.github.fzdwx.util.Buf;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
@@ -14,12 +15,20 @@ public class DiscardHandler extends ChannelInboundHandlerAdapter {
 
     @Override
     public void channelActive(final ChannelHandlerContext ctx) throws Exception {
-        log.info("有客户端链接");
+        log.info("有客户端连接");
     }
 
     @Override
     public void channelRead(final ChannelHandlerContext ctx, final Object msg) throws Exception {
-        ((ByteBuf) msg).release(); // 丢弃所有数据
+        final var buf = (ByteBuf) msg;
+
+        try {
+            while (buf.isReadable()) {
+                System.out.print(Buf.read(buf));
+            }
+        } finally {
+            buf.release();
+        }
     }
 
     @Override
