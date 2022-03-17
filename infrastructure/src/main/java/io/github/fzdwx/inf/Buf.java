@@ -1,4 +1,4 @@
-package io.github.fzdwx.util;
+package io.github.fzdwx.inf;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
