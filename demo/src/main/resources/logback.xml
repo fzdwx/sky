@@ -5,6 +5,7 @@
 <!-- scanPeriod 设置监测配置文件是否有修改的时间间隔，如果没有给出时间单位，默认单位是毫秒。当scan为true时，此属性生效。默认的时间间隔为1分钟。 -->
 <!-- debug 当此属性设置为true时，将打印出logback内部日志信息，实时查看logback运行状态。默认值为false。 -->
 <configuration scan="true" scanPeriod="60 seconds" debug="false">
+    <statusListener class="ch.qos.logback.core.status.NopStatusListener"/>
     <!-- 动态日志级别 -->
     <jmxConfigurator/>
     <!-- 定义日志文件 输出位置 -->
@@ -23,9 +24,8 @@
         <encoder>
             <pattern>
                 <!-- 设置日志输出格式 -->
-                %d{yyyy-MM-dd HH:mm:ss.SSS} %green(%-5level) %blue(%property{PID}) --- [ %20thread ] %cyan(%-45logger{50}) : %msg%n
-<!--                %highlight(%-5level %d{yyyy-MM-dd HH:mm:ss.SSS} [-%t][%logger{20}]:) %n%msg%n-->
-<!--                %msg-->
+                %d{yyyy-MM-dd HH:mm:ss.SSS} %green(%-5level) %blue(%property{PID}) --- [ %20thread ]
+                %cyan(%-45logger{50}) : %msg%n
             </pattern>
         </encoder>
     </appender>
@@ -180,10 +180,9 @@
 
 
     <!-- root级别 DEBUG -->
-    <root>
+    <root level="INFO">
         <appender-ref ref="console"/>
         <!-- 打印debug及以上级别日志 -->
-        <level value="INFO"/>
         <!-- 控制台输出 -->
         <!-- 文件输出 -->
         <appender-ref ref="ERROR"/>

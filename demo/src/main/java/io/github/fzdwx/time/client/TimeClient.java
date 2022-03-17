@@ -36,7 +36,7 @@ public class TimeClient {
                     .handler(new ChannelInitializer<SocketChannel>() {
                         @Override
                         protected void initChannel(final SocketChannel ch) throws Exception {
-                            ch.pipeline().addLast(new TimeClientHandler());
+                            ch.pipeline().addLast(new TimeDecoder(), new TimeClientHandler());
                         }
                     })
                     .connect(host, port).sync()
@@ -44,5 +44,9 @@ public class TimeClient {
         } finally {
             worker.shutdownGracefully();
         }
+    }
+
+    public static void main(String[] args) throws InterruptedException {
+        new TimeClient(8888).run();
     }
 }

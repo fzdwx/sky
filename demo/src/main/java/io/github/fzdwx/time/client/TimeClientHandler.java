@@ -1,10 +1,8 @@
 package io.github.fzdwx.time.client;
 
-import io.netty.buffer.ByteBuf;
+import io.github.fzdwx.lambada.lang.UnixTime;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
-
-import java.util.Date;
 
 /**
  * @author <a href="mailto:likelovec@gmail.com">fzdwx</a>
@@ -14,13 +12,10 @@ public class TimeClientHandler extends ChannelInboundHandlerAdapter {
 
     @Override
     public void channelRead(final ChannelHandlerContext ctx, final Object msg) throws Exception {
-        final var in = (ByteBuf) msg;
-
-        System.out.println(new Date(((in.readUnsignedInt() - 2208988800L) * 1000L)));
+        final var in = (UnixTime) msg;
+        System.out.println(in.toDate());
 
         ctx.close();
-
-        in.release();
     }
 
     @Override

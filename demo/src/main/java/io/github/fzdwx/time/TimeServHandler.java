@@ -9,17 +9,14 @@ import io.netty.channel.ChannelInboundHandlerAdapter;
  * @author <a href="mailto:likelovec@gmail.com">fzdwx</a>
  * @date 2022/3/16 22:03
  */
-public class TimeHandler extends ChannelInboundHandlerAdapter {
+public class TimeServHandler extends ChannelInboundHandlerAdapter {
 
     @Override
     public void channelActive(final ChannelHandlerContext ctx) throws Exception {
         final var buf = Buf.allocInt()
                 .writeInt((int) (System.currentTimeMillis() / 1000L + 2208988800L));
 
-        ctx.writeAndFlush(buf)
-                .addListener((ChannelFutureListener) future -> {
-                    ctx.close();
-                });
+        ctx.writeAndFlush(buf).addListener(ChannelFutureListener.CLOSE);
     }
 
     @Override

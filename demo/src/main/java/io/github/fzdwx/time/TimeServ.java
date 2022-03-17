@@ -19,8 +19,12 @@ public class TimeServ extends DiscardServ {
         return new ChannelInitializer<SocketChannel>() {
             @Override
             protected void initChannel(final SocketChannel ch) throws Exception {
-                ch.pipeline().addLast(new TimeHandler());
+                ch.pipeline().addLast(new TimeEncoder(), new TimeServHandler());
             }
         };
+    }
+
+    public static void main(String[] args) throws InterruptedException {
+        new TimeServ(8888).run();
     }
 }
