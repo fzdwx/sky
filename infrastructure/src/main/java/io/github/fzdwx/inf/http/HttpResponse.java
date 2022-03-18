@@ -3,6 +3,8 @@ package io.github.fzdwx.inf.http;
 import io.github.fzdwx.inf.http.inter.HttpResponseImpl;
 import io.netty.channel.Channel;
 
+import java.io.File;
+
 /**
  * http response.
  *
@@ -29,4 +31,10 @@ public interface HttpResponse {
      * @param url 重定向的url
      */
     void redirect(String url);
+
+    void file(File file);
+
+    void file(String filePath);
+
+    void file(byte[] bytes, String fileName);
 }

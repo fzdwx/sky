@@ -1,8 +1,11 @@
 package io.github.fzdwx.inf.http.inter;
 
+import cn.hutool.core.io.FileUtil;
 import io.github.fzdwx.inf.Netty;
 import io.github.fzdwx.inf.http.HttpResponse;
 import io.netty.channel.Channel;
+
+import java.io.File;
 
 /**
  * @author <a href="mailto:likelovec@gmail.com">韦朕</a>
@@ -18,7 +21,7 @@ public class HttpResponseImpl implements HttpResponse {
 
     @Override
     public void json(final String json) {
-        channel.writeAndFlush(HttpResult.ok(json)).addListener(Netty.close);
+        json(json.getBytes());
     }
 
     @Override
@@ -39,5 +42,20 @@ public class HttpResponseImpl implements HttpResponse {
     @Override
     public void redirect(final String url) {
         channel.writeAndFlush(HttpResult.redirect(url)).addListener(Netty.close);
+    }
+
+    @Override
+    public void file(final File file) {
+        file(FileUtil.readBytes(file), file.getName());
+    }
+
+    @Override
+    public void file(final String filePath) {
+        file(new File(filePath));
+    }
+
+    @Override
+    public void file(final byte[] bytes, final String fileName) {
+        channel.writeAndFlush(HttpResult.file(bytes, fileName)).addListener(Netty.close);
     }
 }

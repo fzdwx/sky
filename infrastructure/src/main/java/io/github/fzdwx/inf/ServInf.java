@@ -90,7 +90,7 @@ public abstract class ServInf {
     }
 
     protected void onStart(final Future<? super Void> f) {
-        log.info("server start at port: " + this.port);
+        log.info(this.name + " start at port: " + this.port);
     }
 
     public void stop() {

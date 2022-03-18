@@ -1,6 +1,8 @@
 package io.github.fzdwx.inf.http.inter;
 
+import cn.hutool.core.io.FileUtil;
 import io.github.fzdwx.inf.ContentType;
+import io.github.fzdwx.lambada.Lang;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.PooledByteBufAllocator;
 import io.netty.buffer.Unpooled;
@@ -9,8 +11,10 @@ import io.netty.handler.codec.http.HttpHeaderNames;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import io.netty.handler.codec.http.HttpVersion;
 
+import java.io.File;
 import java.nio.charset.StandardCharsets;
 
+import static com.google.common.net.HttpHeaders.CONTENT_DISPOSITION;
 import static io.netty.handler.codec.http.HttpHeaderNames.CONTENT_LENGTH;
 import static io.netty.handler.codec.http.HttpHeaderNames.CONTENT_TYPE;
 
@@ -113,6 +117,22 @@ public class HttpResult extends DefaultFullHttpResponse {
     public static HttpResult redirect(final String url) {
         final var httpResult = new HttpResult(HttpResponseStatus.MOVED_PERMANENTLY, Unpooled.copiedBuffer(url, StandardCharsets.UTF_8));
         httpResult.headers().add(HttpHeaderNames.LOCATION, url);
+        return httpResult;
+    }
+
+    public static HttpResult file(final File file) {
+        final var httpResult = ok(FileUtil.readBytes(file));
+        httpResult.headers().add(CONTENT_DISPOSITION, "attachment; filename=" + file.getName());
+        return httpResult;
+    }
+
+    public static HttpResult file(final byte[] bytes, final String fileName) {
+        if (Lang.isEmpty(fileName)) {
+            throw new IllegalArgumentException("fileName can not be empty");
+        }
+
+        final var httpResult = ok(bytes);
+        httpResult.headers().add(CONTENT_DISPOSITION, "attachment; filename=" + fileName);
         return httpResult;
     }
 
