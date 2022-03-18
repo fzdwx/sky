@@ -2,7 +2,6 @@ package io.github.fzdwx.inf.http;
 
 import io.github.fzdwx.inf.http.inter.HttpResponseImpl;
 import io.netty.channel.Channel;
-import io.netty.channel.ChannelFuture;
 
 /**
  * http response.
@@ -23,4 +22,11 @@ public interface HttpResponse {
     void html(String html);
 
     void bytes(byte[] bytes);
+
+    /**
+     * 重定向
+     *
+     * @param url 重定向的url
+     */
+    void redirect(String url);
 }

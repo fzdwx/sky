@@ -35,4 +35,9 @@ public class HttpResponseImpl implements HttpResponse {
     public void bytes(final byte[] bytes) {
         channel.writeAndFlush(HttpResult.ok(bytes)).addListener(Netty.close);
     }
+
+    @Override
+    public void redirect(final String url) {
+        channel.writeAndFlush(HttpResult.redirect(url)).addListener(Netty.close);
+    }
 }
