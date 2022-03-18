@@ -58,6 +58,8 @@ public interface Router {
     @Nullable
     Handler matchOne(HttpRequest request);
 
+    RouterTable<Handler> handlers();
+
     /**
      * 清空路由关系
      */
@@ -90,6 +92,11 @@ public interface Router {
         @Override
         public Handler matchOne(HttpRequest request) {
             return handlers.matchOne(request.uri(), request.methodType());
+        }
+
+        @Override
+        public RouterTable<Handler> handlers() {
+            return handlers;
         }
 
         @Override
