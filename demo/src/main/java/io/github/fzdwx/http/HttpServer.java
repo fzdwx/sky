@@ -29,6 +29,9 @@ public class HttpServer {
                 .GET("/tohello", (req, resp) -> {
                     resp.redirect("/hello");
                 })
+                .GET("/file", (req, resp) -> {
+                    resp.file("E:\\project\\fzdwx\\justfile");
+                })
                 .GET("/hello", (req, resp) -> resp.json("你好"))
                 .faviconIco(faviconIco);
 
