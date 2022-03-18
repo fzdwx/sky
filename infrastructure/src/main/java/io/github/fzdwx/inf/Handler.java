@@ -12,5 +12,5 @@ import io.netty.handler.codec.http.FullHttpRequest;
  */
 public interface Handler {
 
-    void handle(HttpRequest request, final HttpResponse channel) throws Exception;
+    void handle(HttpRequest request, final HttpResponse resp) throws Exception;
 }

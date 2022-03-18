@@ -36,11 +36,10 @@ public class HttpServer {
                     req.upgradeToWebSocket(((session, text) -> {
                         log.info(" receive : {}", text);
                     }));
-                    System.out.println("ttttttttttttttttt");
                 })
                 .GET("/hello", (req, resp) -> resp.json("你好"))
                 .faviconIco(faviconIco);
 
-        new HttpServ(8888, router).start();
+        new HttpServ(8888, router,true).start();
     }
 }

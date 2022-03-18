@@ -1,6 +1,7 @@
 package io.github.fzdwx.inf.http;
 
 import io.github.fzdwx.inf.ServInf;
+import io.github.fzdwx.inf.http.inter.HttpDevHtml;
 import io.github.fzdwx.inf.http.inter.HttpServInitializer;
 import io.github.fzdwx.inf.route.Router;
 import io.netty.channel.ChannelInitializer;
@@ -25,6 +26,7 @@ import java.net.InetAddress;
 public class HttpServ extends ServInf {
 
     private final Router router;
+    private final boolean dev;
 
     /**
      * http server
@@ -35,6 +37,25 @@ public class HttpServ extends ServInf {
     public HttpServ(final int port, final Router router) {
         super(port);
         this.router = router;
+        this.dev = false;
+    }
+
+    public HttpServ(final int port, final Router router, final boolean dev) {
+        super(port);
+        this.router = router;
+        this.dev = dev;
+    }
+
+    @SneakyThrows
+    @Override
+    protected void onStart(final Future<? super Void> f) {
+        final var address = "http://" + InetAddress.getLocalHost().getHostAddress() + ":" + this.port;
+        log.info("Server start Listening on:" + address);
+
+        if (dev) {
+            router.GET("/dev", new HttpDevHtml(router));
+            log.info("DEV mode open : " + address + "/dev");
+        }
     }
 
     @Override
@@ -52,11 +73,5 @@ public class HttpServ extends ServInf {
         this.serverBootstrap.option(ChannelOption.SO_BACKLOG, 1024);
         this.serverBootstrap.childOption(ChannelOption.TCP_NODELAY, true);
         this.serverBootstrap.childOption(ChannelOption.SO_KEEPALIVE, true);
-    }
-
-    @SneakyThrows
-    @Override
-    protected void onStart(final Future<? super Void> f) {
-        log.info("Server start Listening on: http://" + InetAddress.getLocalHost().getHostAddress() + ":" + this.port);
     }
 }
