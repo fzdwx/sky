@@ -19,3 +19,17 @@ final var router = Router.router()
 
 new HttpServ(8888, router).start();
 ```
+
+## 启动一个websocket 服务器
+```java
+final var router = Router.router()
+        .GET("/ws", (req, resp) -> {
+            // 处理weboskcet请求
+            req.upgradeToWebSocket(((session, text) -> {
+                log.info(" receive : {}", text);
+            }));
+            System.out.println("ttttttttttttttttt");
+        })
+
+new HttpServ(8888, router).start();
+```

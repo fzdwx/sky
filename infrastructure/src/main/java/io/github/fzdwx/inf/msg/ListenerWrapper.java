@@ -1,6 +1,7 @@
 package io.github.fzdwx.inf.msg;
 
 import io.github.fzdwx.inf.Listener;
+import io.github.fzdwx.inf.route.msg.SocketSession;
 import io.github.fzdwx.lambada.lang.PathAnalyzer;
 import io.github.fzdwx.lambada.lang.PathUtil;
 
@@ -36,5 +37,10 @@ public class ListenerWrapper implements Listener {
                 pathAnalyzer = PathAnalyzer.get(path);
             }
         }
+    }
+
+    @Override
+    public void onText(SocketSession session, final String text) {
+        listener.onText(session, text);
     }
 }

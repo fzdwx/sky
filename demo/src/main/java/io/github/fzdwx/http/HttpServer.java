@@ -32,6 +32,12 @@ public class HttpServer {
                 .GET("/file", (req, resp) -> {
                     resp.file("E:\\project\\fzdwx\\justfile");
                 })
+                .GET("/ws", (req, resp) -> {
+                    req.upgradeToWebSocket(((session, text) -> {
+                        log.info(" receive : {}", text);
+                    }));
+                    System.out.println("ttttttttttttttttt");
+                })
                 .GET("/hello", (req, resp) -> resp.json("你好"))
                 .faviconIco(faviconIco);
 

@@ -3,8 +3,6 @@ package io.github.fzdwx.inf.route.inter;
 import io.netty.handler.codec.http.FullHttpRequest;
 import io.netty.handler.codec.http.HttpHeaderNames;
 
-import java.util.Locale;
-
 public enum RequestMethod {
     //http
     GET("GET", SignalType.HTTP), //获取资源
@@ -50,13 +48,14 @@ public enum RequestMethod {
     public static RequestMethod of(FullHttpRequest request) {
         final var methodName = request.method().name();
         return switch (methodName) {
-            case "GET" -> {
-                final var headers = request.headers();
-                if (headers.contains(HttpHeaderNames.UPGRADE) && headers.get(HttpHeaderNames.UPGRADE).equalsIgnoreCase("websocket")) {
-                    yield WEBSOCKET;
-                }
-                yield GET;
-            }
+            case "GET" ->
+                // final var headers = request.headers();
+                // if (headers.contains(HttpHeaderNames.UPGRADE) && headers.get(HttpHeaderNames.UPGRADE).equalsIgnoreCase("websocket")) {
+                //     yield WEBSOCKET;
+                // }
+                // yield GET;
+                GET;
+
             case "POST" -> POST;
             case "PUT" -> PUT;
             case "DELETE" -> DELETE;
