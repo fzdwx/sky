@@ -3,6 +3,7 @@ package io.github.fzdwx.inf.http.inter;
 import io.github.fzdwx.inf.ContentType;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.PooledByteBufAllocator;
+import io.netty.buffer.Unpooled;
 import io.netty.handler.codec.http.DefaultFullHttpResponse;
 import io.netty.handler.codec.http.HttpHeaderNames;
 import io.netty.handler.codec.http.HttpResponseStatus;
@@ -107,6 +108,12 @@ public class HttpResult extends DefaultFullHttpResponse {
                 CONTENT_TYPE + ": " + this.headers().get(CONTENT_TYPE) + "\n" +
                 CONTENT_LENGTH + ": " + this.headers().get(CONTENT_LENGTH) + "\n" +
                 "content-body" + ": " + new String(this.body) + "\n";
+    }
+
+    public static HttpResult redirect(final String url) {
+        final var httpResult = new HttpResult(HttpResponseStatus.MOVED_PERMANENTLY, Unpooled.copiedBuffer(url, StandardCharsets.UTF_8));
+        httpResult.headers().add(HttpHeaderNames.LOCATION, url);
+        return httpResult;
     }
 
     private static HttpResult make(final HttpResponseStatus status, final byte[] body) {

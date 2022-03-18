@@ -23,6 +23,12 @@ public class HttpServer {
                               """
                     );
                 })
+                .GET("/to", (req, resp) -> {
+                    resp.redirect("https://www.baidu.com/s?wd=http%20%E9%87%8D%E5%AE%9A%E5%90%91&rsv_spt=1&rsv_iqid=0xe4c6f4ba0004188b&issp=1&f=8&rsv_bp=1&rsv_idx=2&ie=utf-8&tn=baiduhome_pg&rsv_enter=1&rsv_dl=tb&rsv_sug3=18&rsv_sug1=1&rsv_sug7=100&rsv_sug2=0&rsv_btype=i&inputT=4755&rsv_sug4=5267");
+                })
+                .GET("/tohello", (req, resp) -> {
+                    resp.redirect("/hello");
+                })
                 .GET("/hello", (req, resp) -> resp.json("你好"))
                 .faviconIco(faviconIco);
 
