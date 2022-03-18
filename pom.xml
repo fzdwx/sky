@@ -7,22 +7,35 @@
     <groupId>io.github.fzdwx</groupId>
     <artifactId>netty</artifactId>
     <packaging>pom</packaging>
-    <version>0.01</version>
+    <version>0.06</version>
     <modules>
         <module>demo</module>
+        <module>infrastructure</module>
     </modules>
 
     <properties>
         <maven.compiler.source>17</maven.compiler.source>
         <maven.compiler.target>17</maven.compiler.target>
+        <fzdwx.netty.version>0.06</fzdwx.netty.version>
 
-        <lambda.version>0.05-pre</lambda.version>
+        <lambda.version>0.06-pre</lambda.version>
         <netty.version>4.1.75.Final</netty.version>
         <lombok.version>1.18.22</lombok.version>
+        <fastjson.version>1.2.79</fastjson.version>
     </properties>
 
     <dependencyManagement>
         <dependencies>
+            <dependency>
+                <groupId>com.alibaba</groupId>
+                <artifactId>fastjson</artifactId>
+                <version>${fastjson.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.github.fzdwx</groupId>
+                <artifactId>infrastructure</artifactId>
+                <version>${fzdwx.netty.version}</version>
+            </dependency>
             <dependency>
                 <groupId>ch.qos.logback</groupId>
                 <artifactId>logback-core</artifactId>
