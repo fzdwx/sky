@@ -42,6 +42,9 @@ new HttpServ(8888, router).start();
 
 ## Dev page
 ```java
- new HttpServ(8888, router,true /* dev true */).start();
+  new HttpServ(8888, router)
+        .name("我的http 服务器 !")
+        .dev() /* open dev mode */
+        .start();;
 ```
 ![img.png](assert/img.png)
