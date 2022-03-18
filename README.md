@@ -2,6 +2,12 @@
 
 使用Netty写的一些小demo
 
+## features
+
+- [x] Http Server
+- [x] Websocket Server
+- [ ] todo... need your idea !
+
 ## 启动一个http 服务器
 
 ```java

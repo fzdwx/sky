@@ -1,19 +1,12 @@
-package io.github.fzdwx.inf.http.inter;
+package io.github.fzdwx.inf.http;
 
 import io.github.fzdwx.inf.Netty;
-import io.github.fzdwx.inf.http.HttpRequest;
-import io.github.fzdwx.inf.http.HttpResponse;
-import io.github.fzdwx.inf.msg.WebSocketHandler;
+import io.github.fzdwx.inf.http.inter.HttpResult;
 import io.github.fzdwx.inf.route.Router;
-import io.github.fzdwx.inf.route.msg.SocketSession;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
-import io.netty.channel.ChannelPipeline;
 import io.netty.handler.codec.http.FullHttpRequest;
-import io.netty.handler.codec.http.HttpHeaderNames;
 import io.netty.handler.codec.http.HttpResponseStatus;
-import io.netty.handler.codec.http.websocketx.CloseWebSocketFrame;
-import io.netty.handler.codec.http.websocketx.WebSocketServerHandshakerFactory;
 import io.netty.util.ReferenceCountUtil;
 
 /**

@@ -1,4 +1,4 @@
-package io.github.fzdwx.inf.http.inter;
+package io.github.fzdwx.inf.http;
 
 import io.github.fzdwx.inf.route.Router;
 import io.netty.channel.ChannelInitializer;

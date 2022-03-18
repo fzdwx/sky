@@ -2,7 +2,6 @@ package io.github.fzdwx.inf.http;
 
 import io.github.fzdwx.inf.ServInf;
 import io.github.fzdwx.inf.http.inter.HttpDevHtml;
-import io.github.fzdwx.inf.http.inter.HttpServInitializer;
 import io.github.fzdwx.inf.route.Router;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelOption;
