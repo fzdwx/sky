@@ -40,6 +40,9 @@ public class HttpServer {
                 .GET("/hello", (req, resp) -> resp.json("你好"))
                 .faviconIco(faviconIco);
 
-        new HttpServ(8888, router,true).start();
+        new HttpServ(8888, router)
+                .name("我的http 服务器 !")
+                .dev()
+                .start();
     }
 }

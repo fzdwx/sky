@@ -19,9 +19,11 @@ import java.util.stream.Collectors;
 public class HttpDevHtml implements Handler {
 
     private final Router router;
+    private final String name;
 
-    public HttpDevHtml(final Router router) {
+    public HttpDevHtml(final String name, final Router router) {
         this.router = router;
+        this.name = name;
     }
 
     @Override
@@ -32,9 +34,9 @@ public class HttpDevHtml implements Handler {
                 .collect(Collectors.joining(""));
         final var html = """
                                  <meta charset="UTF-8">
-                                 <title>fzdwx dev page</title> 
+                                 <title>%s | DEV PAGE </title> 
                                  """ + apiList;
 
-        resp.html(html);
+        resp.html(html.formatted(name));
     }
 }

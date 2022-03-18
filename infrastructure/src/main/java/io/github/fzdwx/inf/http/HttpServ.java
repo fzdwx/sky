@@ -25,7 +25,7 @@ import java.net.InetAddress;
 public class HttpServ extends ServInf {
 
     private final Router router;
-    private final boolean dev;
+    private boolean dev;
 
     /**
      * http server
@@ -36,25 +36,19 @@ public class HttpServ extends ServInf {
     public HttpServ(final int port, final Router router) {
         super(port);
         this.router = router;
-        this.dev = false;
     }
 
-    public HttpServ(final int port, final Router router, final boolean dev) {
-        super(port);
-        this.router = router;
-        this.dev = dev;
+    public HttpServ dev() {
+        this.dev = true;
+
+        router.GET("/dev", new HttpDevHtml(this.name, router));
+        return this;
     }
 
-    @SneakyThrows
     @Override
-    protected void onStart(final Future<? super Void> f) {
-        final var address = "http://" + InetAddress.getLocalHost().getHostAddress() + ":" + this.port;
-        log.info("Server start Listening on:" + address);
-
-        if (dev) {
-            router.GET("/dev", new HttpDevHtml(router));
-            log.info("DEV mode open : " + address + "/dev");
-        }
+    public HttpServ name(String name) {
+        super.name(name);
+        return this;
     }
 
     @Override
@@ -72,5 +66,16 @@ public class HttpServ extends ServInf {
         this.serverBootstrap.option(ChannelOption.SO_BACKLOG, 1024);
         this.serverBootstrap.childOption(ChannelOption.TCP_NODELAY, true);
         this.serverBootstrap.childOption(ChannelOption.SO_KEEPALIVE, true);
+    }
+
+    @SneakyThrows
+    @Override
+    protected void onStart(final Future<? super Void> f) {
+        final var address = "http://" + InetAddress.getLocalHost().getHostAddress() + ":" + this.port;
+        log.info("Server start Listening on:" + address);
+
+        if (dev) {
+            log.info("DEV mode open : " + address + "/dev");
+        }
     }
 }

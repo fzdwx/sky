@@ -21,9 +21,8 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public abstract class ServInf {
 
-    protected final String name;
     protected final int port;
-
+    protected String name;
     protected int bossCnt = 0;
     protected EventLoopGroup bossGroup;
 
@@ -63,6 +62,11 @@ public abstract class ServInf {
         return this;
     }
 
+    public ServInf name(String name) {
+        this.name = name;
+        return this;
+    }
+
     @SneakyThrows
     public void start() {
         if (bossGroup == null) {
@@ -89,10 +93,6 @@ public abstract class ServInf {
         this.channel.closeFuture().sync();
     }
 
-    protected void onStart(final Future<? super Void> f) {
-        log.info(this.name + " start at port: " + this.port);
-    }
-
     public void stop() {
         this.workerGroup.shutdownGracefully();
         this.bossGroup.shutdownGracefully();
@@ -113,4 +113,8 @@ public abstract class ServInf {
     public abstract Class<? extends ServerChannel> serverChannelClass();
 
     public abstract void addServOptions();
+
+    protected void onStart(final Future<? super Void> f) {
+        log.info(this.name + " start at port: " + this.port);
+    }
 }
