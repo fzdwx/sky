@@ -2,14 +2,19 @@ package io.github.fzdwx.inf;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
+import io.netty.channel.ChannelFutureListener;
+import io.netty.util.concurrent.Future;
+import io.netty.util.concurrent.GenericFutureListener;
 
 /**
- * byteBuf tool.
+ * netty tool.
  *
  * @author <a href="mailto:likelovec@gmail.com">fzdwx</a>
  * @date 2022/3/16 21:44
  */
-public final class Buf {
+public final class Netty {
+
+    public static GenericFutureListener<? extends Future<? super Void>> close = ChannelFutureListener.CLOSE;
 
     public static String read(ByteBuf buf) {
         final var dest = new byte[buf.readableBytes()];

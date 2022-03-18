@@ -1,6 +1,8 @@
-package io.github.fzdwx.http;
+package io.github.fzdwx.inf.http;
 
 import io.github.fzdwx.inf.ServInf;
+import io.github.fzdwx.inf.http.inter.HttpServInitializer;
+import io.github.fzdwx.inf.route.Router;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelOption;
 import io.netty.channel.ServerChannel;
@@ -14,19 +16,30 @@ import lombok.extern.slf4j.Slf4j;
 import java.net.InetAddress;
 
 /**
+ * http serv.
+ *
  * @author <a href="mailto:likelovec@gmail.com">韦朕</a>
- * @date 2022/3/17 17:45
+ * @date 2022/3/18 11:25
  */
 @Slf4j
 public class HttpServ extends ServInf {
 
-    public HttpServ(final int port) {
+    private final Router router;
+
+    /**
+     * http server
+     *
+     * @param port   the listening port
+     * @param router router
+     */
+    public HttpServ(final int port, final Router router) {
         super(port);
+        this.router = router;
     }
 
     @Override
     public @NonNull ChannelInitializer<SocketChannel> addChildHandler() {
-        return new HttpServInitializer();
+        return new HttpServInitializer(router);
     }
 
     @Override
@@ -45,9 +58,5 @@ public class HttpServ extends ServInf {
     @Override
     protected void onStart(final Future<? super Void> f) {
         log.info("Server start Listening on: http://" + InetAddress.getLocalHost().getHostAddress() + ":" + this.port);
-    }
-
-    public static void main(String[] args) {
-        new HttpServ(8888).start();
     }
 }
