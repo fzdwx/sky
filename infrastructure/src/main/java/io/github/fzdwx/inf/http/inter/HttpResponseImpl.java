@@ -21,7 +21,7 @@ public class HttpResponseImpl implements HttpResponse {
 
     @Override
     public void json(final String json) {
-        channel.writeAndFlush(HttpResult.ok(json)).addListener(Netty.close);
+        json(json.getBytes());
     }
 
     @Override
