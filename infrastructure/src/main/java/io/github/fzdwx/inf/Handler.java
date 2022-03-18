@@ -1,5 +1,6 @@
 package io.github.fzdwx.inf;
 
+import io.github.fzdwx.inf.http.HttpRequest;
 import io.github.fzdwx.inf.http.HttpResponse;
 import io.netty.handler.codec.http.FullHttpRequest;
 
@@ -11,5 +12,5 @@ import io.netty.handler.codec.http.FullHttpRequest;
  */
 public interface Handler {
 
-    void handle(FullHttpRequest request, final HttpResponse channel);
+    void handle(HttpRequest request, final HttpResponse channel) throws Exception;
 }

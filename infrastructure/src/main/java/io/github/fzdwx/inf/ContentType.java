@@ -1,10 +1,13 @@
 package io.github.fzdwx.inf;
 
+import io.netty.handler.codec.http.HttpHeaderValues;
+
 /**
  * HTTP Content-Type.
  *
  * @author <a href="mailto:likelovec@gmail.com">韦朕</a>
  * @date 2022/3/18 16:46
+ * @see HttpHeaderValues
  */
 public interface ContentType {
 
