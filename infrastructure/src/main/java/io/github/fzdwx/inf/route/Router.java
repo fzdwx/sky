@@ -70,7 +70,6 @@ public interface Router {
 
         // for handler
         private final RouterTable<Handler> handlers;
-        // for listener
 
         public RouterImpl() {
             this.handlers = new RouterTable<>();

@@ -37,7 +37,8 @@ public class HttpServer {
                         log.info(" receive : {}", text);
                     }));
                 })
-                .GET("/hello", (req, resp) -> resp.json("你好"))
+                .GET("/hello", (req, resp) -> resp.json("你好-get"))
+                .POST("/hello", (req, resp) -> resp.json("你好-post"))
                 .faviconIco(faviconIco);
 
         new HttpServ(8888, router)

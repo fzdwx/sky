@@ -38,10 +38,15 @@ public class HttpServ extends ServInf {
         this.router = router;
     }
 
+    /**
+     * open dev mode
+     */
     public HttpServ dev() {
         this.dev = true;
 
-        router.GET("/dev", new HttpDevHtml(this.name, router));
+        // Add dev html page
+        router.GET(HttpDevHtml.PAGE_PATH, new HttpDevHtml(this.name, router));
+
         return this;
     }
 
@@ -75,7 +80,7 @@ public class HttpServ extends ServInf {
         log.info("Server start Listening on:" + address);
 
         if (dev) {
-            log.info("DEV mode open : " + address + "/dev");
+            log.info("DEV mode open : " + address + HttpDevHtml.PAGE_PATH);
         }
     }
 }
