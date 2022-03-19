@@ -1,6 +1,7 @@
 package io.github.fzdwx.inf.msg.inter;
 
 import io.github.fzdwx.inf.Listener;
+import io.github.fzdwx.inf.http.core.HttpRequest;
 import io.github.fzdwx.inf.msg.WebSocket;
 import io.github.fzdwx.inf.route.msg.SocketSession;
 import io.github.fzdwx.lambada.fun.Hooks;
@@ -19,6 +20,7 @@ import lombok.Getter;
 public class WebSocketImpl implements WebSocket {
 
     private final SocketSession session;
+    private final HttpRequest httpRequest;
     private Hooks<String> textHooks;
     private Hooks<Void> beforeHandshakeHooks;
     private Hooks<Void> openHooks;
@@ -27,8 +29,9 @@ public class WebSocketImpl implements WebSocket {
     private Hooks<Void> closeHooks;
     private Hooks<Throwable> errorHooks;
 
-    public WebSocketImpl(SocketSession session) {
+    public WebSocketImpl(SocketSession session, final HttpRequest httpRequest) {
         this.session = session;
+        this.httpRequest = httpRequest;
     }
 
     @Override
@@ -49,42 +52,42 @@ public class WebSocketImpl implements WebSocket {
         return this;
     }
 
-    public WebSocket beforeHandshakeHooks(Hooks<Void> h) {
+    public WebSocket registerBeforeHandshake(Hooks<Void> h) {
         this.beforeHandshakeHooks = h;
         return this;
     }
 
     @Override
-    public WebSocket openHooks(final Hooks<Void> h) {
+    public WebSocket registerOpen(final Hooks<Void> h) {
         this.openHooks = h;
         return this;
     }
 
     @Override
-    public WebSocket eventHooks(final Hooks<Object> h) {
+    public WebSocket registerEvent(final Hooks<Object> h) {
         this.eventHooks = h;
         return this;
     }
 
     @Override
-    public WebSocket binaryHooks(final Hooks<ByteBuf> h) {
+    public WebSocket registerBinary(final Hooks<ByteBuf> h) {
         this.binaryHooks = h;
         return this;
     }
 
     @Override
-    public WebSocket closeHooks(final Hooks<Void> h) {
+    public WebSocket registerClose(final Hooks<Void> h) {
         this.closeHooks = h;
         return this;
     }
 
     @Override
-    public WebSocket errorHooks(final Hooks<Throwable> h) {
+    public WebSocket registerError(final Hooks<Throwable> h) {
         this.errorHooks = h;
         return this;
     }
 
-    public WebSocket textHooks(Hooks<String> h) {
+    public WebSocket registerText(Hooks<String> h) {
         this.textHooks = h;
         return this;
     }

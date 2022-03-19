@@ -1,7 +1,4 @@
-package io.github.fzdwx.inf;
-
-import io.github.fzdwx.inf.http.core.HttpRequest;
-import io.github.fzdwx.inf.http.core.HttpResponse;
+package io.github.fzdwx.inf.http.core;
 
 /**
  * handle

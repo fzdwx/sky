@@ -50,8 +50,8 @@ public class HttpRequestImpl implements HttpRequest {
     public void upgradeToWebSocket(Hooks<WebSocket> h) {
         //region init websocket and convert to linstener
         String subProtocols = null;
-        final var session = SocketSession.create(ctx.channel(), request);
-        final var webSocket = WebSocket.create(session);
+        final var session = SocketSession.create(ctx.channel());
+        final var webSocket = WebSocket.create(session, this);
         h.call(webSocket);
         final var listener = webSocket.toLinstener();
         //endregion

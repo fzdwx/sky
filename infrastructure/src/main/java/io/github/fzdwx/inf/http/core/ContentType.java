@@ -1,4 +1,4 @@
-package io.github.fzdwx.inf;
+package io.github.fzdwx.inf.http.core;
 
 import io.netty.handler.codec.http.HttpHeaderValues;
 

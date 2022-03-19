@@ -1,5 +1,7 @@
 package io.github.fzdwx.inf;
 
+import io.github.fzdwx.inf.http.HttpServ;
+import io.github.fzdwx.inf.route.Router;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelFutureListener;
@@ -41,5 +43,17 @@ public final class Netty {
 
     public static boolean isWebSocket(HttpHeaders headers) {
         return headers.contains(HttpHeaderNames.UPGRADE, HttpHeaderValues.WEBSOCKET, true);
+    }
+
+    /**
+     * create a new http server.
+     *
+     * @param port   the http server listening port
+     * @param router the http router
+     * @return {@link HttpServ }
+     * @see Router
+     */
+    public static HttpServ HTTP(int port, Router router) {
+        return new HttpServ(port, router);
     }
 }

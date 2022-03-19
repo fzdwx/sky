@@ -2,7 +2,6 @@ package io.github.fzdwx.inf.route.msg;
 
 import io.github.fzdwx.inf.route.msg.inter.SocketSessionImpl;
 import io.netty.channel.Channel;
-import io.netty.handler.codec.http.FullHttpRequest;
 
 /**
  * session.
@@ -15,8 +14,8 @@ public interface SocketSession {
 
     Channel channel();
 
-    static SocketSession create(Channel channel, FullHttpRequest request) {
-        return new SocketSessionImpl(channel, request);
+    static SocketSession create(Channel channel) {
+        return new SocketSessionImpl(channel);
     }
 
     /**
