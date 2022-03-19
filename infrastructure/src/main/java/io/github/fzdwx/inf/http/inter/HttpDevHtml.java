@@ -35,17 +35,21 @@ public class HttpDevHtml implements Handler {
     @Override
     public void handle(final HttpRequest request, final HttpResponse resp) throws Exception {
         final var html = """
-                <html>
+                <html lang="zh">
                     <meta charset="UTF-8">
                     <title>%s | DEV PAGE </title>
-                    Api:<br>
-                    <ol>
+                    <img src="/favicon.ico" width="100" height="100"  alt="favicon" style='display: block;margin: 0 auto'>
+                    <div id='app' style='position: fixed; left: 0;top: 0'>
+                        <span>Api:</span>
+                        <ol>
                 %s
-                    </ol>
-                    File:<br>
-                    <ol>
+                        </ol>
+                        <span>File:</span>
+                        <ol>
                 %s
-                    </ol>
+                        </ol>
+                         Counter: {{ counter }}
+                    </div>
                 </html>
                     """;
 
@@ -57,7 +61,7 @@ public class HttpDevHtml implements Handler {
                 .skip(1)
                 .map(h -> {
                     var s = """
-                                    <li><div>%s<a href="%s">%s</a></div></li>
+                                        <li><div>%s<a href="%s">%s</a></div></li>
                             """;
                     return s.formatted("&nbsp" + padAfter(h.method().name, 10, "-") + "&nbsp", h.path(), h.path());
                 })
@@ -70,7 +74,7 @@ public class HttpDevHtml implements Handler {
                         response.html(readString(h, CHARSET));
                     });
                     var s = """
-                                    <li><div><a href="/%s">%s</a></div></li>
+                                        <li><div><a href="/%s">%s</a></div></li>
                             """;
                     return s.formatted(h, h);
                 })
