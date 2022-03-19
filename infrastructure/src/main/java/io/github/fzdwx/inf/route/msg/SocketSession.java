@@ -18,4 +18,9 @@ public interface SocketSession {
         return new SocketSessionImpl(channel, request);
     }
 
+    void send(String text);
+
+    void send(byte[] text);
+
+    void sendBinary(byte[] binary);
 }

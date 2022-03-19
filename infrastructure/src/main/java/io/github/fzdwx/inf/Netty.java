@@ -34,6 +34,10 @@ public final class Netty {
         return Unpooled.buffer(4);
     }
 
+    public static ByteBuf alloc(final byte[] binary) {
+        return Unpooled.buffer(binary.length).writeBytes(binary);
+    }
+
     public static boolean isWebSocket(HttpHeaders headers) {
         return headers.contains(HttpHeaderNames.UPGRADE, HttpHeaderValues.WEBSOCKET, true);
     }
