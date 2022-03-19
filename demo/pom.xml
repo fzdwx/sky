@@ -20,7 +20,7 @@
         </dependency>
         <dependency>
             <groupId>io.github.fzdwx</groupId>
-            <artifactId>infrastructure</artifactId>
+            <artifactId>sky-infrastructure</artifactId>
         </dependency>
     </dependencies>
 

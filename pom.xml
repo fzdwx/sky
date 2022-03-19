@@ -10,7 +10,7 @@
     <version>0.06</version>
     <modules>
         <module>demo</module>
-        <module>infrastructure</module>
+        <module>sky-infrastructure</module>
     </modules>
 
     <properties>
@@ -18,7 +18,7 @@
         <maven.compiler.target>17</maven.compiler.target>
         <fzdwx.netty.version>0.06</fzdwx.netty.version>
 
-        <lambda.version>0.06-pre</lambda.version>
+        <lambda.version>0.06</lambda.version>
         <netty.version>4.1.75.Final</netty.version>
         <lombok.version>1.18.22</lombok.version>
         <fastjson.version>1.2.79</fastjson.version>
@@ -33,7 +33,7 @@
             </dependency>
             <dependency>
                 <groupId>io.github.fzdwx</groupId>
-                <artifactId>infrastructure</artifactId>
+                <artifactId>sky-infrastructure</artifactId>
                 <version>${fzdwx.netty.version}</version>
             </dependency>
             <dependency>
