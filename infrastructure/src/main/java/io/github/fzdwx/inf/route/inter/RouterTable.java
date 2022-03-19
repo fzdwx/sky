@@ -8,11 +8,12 @@ import java.util.stream.Collectors;
 /**
  * @author <a href="mailto:likelovec@gmail.com">韦朕</a>
  * @date 2022/3/18 12:28
+ * @since 0.06
  */
 public class RouterTable<T> extends ArrayList<Routing<T>> {
 
     /**
-     * 区配一个目标（根据上上文）
+     * @since 0.06
      */
     public T matchOne(String path, RequestMethod method) {
         for (Routing<T> l : this) {
@@ -25,7 +26,7 @@ public class RouterTable<T> extends ArrayList<Routing<T>> {
     }
 
     /**
-     * 区配多个目标（根据上上文）
+     * @since 0.06
      */
     public List<T> matchAll(String path, RequestMethod method) {
         return this.stream()

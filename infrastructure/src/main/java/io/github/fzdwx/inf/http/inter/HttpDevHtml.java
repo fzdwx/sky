@@ -1,8 +1,8 @@
 package io.github.fzdwx.inf.http.inter;
 
 import io.github.fzdwx.inf.Handler;
-import io.github.fzdwx.inf.http.HttpRequest;
-import io.github.fzdwx.inf.http.HttpResponse;
+import io.github.fzdwx.inf.http.core.HttpRequest;
+import io.github.fzdwx.inf.http.core.HttpResponse;
 import io.github.fzdwx.inf.route.Router;
 import lombok.extern.slf4j.Slf4j;
 
@@ -63,6 +63,7 @@ public class HttpDevHtml implements Handler {
                 })
                 .collect(joining(""));
 
+        // mount file path to router.
         this.fileList = of(listFileNames(""))
                 .map(h -> {
                     router.GET("/" + h, (req, response) -> {

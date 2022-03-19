@@ -15,8 +15,11 @@ import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 
 /**
+ * server based class.
+ *
  * @author <a href="mailto:likelovec@gmail.com">韦朕</a>
  * @date 2022/3/17 14:40
+ * @since 0.06
  */
 @Slf4j
 public abstract class ServInf {

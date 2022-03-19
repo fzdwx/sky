@@ -1,4 +1,4 @@
-package io.github.fzdwx.inf.http;
+package io.github.fzdwx.inf.http.core;
 
 import io.github.fzdwx.inf.http.inter.HttpResponseImpl;
 import io.netty.channel.Channel;

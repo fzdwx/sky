@@ -2,7 +2,7 @@ package io.github.fzdwx.inf.http.inter;
 
 import io.github.fzdwx.inf.Listener;
 import io.github.fzdwx.inf.Netty;
-import io.github.fzdwx.inf.http.HttpRequest;
+import io.github.fzdwx.inf.http.core.HttpRequest;
 import io.github.fzdwx.inf.msg.WebSocketHandler;
 import io.github.fzdwx.inf.route.inter.RequestMethod;
 import io.github.fzdwx.inf.route.msg.SocketSession;
@@ -12,6 +12,9 @@ import io.netty.handler.codec.http.FullHttpRequest;
 import io.netty.handler.codec.http.HttpHeaderNames;
 import io.netty.handler.codec.http.websocketx.CloseWebSocketFrame;
 import io.netty.handler.codec.http.websocketx.WebSocketServerHandshakerFactory;
+
+import static io.github.fzdwx.inf.route.inter.RequestMethod.of;
+import static io.netty.handler.codec.http.websocketx.WebSocketServerHandshakerFactory.sendUnsupportedVersionResponse;
 
 /**
  * @author <a href="mailto:likelovec@gmail.com">fzdwx</a>
@@ -26,7 +29,7 @@ public class HttpRequestImpl implements HttpRequest {
     public HttpRequestImpl(final ChannelHandlerContext ctx, final FullHttpRequest request) {
         this.ctx = ctx;
         this.request = request;
-        this.methodType = RequestMethod.of(request);
+        this.methodType = of(request);
     }
 
     @Override
@@ -55,7 +58,7 @@ public class HttpRequestImpl implements HttpRequest {
         final var handShaker = new WebSocketServerHandshakerFactory(getWebSocketLocation(request), subProtocols, true)
                 .newHandshaker(request);
         if (handShaker == null) {
-            WebSocketServerHandshakerFactory.sendUnsupportedVersionResponse(session.channel());
+            sendUnsupportedVersionResponse(session.channel());
         } else {
             final ChannelPipeline pipeline = ctx.pipeline();
             pipeline.remove(ctx.name());

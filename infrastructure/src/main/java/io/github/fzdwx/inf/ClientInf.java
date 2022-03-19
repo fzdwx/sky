@@ -9,8 +9,11 @@ import lombok.NonNull;
 import lombok.SneakyThrows;
 
 /**
+ * client based class.
+ *
  * @author <a href="mailto:likelovec@gmail.com">韦朕</a>
  * @date 2022/3/17 14:40
+ * @since 0.06
  */
 public abstract class ClientInf {
 

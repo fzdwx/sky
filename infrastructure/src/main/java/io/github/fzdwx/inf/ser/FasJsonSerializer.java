@@ -7,6 +7,7 @@ import com.alibaba.fastjson.JSON;
  *
  * @author <a href="mailto:likelovec@gmail.com">韦朕</a>
  * @date 2022/3/17 17:28
+ * @since 0.06
  */
 public class FasJsonSerializer implements Serializer {
 

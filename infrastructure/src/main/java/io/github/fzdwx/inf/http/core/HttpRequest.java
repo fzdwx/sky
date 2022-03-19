@@ -1,4 +1,4 @@
-package io.github.fzdwx.inf.http;
+package io.github.fzdwx.inf.http.core;
 
 import io.github.fzdwx.inf.Listener;
 import io.github.fzdwx.inf.http.inter.HttpRequestImpl;
