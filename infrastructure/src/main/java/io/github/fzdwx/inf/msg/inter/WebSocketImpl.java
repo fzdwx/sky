@@ -1,0 +1,146 @@
+package io.github.fzdwx.inf.msg.inter;
+
+import io.github.fzdwx.inf.Listener;
+import io.github.fzdwx.inf.msg.WebSocket;
+import io.github.fzdwx.inf.route.msg.SocketSession;
+import io.github.fzdwx.lambada.fun.Hooks;
+import io.netty.buffer.ByteBuf;
+import lombok.Getter;
+
+/**
+ * default impl websocket.
+ *
+ * @author <a href="mailto:likelovec@gmail.com">韦朕</a>
+ * @date 2022/3/19 16:16
+ * @see WebSocket
+ * @since 0.06
+ */
+@Getter
+public class WebSocketImpl implements WebSocket {
+
+    private final SocketSession session;
+    private Hooks<String> textHooks;
+    private Hooks<Void> beforeHandshakeHooks;
+    private Hooks<Void> openHooks;
+    private Hooks<Object> eventHooks;
+    private Hooks<ByteBuf> binaryHooks;
+    private Hooks<Void> closeHooks;
+    private Hooks<Throwable> errorHooks;
+
+    public WebSocketImpl(SocketSession session) {
+        this.session = session;
+    }
+
+    @Override
+    public WebSocket send(final String text) {
+        session.send(text);
+        return this;
+    }
+
+    @Override
+    public WebSocket send(final byte[] text) {
+        session.send(text);
+        return this;
+    }
+
+    @Override
+    public WebSocket sendBinary(final byte[] binary) {
+        session.sendBinary(binary);
+        return this;
+    }
+
+    public WebSocket beforeHandshakeHooks(Hooks<Void> h) {
+        this.beforeHandshakeHooks = h;
+        return this;
+    }
+
+    @Override
+    public WebSocket openHooks(final Hooks<Void> h) {
+        this.openHooks = h;
+        return this;
+    }
+
+    @Override
+    public WebSocket eventHooks(final Hooks<Object> h) {
+        this.eventHooks = h;
+        return this;
+    }
+
+    @Override
+    public WebSocket binaryHooks(final Hooks<ByteBuf> h) {
+        this.binaryHooks = h;
+        return this;
+    }
+
+    @Override
+    public WebSocket closeHooks(final Hooks<Void> h) {
+        this.closeHooks = h;
+        return this;
+    }
+
+    @Override
+    public WebSocket errorHooks(final Hooks<Throwable> h) {
+        this.errorHooks = h;
+        return this;
+    }
+
+    public WebSocket textHooks(Hooks<String> h) {
+        this.textHooks = h;
+        return this;
+    }
+
+    @Override
+    public Listener toLinstener() {
+        return new Listener() {
+
+            @Override
+            public void beforeHandshake(final SocketSession session) throws RuntimeException {
+                if (beforeHandshakeHooks != null) {
+                    beforeHandshakeHooks.call(null);
+                }
+            }
+
+            @Override
+            public void onOpen(final SocketSession session) {
+                if (openHooks != null) {
+                    openHooks.call(null);
+                }
+            }
+
+            @Override
+            public void onclose(final SocketSession session) {
+                if (closeHooks != null) {
+                    closeHooks.call(null);
+                }
+            }
+
+            @Override
+            public void onEvent(final SocketSession session, final Object event) {
+                if (eventHooks != null) {
+                    eventHooks.call(event);
+                }
+            }
+
+            @Override
+            public void onText(final SocketSession session, final String text) {
+                if (textHooks != null) {
+                    textHooks.call(text);
+                }
+            }
+
+            @Override
+            public void onBinary(final SocketSession session, final ByteBuf content) {
+                if (binaryHooks != null) {
+                    binaryHooks.call(content);
+                }
+            }
+
+            @Override
+            public void onError(final SocketSession session, final Throwable cause) {
+                if (errorHooks != null) {
+                    errorHooks.call(cause);
+                }
+            }
+        };
+    }
+}

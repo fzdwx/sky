@@ -10,8 +10,11 @@ import io.netty.handler.codec.http.HttpResponseStatus;
 import io.netty.util.ReferenceCountUtil;
 
 /**
+ * http server handler.
+ *
  * @author <a href="mailto:likelovec@gmail.com">韦朕</a>
  * @date 2022/3/17 17:45
+ * @since 0.06
  */
 public class HttpServerHandler extends ChannelInboundHandlerAdapter {
 

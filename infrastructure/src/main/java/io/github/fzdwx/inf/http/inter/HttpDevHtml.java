@@ -1,6 +1,6 @@
 package io.github.fzdwx.inf.http.inter;
 
-import io.github.fzdwx.inf.Handler;
+import io.github.fzdwx.inf.HttpHandler;
 import io.github.fzdwx.inf.http.core.HttpRequest;
 import io.github.fzdwx.inf.http.core.HttpResponse;
 import io.github.fzdwx.inf.route.Router;
@@ -18,9 +18,10 @@ import static java.util.stream.Collectors.joining;
  *
  * @author <a href="mailto:likelovec@gmail.com">fzdwx</a>
  * @date 2022/3/18 21:47
+ * @since 0.06
  */
 @Slf4j
-public class HttpDevHtml implements Handler {
+public class HttpDevHtml implements HttpHandler {
 
     private final String name;
     private String apiList;
