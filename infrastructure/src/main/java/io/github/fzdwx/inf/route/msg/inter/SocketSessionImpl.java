@@ -1,8 +1,11 @@
 package io.github.fzdwx.inf.route.msg.inter;
 
+import io.github.fzdwx.inf.Netty;
 import io.github.fzdwx.inf.route.msg.SocketSession;
 import io.netty.channel.Channel;
 import io.netty.handler.codec.http.FullHttpRequest;
+import io.netty.handler.codec.http.websocketx.BinaryWebSocketFrame;
+import io.netty.handler.codec.http.websocketx.TextWebSocketFrame;
 
 /**
  * @author <a href="mailto:likelovec@gmail.com">fzdwx</a>
@@ -21,5 +24,20 @@ public class SocketSessionImpl implements SocketSession {
     @Override
     public Channel channel() {
         return this.channel;
+    }
+
+    @Override
+    public void send(final String text) {
+        this.channel.writeAndFlush(new TextWebSocketFrame(text));
+    }
+
+    @Override
+    public void send(final byte[] text) {
+        this.channel.writeAndFlush(new TextWebSocketFrame(Netty.alloc(text)));
+    }
+
+    @Override
+    public void sendBinary(final byte[] binary) {
+        this.channel.writeAndFlush(new BinaryWebSocketFrame(Netty.alloc(binary)));
     }
 }
