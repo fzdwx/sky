@@ -4,8 +4,6 @@ import io.github.fzdwx.inf.http.HttpServ;
 import io.github.fzdwx.inf.route.Router;
 import lombok.extern.slf4j.Slf4j;
 
-import java.nio.charset.StandardCharsets;
-
 /**
  * @author <a href="mailto:likelovec@gmail.com">韦朕</a>
  * @date 2022/3/17 17:45
@@ -35,10 +33,11 @@ public class HttpServer {
                     resp.file("E:\\project\\fzdwx\\justfile");
                 })
                 .GET("/ws", (req, resp) -> {
-                    req.upgradeToWebSocket(((session, text) -> {
-                        log.info(" receive : {}", text);
-                        session.sendBinary("hello".getBytes(StandardCharsets.UTF_8));
-                    }));
+                    req.upgradeToWebSocket(ws -> {
+                        ws.textHooks(msg -> {
+                            ws.send("hello world");
+                        });
+                    });
                 })
                 .GET("/hello", (req, resp) -> resp.json("你好-get"))
                 .POST("/hello", (req, resp) -> resp.json("你好-post"))

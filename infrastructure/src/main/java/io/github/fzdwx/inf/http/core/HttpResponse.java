@@ -10,6 +10,7 @@ import java.io.File;
  *
  * @author <a href="mailto:likelovec@gmail.com">韦朕</a>
  * @date 2022/3/18 15:23
+ * @since 0.06
  */
 public interface HttpResponse {
 

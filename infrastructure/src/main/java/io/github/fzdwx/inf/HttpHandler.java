@@ -11,7 +11,7 @@ import io.github.fzdwx.inf.http.core.HttpResponse;
  * @since 0.06
  */
 @FunctionalInterface
-public interface Handler {
+public interface HttpHandler {
 
     void handle(HttpRequest request, final HttpResponse resp) throws Exception;
 }

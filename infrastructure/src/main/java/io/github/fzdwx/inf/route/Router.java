@@ -1,6 +1,6 @@
 package io.github.fzdwx.inf.route;
 
-import io.github.fzdwx.inf.Handler;
+import io.github.fzdwx.inf.HttpHandler;
 import io.github.fzdwx.inf.http.core.HttpRequest;
 import io.github.fzdwx.inf.route.inter.RequestMethod;
 import io.github.fzdwx.inf.route.inter.RouterTable;
@@ -33,43 +33,43 @@ public interface Router {
      *
      * @since 0.06
      */
-    default Router route(String path, RequestMethod methodType, Handler handler) {
-        return route(path, methodType, 0, handler);
+    default Router route(String path, RequestMethod methodType, HttpHandler httpHandler) {
+        return route(path, methodType, 0, httpHandler);
     }
 
     /**
      * @since 0.06
      */
-    default Router GET(String path, Handler handler) {
-        return route(path, RequestMethod.GET, handler);
+    default Router GET(String path, HttpHandler httpHandler) {
+        return route(path, RequestMethod.GET, httpHandler);
     }
 
     /**
      * @since 0.06
      */
-    default Router POST(String path, Handler handler) {
-        return route(path, RequestMethod.POST, handler);
+    default Router POST(String path, HttpHandler httpHandler) {
+        return route(path, RequestMethod.POST, httpHandler);
     }
 
     /**
      * @since 0.06
      */
-    default Router PUT(String path, Handler handler) {
-        return route(path, RequestMethod.PUT, handler);
+    default Router PUT(String path, HttpHandler httpHandler) {
+        return route(path, RequestMethod.PUT, httpHandler);
     }
 
     /**
      * @since 0.06
      */
-    default Router DELETE(String api, Handler handler) {
-        return route(api, RequestMethod.DELETE, handler);
+    default Router DELETE(String api, HttpHandler httpHandler) {
+        return route(api, RequestMethod.DELETE, httpHandler);
     }
 
     /**
      * @since 0.06
      */
-    default Router PATCH(String api, Handler handler) {
-        return route(api, RequestMethod.PATCH, handler);
+    default Router PATCH(String api, HttpHandler httpHandler) {
+        return route(api, RequestMethod.PATCH, httpHandler);
     }
 
     /**
@@ -84,7 +84,7 @@ public interface Router {
      *
      * @since 0.06
      */
-    Router route(String path, RequestMethod method, int index, Handler handler);
+    Router route(String path, RequestMethod method, int index, HttpHandler httpHandler);
 
     /**
      * match one handler for request.
@@ -92,14 +92,14 @@ public interface Router {
      * @since 0.06
      */
     @Nullable
-    Handler matchOne(HttpRequest request);
+    HttpHandler matchOne(HttpRequest request);
 
     /**
      * get all request handlers.
      *
      * @since 0.06
      */
-    RouterTable<Handler> handlers();
+    RouterTable<HttpHandler> handlers();
 
     /**
      * clear handlers.
@@ -112,38 +112,38 @@ public interface Router {
     class RouterImpl implements Router {
 
         // for handler
-        private final RouterTable<Handler> handlers;
+        private final RouterTable<HttpHandler> httpHandlers;
 
         public RouterImpl() {
-            this.handlers = new RouterTable<>();
+            this.httpHandlers = new RouterTable<>();
         }
 
         @Override
-        public Router route(final String path, final RequestMethod method, final int index, final Handler handler) {
-            Routing<Handler> routing = new RoutingImpl<>(index, path, handler, method);
+        public Router route(final String path, final RequestMethod method, final int index, final HttpHandler httpHandler) {
+            Routing<HttpHandler> routing = new RoutingImpl<>(index, path, httpHandler, method);
 
             if (path.contains("*") || path.contains("{")) {
-                handlers.add(routing);
+                httpHandlers.add(routing);
             } else {
                 //没有*号的，优先
-                handlers.add(0, routing);
+                httpHandlers.add(0, routing);
             }
             return this;
         }
 
         @Override
-        public Handler matchOne(HttpRequest request) {
-            return handlers.matchOne(request.uri(), request.methodType());
+        public HttpHandler matchOne(HttpRequest request) {
+            return httpHandlers.matchOne(request.uri(), request.methodType());
         }
 
         @Override
-        public RouterTable<Handler> handlers() {
-            return handlers;
+        public RouterTable<HttpHandler> handlers() {
+            return httpHandlers;
         }
 
         @Override
         public void clear() {
-            handlers.clear();
+            httpHandlers.clear();
         }
 
     }
