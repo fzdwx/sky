@@ -6,6 +6,7 @@ import io.github.fzdwx.inf.msg.WebSocket;
 import io.github.fzdwx.inf.route.msg.SocketSession;
 import io.github.fzdwx.lambada.fun.Hooks;
 import io.netty.buffer.ByteBuf;
+import io.netty.channel.ChannelFuture;
 import lombok.Getter;
 
 /**
@@ -35,20 +36,36 @@ public class WebSocketImpl implements WebSocket {
     }
 
     @Override
-    public WebSocket send(final String text) {
-        session.send(text);
+    public ChannelFuture send(final String text) {
+        return session.send(text);
+    }
+
+    @Override
+    public WebSocket send(final String text, final Hooks<ChannelFuture> h) {
+        h.call(send(text));
         return this;
     }
 
     @Override
-    public WebSocket send(final byte[] text) {
-        session.send(text);
+    public ChannelFuture send(final byte[] text) {
+        return session.send(text);
+    }
+
+    @Override
+    public WebSocket send(final byte[] text, final Hooks<ChannelFuture> h) {
+        h.call(send(text));
         return this;
     }
 
     @Override
-    public WebSocket sendBinary(final byte[] binary) {
-        session.sendBinary(binary);
+    public ChannelFuture sendBinary(final byte[] binary) {
+        return session.sendBinary(binary);
+    }
+
+    @Override
+    public WebSocket sendBinary(final byte[] binary, final Hooks<ChannelFuture> h) {
+        h.call(sendBinary(binary));
+
         return this;
     }
 
@@ -69,6 +86,11 @@ public class WebSocketImpl implements WebSocket {
         return this;
     }
 
+    public WebSocket registerText(Hooks<String> h) {
+        this.textHooks = h;
+        return this;
+    }
+
     @Override
     public WebSocket registerBinary(final Hooks<ByteBuf> h) {
         this.binaryHooks = h;
@@ -84,11 +106,6 @@ public class WebSocketImpl implements WebSocket {
     @Override
     public WebSocket registerError(final Hooks<Throwable> h) {
         this.errorHooks = h;
-        return this;
-    }
-
-    public WebSocket registerText(Hooks<String> h) {
-        this.textHooks = h;
         return this;
     }
 

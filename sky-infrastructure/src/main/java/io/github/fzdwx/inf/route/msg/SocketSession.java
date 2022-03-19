@@ -2,6 +2,7 @@ package io.github.fzdwx.inf.route.msg;
 
 import io.github.fzdwx.inf.route.msg.inter.SocketSessionImpl;
 import io.netty.channel.Channel;
+import io.netty.channel.ChannelFuture;
 
 /**
  * session.
@@ -22,20 +23,23 @@ public interface SocketSession {
      * send text to client.
      *
      * @since 0.06
+     * @return
      */
-    void send(String text);
+    ChannelFuture send(String text);
 
     /**
      * send text(bytes) to client.
      *
      * @since 0.06
+     * @return
      */
-    void send(byte[] text);
+    ChannelFuture send(byte[] text);
 
     /**
      * send binary(like file) to client.
      *
      * @since 0.06
+     * @return
      */
-    void sendBinary(byte[] binary);
+    ChannelFuture sendBinary(byte[] binary);
 }

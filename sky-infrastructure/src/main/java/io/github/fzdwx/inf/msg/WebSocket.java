@@ -6,6 +6,7 @@ import io.github.fzdwx.inf.msg.inter.WebSocketImpl;
 import io.github.fzdwx.inf.route.msg.SocketSession;
 import io.github.fzdwx.lambada.fun.Hooks;
 import io.netty.buffer.ByteBuf;
+import io.netty.channel.ChannelFuture;
 
 /**
  * @author <a href="mailto:likelovec@gmail.com">韦朕</a>
@@ -18,11 +19,26 @@ public interface WebSocket {
         return new WebSocketImpl(session,httpRequest);
     }
 
-    WebSocket send(String text);
+    ChannelFuture send(String text);
 
-    WebSocket send(byte[] text);
+    /**
+     * @since 0.07
+     */
+    WebSocket send(String text,Hooks<ChannelFuture> h);
 
-    WebSocket sendBinary(byte[] binary);
+    ChannelFuture send(byte[] text);
+
+    /**
+     * @since 0.07
+     */
+    WebSocket send(byte[] text,Hooks<ChannelFuture> h);
+
+    ChannelFuture sendBinary(byte[] binary);
+
+    /**
+     * @since 0.07
+     */
+    WebSocket sendBinary(byte[] binary, Hooks<ChannelFuture> h);
 
     /**
      * before handshake.

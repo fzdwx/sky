@@ -35,6 +35,8 @@ public interface ContentType {
      * application/octet-stream编码
      */
     String OCTET_STREAM = "application/octet-stream; charset=utf-8";
+
+    String STREAM_JSON = "application/stream+json; charset=utf-8";
     /**
      * 标准表单编码，当action为get时候，浏览器用x-www-form-urlencoded的编码方式把form数据转换成一个字串（name1=value1&amp;name2=value2…）
      */

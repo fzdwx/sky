@@ -1,5 +1,6 @@
 package io.github.fzdwx.http;
 
+import io.github.fzdwx.inf.http.core.ContentType;
 import io.github.fzdwx.inf.route.Router;
 import lombok.extern.slf4j.Slf4j;
 

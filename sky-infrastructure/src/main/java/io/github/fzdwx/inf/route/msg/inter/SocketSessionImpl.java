@@ -2,6 +2,7 @@ package io.github.fzdwx.inf.route.msg.inter;
 
 import io.github.fzdwx.inf.route.msg.SocketSession;
 import io.netty.channel.Channel;
+import io.netty.channel.ChannelFuture;
 import io.netty.handler.codec.http.websocketx.BinaryWebSocketFrame;
 import io.netty.handler.codec.http.websocketx.TextWebSocketFrame;
 
@@ -25,17 +26,17 @@ public class SocketSessionImpl implements SocketSession {
     }
 
     @Override
-    public void send(final String text) {
-        this.channel.writeAndFlush(new TextWebSocketFrame(text));
+    public ChannelFuture send(final String text) {
+        return this.channel.writeAndFlush(new TextWebSocketFrame(text));
     }
 
     @Override
-    public void send(final byte[] text) {
-        this.channel.writeAndFlush(new TextWebSocketFrame(alloc(text)));
+    public ChannelFuture send(final byte[] text) {
+        return this.channel.writeAndFlush(new TextWebSocketFrame(alloc(text)));
     }
 
     @Override
-    public void sendBinary(final byte[] binary) {
-        this.channel.writeAndFlush(new BinaryWebSocketFrame(alloc(binary)));
+    public ChannelFuture sendBinary(final byte[] binary) {
+        return this.channel.writeAndFlush(new BinaryWebSocketFrame(alloc(binary)));
     }
 }
