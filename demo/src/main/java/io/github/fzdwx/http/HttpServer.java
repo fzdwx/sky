@@ -1,7 +1,9 @@
 package io.github.fzdwx.http;
 
-import io.github.fzdwx.inf.http.core.ContentType;
 import io.github.fzdwx.inf.route.Router;
+import io.netty.handler.logging.LogLevel;
+import io.netty.util.internal.logging.InternalLoggerFactory;
+import io.netty.util.internal.logging.Slf4JLoggerFactory;
 import lombok.extern.slf4j.Slf4j;
 
 import static io.github.fzdwx.inf.Netty.HTTP;
@@ -48,6 +50,10 @@ public class HttpServer {
                 .POST("/hello", (req, resp) -> resp.json("你好-post"))
                 .faviconIco(faviconIco);
 
-        HTTP(8888, router).name("我的http 服务器 !").dev().start();
+        HTTP(8888, router).name("我的http 服务器 !")
+                .log(LogLevel.DEBUG)
+                .workerCnt(10)
+                .dev()
+                .bind();
     }
 }

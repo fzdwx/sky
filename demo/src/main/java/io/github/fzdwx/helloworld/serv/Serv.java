@@ -16,7 +16,7 @@ import lombok.NonNull;
  * @author <a href="mailto:likelovec@gmail.com">韦朕</a>
  * @date 2022/3/17 14:33
  */
-public class Serv extends ServInf {
+public class Serv extends ServInf<Serv> {
 
     public Serv(final int port) {
         super(port);
@@ -44,14 +44,11 @@ public class Serv extends ServInf {
     }
 
     @Override
-    public void addServOptions() {
-        this.serverBootstrap
-                .option(ChannelOption.SO_BACKLOG, 1024);
-        // .option(ChannelOption.SO_KEEPALIVE, true);
-
+    protected Serv me() {
+        return this;
     }
 
     public static void main(String[] args) {
-        new Serv(8080).start();
+        new Serv(8080).bind();
     }
 }

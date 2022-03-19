@@ -13,6 +13,7 @@ import io.netty.handler.codec.http.FullHttpRequest;
 import io.netty.handler.codec.http.HttpHeaderNames;
 import io.netty.handler.codec.http.websocketx.CloseWebSocketFrame;
 import io.netty.handler.codec.http.websocketx.WebSocketServerHandshakerFactory;
+import io.netty.handler.ssl.SslHandler;
 
 import static io.github.fzdwx.inf.route.inter.RequestMethod.of;
 import static io.netty.handler.codec.http.websocketx.WebSocketServerHandshakerFactory.sendUnsupportedVersionResponse;
@@ -65,7 +66,7 @@ public class HttpRequestImpl implements HttpRequest {
         }
         //endregion
 
-        final var handShaker = new WebSocketServerHandshakerFactory(getWebSocketLocation(request), subProtocols, true)
+        final var handShaker = new WebSocketServerHandshakerFactory(getWebSocketLocation(ctx.pipeline(), request), subProtocols, true)
                 .newHandshaker(request);
         if (handShaker != null) {
             final ChannelPipeline pipeline = ctx.pipeline();
@@ -92,8 +93,12 @@ public class HttpRequestImpl implements HttpRequest {
         }
     }
 
-    private static String getWebSocketLocation(final FullHttpRequest req) {
-        final String location = req.headers().get(HttpHeaderNames.HOST) + req.uri();
-        return "ws://" + location;
+    private static String getWebSocketLocation(final ChannelPipeline cp, final FullHttpRequest req) {
+        String protocol = "ws";
+        if (cp.get(SslHandler.class) != null) {
+            // SSL in use so use Secure WebSockets
+            protocol = "wss";
+        }
+        return protocol + "://" + req.headers().get(HttpHeaderNames.HOST) + req.uri();
     }
 }

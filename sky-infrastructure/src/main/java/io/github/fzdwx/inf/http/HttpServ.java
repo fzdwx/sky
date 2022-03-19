@@ -24,7 +24,7 @@ import static java.net.InetAddress.getLocalHost;
  * @since 0.06
  */
 @Slf4j
-public class HttpServ extends ServInf {
+public class HttpServ extends ServInf<HttpServ> {
 
     private final Router router;
     private boolean dev;
@@ -69,10 +69,12 @@ public class HttpServ extends ServInf {
     }
 
     @Override
-    public void addServOptions() {
-        this.serverBootstrap.option(ChannelOption.SO_BACKLOG, 1024);
-        this.serverBootstrap.childOption(ChannelOption.TCP_NODELAY, true);
-        this.serverBootstrap.childOption(ChannelOption.SO_KEEPALIVE, true);
+    protected void init() {
+        this.servOptions(ChannelOption.SO_BACKLOG, 1024);
+        this.childOptions(ChannelOption.TCP_NODELAY, true);
+        this.childOptions(ChannelOption.SO_KEEPALIVE, true);
+
+        super.init();
     }
 
     @SneakyThrows
@@ -84,5 +86,10 @@ public class HttpServ extends ServInf {
         if (dev) {
             log.info("DEV mode open : " + address + HttpDevHtml.PAGE_PATH);
         }
+    }
+
+    @Override
+    protected HttpServ me() {
+        return this;
     }
 }
