@@ -53,7 +53,7 @@ public class HttpRequestImpl implements HttpRequest {
         final var session = SocketSession.create(ctx.channel());
         final var webSocket = WebSocket.create(session, this);
         h.call(webSocket);
-        final var listener = webSocket.toLinstener();
+        final var listener = webSocket.toListener();
         //endregion
 
         // handshake

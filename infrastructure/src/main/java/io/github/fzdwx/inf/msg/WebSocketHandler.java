@@ -13,8 +13,11 @@ import io.netty.handler.codec.http.websocketx.TextWebSocketFrame;
 import io.netty.handler.codec.http.websocketx.WebSocketFrame;
 
 /**
+ * handler websocket frame.
+ *
  * @author <a href="mailto:likelovec@gmail.com">fzdwx</a>
  * @date 2022/3/18 20:37
+ * @since 0.06
  */
 public class WebSocketHandler extends SimpleChannelInboundHandler<WebSocketFrame> {
 

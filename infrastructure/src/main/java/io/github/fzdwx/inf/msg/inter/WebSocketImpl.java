@@ -93,7 +93,7 @@ public class WebSocketImpl implements WebSocket {
     }
 
     @Override
-    public Listener toLinstener() {
+    public Listener toListener() {
         return new Listener() {
 
             @Override

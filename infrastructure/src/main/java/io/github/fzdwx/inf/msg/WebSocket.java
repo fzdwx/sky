@@ -61,5 +61,5 @@ public interface WebSocket {
      */
     WebSocket registerError(Hooks<Throwable> h);
 
-    Listener toLinstener();
+    Listener toListener();
 }
