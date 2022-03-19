@@ -1,6 +1,7 @@
 package io.github.fzdwx.inf.http;
 
 import io.github.fzdwx.inf.ServInf;
+import io.github.fzdwx.inf.http.core.HttpServInitializer;
 import io.github.fzdwx.inf.http.inter.HttpDevHtml;
 import io.github.fzdwx.inf.route.Router;
 import io.netty.channel.ChannelInitializer;
@@ -13,13 +14,14 @@ import lombok.NonNull;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 
-import java.net.InetAddress;
+import static java.net.InetAddress.getLocalHost;
 
 /**
  * http serv.
  *
  * @author <a href="mailto:likelovec@gmail.com">韦朕</a>
  * @date 2022/3/18 11:25
+ * @since 0.06
  */
 @Slf4j
 public class HttpServ extends ServInf {
@@ -76,7 +78,7 @@ public class HttpServ extends ServInf {
     @SneakyThrows
     @Override
     protected void onStart(final Future<? super Void> f) {
-        final var address = "http://" + InetAddress.getLocalHost().getHostAddress() + ":" + this.port;
+        final var address = "http://" + getLocalHost().getHostAddress() + ":" + this.port;
         log.info("Server start Listening on:" + address);
 
         if (dev) {

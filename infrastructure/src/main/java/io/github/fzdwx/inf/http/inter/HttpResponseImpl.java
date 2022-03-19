@@ -2,7 +2,7 @@ package io.github.fzdwx.inf.http.inter;
 
 import cn.hutool.core.io.FileUtil;
 import io.github.fzdwx.inf.Netty;
-import io.github.fzdwx.inf.http.HttpResponse;
+import io.github.fzdwx.inf.http.core.HttpResponse;
 import io.netty.channel.Channel;
 
 import java.io.File;

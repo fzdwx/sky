@@ -1,7 +1,7 @@
 package io.github.fzdwx.inf.route;
 
 import io.github.fzdwx.inf.Handler;
-import io.github.fzdwx.inf.http.HttpRequest;
+import io.github.fzdwx.inf.http.core.HttpRequest;
 import io.github.fzdwx.inf.route.inter.RequestMethod;
 import io.github.fzdwx.inf.route.inter.RouterTable;
 import io.github.fzdwx.inf.route.inter.Routing;
@@ -13,55 +13,98 @@ import org.checkerframework.checker.nullness.qual.Nullable;
  *
  * @author <a href="mailto:likelovec@gmail.com">韦朕</a>
  * @date 2022/3/18 11:40
+ * @since 0.06
  */
 public interface Router {
 
     String FAVICON_ICO = "/favicon.ico";
 
+    /**
+     * new router instance
+     *
+     * @since 0.06
+     */
     static Router router() {
         return new RouterImpl();
     }
 
+    /**
+     * add route with path and handler.
+     *
+     * @since 0.06
+     */
     default Router route(String path, RequestMethod methodType, Handler handler) {
         return route(path, methodType, 0, handler);
     }
 
+    /**
+     * @since 0.06
+     */
     default Router GET(String path, Handler handler) {
         return route(path, RequestMethod.GET, handler);
     }
 
+    /**
+     * @since 0.06
+     */
     default Router POST(String path, Handler handler) {
         return route(path, RequestMethod.POST, handler);
     }
 
+    /**
+     * @since 0.06
+     */
     default Router PUT(String path, Handler handler) {
         return route(path, RequestMethod.PUT, handler);
     }
 
+    /**
+     * @since 0.06
+     */
     default Router DELETE(String api, Handler handler) {
         return route(api, RequestMethod.DELETE, handler);
     }
 
+    /**
+     * @since 0.06
+     */
     default Router PATCH(String api, Handler handler) {
         return route(api, RequestMethod.PATCH, handler);
     }
 
+    /**
+     * @since 0.06
+     */
     default Router faviconIco(byte[] bytes) {
         return GET(FAVICON_ICO, (req, resp) -> resp.bytes(bytes));
     }
 
+    /**
+     * add route(base method)
+     *
+     * @since 0.06
+     */
     Router route(String path, RequestMethod method, int index, Handler handler);
 
     /**
-     * 区配一个目标（根据上下文）
+     * match one handler for request.
+     *
+     * @since 0.06
      */
     @Nullable
     Handler matchOne(HttpRequest request);
 
+    /**
+     * get all request handlers.
+     *
+     * @since 0.06
+     */
     RouterTable<Handler> handlers();
 
     /**
-     * 清空路由关系
+     * clear handlers.
+     *
+     * @since 0.06
      */
     void clear();
 

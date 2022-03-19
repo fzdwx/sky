@@ -15,6 +15,7 @@ import io.netty.util.concurrent.GenericFutureListener;
  *
  * @author <a href="mailto:likelovec@gmail.com">fzdwx</a>
  * @date 2022/3/16 21:44
+ * @since 0.06
  */
 public final class Netty {
 
