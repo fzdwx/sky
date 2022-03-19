@@ -35,8 +35,11 @@ public class HttpServer {
                 .GET("/ws", (req, resp) -> {
                     req.upgradeToWebSocket(ws -> {
                         ws.textHooks(msg -> {
-                            ws.send("hello world");
-                        });
+                                    ws.send("hello world");
+                                })
+                                .closeHooks(h -> {
+                                    ws.send("close!!!!!!!!");
+                                });
                     });
                 })
                 .GET("/hello", (req, resp) -> resp.json("你好-get"))
