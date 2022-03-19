@@ -58,4 +58,9 @@ public class HttpResponseImpl implements HttpResponse {
     public void file(final byte[] bytes, final String fileName) {
         channel.writeAndFlush(HttpResult.file(bytes, fileName)).addListener(Netty.close);
     }
+
+    @Override
+    public void output(final String str, final String contentType) {
+        channel.writeAndFlush(HttpResult.ok(str).contentType(contentType)).addListener(Netty.close);
+    }
 }

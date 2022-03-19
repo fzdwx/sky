@@ -1,7 +1,7 @@
 package io.github.fzdwx.inf.http.inter;
 
 import cn.hutool.core.io.FileUtil;
-import io.github.fzdwx.inf.ContentType;
+import io.github.fzdwx.inf.http.core.ContentType;
 import io.github.fzdwx.lambada.Lang;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.PooledByteBufAllocator;
@@ -103,6 +103,11 @@ public class HttpResult extends DefaultFullHttpResponse {
      */
     public HttpResult octetStream() {
         this.headers().set(CONTENT_TYPE, ContentType.OCTET_STREAM);
+        return this;
+    }
+
+    public HttpResult contentType(final String contentType) {
+        this.headers().set(CONTENT_TYPE, contentType);
         return this;
     }
 

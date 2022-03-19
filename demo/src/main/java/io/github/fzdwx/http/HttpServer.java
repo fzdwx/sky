@@ -1,8 +1,9 @@
 package io.github.fzdwx.http;
 
-import io.github.fzdwx.inf.http.HttpServ;
 import io.github.fzdwx.inf.route.Router;
 import lombok.extern.slf4j.Slf4j;
+
+import static io.github.fzdwx.inf.Netty.HTTP;
 
 /**
  * @author <a href="mailto:likelovec@gmail.com">韦朕</a>
@@ -34,18 +35,18 @@ public class HttpServer {
                 })
                 .GET("/ws", (req, resp) -> {
                     req.upgradeToWebSocket(ws -> {
-                        ws.textHooks(msg -> {
-                            ws.send("hello world");
-                        });
+                        ws.registerText(msg -> {
+                                    ws.send("hello world");
+                                })
+                                .registerClose(h -> {
+                                    ws.send("close!!!!!!!!");
+                                });
                     });
                 })
                 .GET("/hello", (req, resp) -> resp.json("你好-get"))
                 .POST("/hello", (req, resp) -> resp.json("你好-post"))
                 .faviconIco(faviconIco);
 
-        new HttpServ(8888, router)
-                .name("我的http 服务器 !")
-                .dev()
-                .start();
+        HTTP(8888, router).name("我的http 服务器 !").dev().start();
     }
 }

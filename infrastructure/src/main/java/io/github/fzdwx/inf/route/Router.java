@@ -1,6 +1,6 @@
 package io.github.fzdwx.inf.route;
 
-import io.github.fzdwx.inf.HttpHandler;
+import io.github.fzdwx.inf.http.core.HttpHandler;
 import io.github.fzdwx.inf.http.core.HttpRequest;
 import io.github.fzdwx.inf.route.inter.RequestMethod;
 import io.github.fzdwx.inf.route.inter.RouterTable;

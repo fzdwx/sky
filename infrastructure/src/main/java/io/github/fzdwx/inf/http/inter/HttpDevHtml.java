@@ -1,6 +1,7 @@
 package io.github.fzdwx.inf.http.inter;
 
-import io.github.fzdwx.inf.HttpHandler;
+import io.github.fzdwx.inf.http.core.ContentType;
+import io.github.fzdwx.inf.http.core.HttpHandler;
 import io.github.fzdwx.inf.http.core.HttpRequest;
 import io.github.fzdwx.inf.http.core.HttpResponse;
 import io.github.fzdwx.inf.route.Router;
@@ -49,7 +50,6 @@ public class HttpDevHtml implements HttpHandler {
                         <ol>
                 %s
                         </ol>
-                         Counter: {{ counter }}
                     </div>
                 </html>
                     """;
@@ -72,7 +72,7 @@ public class HttpDevHtml implements HttpHandler {
         this.fileList = of(listFileNames(""))
                 .map(h -> {
                     router.GET("/" + h, (req, response) -> {
-                        response.html(readString(h, CHARSET));
+                        response.output(readString(h, CHARSET), ContentType.TEXT_PLAIN);
                     });
                     var s = """
                                         <li><div><a href="/%s">%s</a></div></li>

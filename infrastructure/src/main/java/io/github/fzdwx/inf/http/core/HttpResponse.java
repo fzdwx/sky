@@ -26,11 +26,6 @@ public interface HttpResponse {
 
     void bytes(byte[] bytes);
 
-    /**
-     * 重定向
-     *
-     * @param url 重定向的url
-     */
     void redirect(String url);
 
     void file(File file);
@@ -38,4 +33,6 @@ public interface HttpResponse {
     void file(String filePath);
 
     void file(byte[] bytes, String fileName);
+
+    void output(String str, String contentType);
 }
