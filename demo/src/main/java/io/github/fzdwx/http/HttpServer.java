@@ -1,8 +1,13 @@
 package io.github.fzdwx.http;
 
+import io.github.fzdwx.inf.http.core.ContentType;
 import io.github.fzdwx.inf.route.Router;
+import io.netty.handler.logging.ByteBufFormat;
+import io.netty.handler.logging.LogLevel;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
+
+import java.io.FileInputStream;
 
 import static io.github.fzdwx.inf.Netty.HTTP;
 
@@ -33,7 +38,16 @@ public class HttpServer {
                     resp.redirect("/hello");
                 })
                 .GET("/file", (req, resp) -> {
-                    resp.file("E:\\project\\fzdwx\\justfile");
+                    resp.contentDisposition("qwe.exe")
+                            .file("C:\\Users\\98065\\Downloads\\VSCodeUserSetup-x64-1.64.2.exe");
+                })
+                .GET("/image", (req, resp) -> {
+                    resp.contentType(ContentType.IMAGE_JPEG)
+                            .bytes(faviconIco);
+                })
+                .GET("/stream", (rep, resp) -> {
+                    resp.contentDisposition("vscode.exe")
+                            .output(new FileInputStream("C:\\Users\\98065\\Downloads\\VSCodeUserSetup-x64-1.64.2.exe"));
                 })
                 .GET("/ws", (req, resp) -> {
 
@@ -51,7 +65,6 @@ public class HttpServer {
 
                             ws.reject("拒绝连接");
                         });
-
                     });
                 })
                 .GET("/hello", (req, resp) -> {
@@ -61,7 +74,7 @@ public class HttpServer {
                 .faviconIco(faviconIco);
 
         HTTP(8888, router).name("我的http 服务器 !")
-                // .log(LogLevel.INFO, ByteBufFormat.HEX_DUMP)
+                .log(LogLevel.INFO, ByteBufFormat.HEX_DUMP)
                 // .workerCnt(10)
                 .dev()
                 .bind();

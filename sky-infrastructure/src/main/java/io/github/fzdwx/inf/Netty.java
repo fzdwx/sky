@@ -22,6 +22,7 @@ import io.netty.util.concurrent.GenericFutureListener;
 public final class Netty {
 
     public static final AttributeKey<String> SubProtocolAttrKey = AttributeKey.valueOf("subProtocol");
+    public static final int DEFAULT_CHUNK_SIZE = 1024 * 1024 * 4;
 
     public static GenericFutureListener<? extends Future<? super Void>> close = ChannelFutureListener.CLOSE;
 
