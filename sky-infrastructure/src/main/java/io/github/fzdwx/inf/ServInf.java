@@ -103,26 +103,26 @@ public abstract class ServInf<Serv extends ServInf<Serv>> {
         return channel;
     }
 
-    @SneakyThrows
     public void bind(Hooks<ChannelFuture> h) {
         h.call(bind());
     }
 
-    @SneakyThrows
     public ChannelFuture bind() {
         init();
 
         final var bindFuture = this.serverBootstrap
                 .childHandler(childHandler())
-                .bind(this.port)
-                .sync();
+                .bind(this.port);
 
         this.channel = bindFuture.channel();
-        if (bindFuture.isSuccess()) {
-            PrintUtil.printBanner();
 
-            this.onStartSuccess();
-        }
+        bindFuture.addListener(f -> {
+            if (bindFuture.isSuccess()) {
+                PrintUtil.printBanner();
+
+                this.onStartSuccess();
+            }
+        });
 
         return bindFuture;
     }
