@@ -1,8 +1,6 @@
 package io.github.fzdwx.http;
 
 import io.github.fzdwx.inf.route.Router;
-import io.netty.handler.logging.ByteBufFormat;
-import io.netty.handler.logging.LogLevel;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 
@@ -38,34 +36,34 @@ public class HttpServer {
                     resp.file("E:\\project\\fzdwx\\justfile");
                 })
                 .GET("/ws", (req, resp) -> {
-                    // req.upgradeToWebSocket(ws -> {
-                    //     ws.registerText(msg -> {
-                    //                 ws.send("hello world");
-                    //             })
-                    //             .registerClose(h -> {
-                    //                 ws.send("close!!!!!!!!");
-                    //             });
-                    // });
 
                     req.upgradeToWebSocket().then(ws -> {
-                        ws.send("hello world");
+                        ws.registerClose(h -> {
+                            System.out.println("close!!!!!!!!");
+                        });
+
+                        ws.registerOpen(h -> {
+                            System.out.println("open!!!!!!!!");
+                        });
+
+                        ws.registerText(wsg -> {
+                            System.out.println("text!!!!!!!!");
+
+                            ws.reject("拒绝连接");
+                        });
+
                     });
                 })
-                .GET("/hello", (req, resp) -> resp.json("你好-get"))
+                .GET("/hello", (req, resp) -> {
+                    resp.json("你好-get");
+                })
                 .POST("/hello", (req, resp) -> resp.json("你好-post"))
                 .faviconIco(faviconIco);
 
         HTTP(8888, router).name("我的http 服务器 !")
-                .log(LogLevel.TRACE, ByteBufFormat.HEX_DUMP)
+                // .log(LogLevel.INFO, ByteBufFormat.HEX_DUMP)
                 // .workerCnt(10)
                 .dev()
-                .bind()
-                .addListener(f -> {
-                    // sort 2
-                    System.out.println("tttttttttttttttttttttt:" + f.isSuccess());
-                });
-
-        // sort 1
-        System.out.println("fffffffffffffffffffffffff");
+                .bind();
     }
 }

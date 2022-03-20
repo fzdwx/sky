@@ -20,10 +20,23 @@ public interface SocketSession {
     }
 
     /**
+     * close session.
+     *
+     * @since 0.07
+     */
+    ChannelFuture reject();
+
+    /**
+     * close session.
+     *
+     * @since 0.07
+     */
+    ChannelFuture reject(String text);
+
+    /**
      * send text to client.
      *
      * @since 0.06
-     * @return
      */
     ChannelFuture send(String text);
 
@@ -31,7 +44,6 @@ public interface SocketSession {
      * send text(bytes) to client.
      *
      * @since 0.06
-     * @return
      */
     ChannelFuture send(byte[] text);
 
@@ -39,7 +51,6 @@ public interface SocketSession {
      * send binary(like file) to client.
      *
      * @since 0.06
-     * @return
      */
     ChannelFuture sendBinary(byte[] binary);
 }

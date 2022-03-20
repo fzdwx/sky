@@ -26,6 +26,16 @@ public class SocketSessionImpl implements SocketSession {
     }
 
     @Override
+    public ChannelFuture reject() {
+        return this.channel.close();
+    }
+
+    @Override
+    public ChannelFuture reject(final String text) {
+        return this.send(text).addListener(future -> this.reject());
+    }
+
+    @Override
     public ChannelFuture send(final String text) {
         return this.channel.writeAndFlush(new TextWebSocketFrame(text));
     }

@@ -30,14 +30,14 @@ public interface HttpResponse {
     void json(final String json);
 
     /**
-     * @apiNote auto close
-     */
-    void json(final byte[] json);
-
-    /**
      * @since 0.07
      */
     void json(final String json, Hooks<ChannelFuture> h);
+
+    /**
+     * @apiNote auto close
+     */
+    void json(final byte[] json);
 
     /**
      * @since 0.07

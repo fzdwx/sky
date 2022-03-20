@@ -1,11 +1,11 @@
 package io.github.fzdwx.inf.msg.inter;
 
-import io.github.fzdwx.inf.Listener;
 import io.github.fzdwx.inf.http.core.HttpRequest;
 import io.github.fzdwx.inf.msg.WebSocket;
 import io.github.fzdwx.inf.route.msg.SocketSession;
 import io.github.fzdwx.lambada.fun.Hooks;
 import io.netty.buffer.ByteBuf;
+import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
 import lombok.Getter;
 
@@ -33,6 +33,21 @@ public class WebSocketImpl implements WebSocket {
     public WebSocketImpl(SocketSession session, final HttpRequest httpRequest) {
         this.session = session;
         this.httpRequest = httpRequest;
+    }
+
+    @Override
+    public Channel channel() {
+        return this.session.channel();
+    }
+
+    @Override
+    public ChannelFuture reject() {
+        return session.reject();
+    }
+
+    @Override
+    public ChannelFuture reject(final String text) {
+        return session.reject(text);
     }
 
     @Override

@@ -32,13 +32,13 @@ public class HttpResponseImpl implements HttpResponse {
     }
 
     @Override
-    public void json(final byte[] json) {
-        json(json, c -> c.addListener(Netty.close));
+    public void json(final String json, final Hooks<ChannelFuture> h) {
+        json(json.getBytes(), h);
     }
 
     @Override
-    public void json(final String json, final Hooks<ChannelFuture> h) {
-        json(json.getBytes(), h);
+    public void json(final byte[] json) {
+        json(json, c -> c.addListener(Netty.close));
     }
 
     @Override

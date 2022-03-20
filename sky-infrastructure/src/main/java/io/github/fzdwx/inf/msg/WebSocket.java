@@ -6,6 +6,7 @@ import io.github.fzdwx.inf.msg.inter.WebSocketImpl;
 import io.github.fzdwx.inf.route.msg.SocketSession;
 import io.github.fzdwx.lambada.fun.Hooks;
 import io.netty.buffer.ByteBuf;
+import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
 
 /**
@@ -18,6 +19,23 @@ public interface WebSocket extends Listener {
     static WebSocket create(SocketSession session, final HttpRequest httpRequest) {
         return new WebSocketImpl(session, httpRequest);
     }
+
+    Channel channel();
+
+    /**
+     * reject connection.
+     *
+     * @since 0.07
+     */
+    ChannelFuture reject();
+
+    /**
+     * reject connection.
+     *
+     * @since 0.07
+     * @return
+     */
+    ChannelFuture reject(String text);
 
     ChannelFuture send(String text);
 
@@ -66,7 +84,7 @@ public interface WebSocket extends Listener {
     WebSocket registerBinary(Hooks<ByteBuf> h);
 
     /**
-     * on client close connection while call this method.
+     * on client or server close connection while call this method.
      *
      * @apiNote can not send message to client.
      */
@@ -76,6 +94,12 @@ public interface WebSocket extends Listener {
      * on error while call this method.
      */
     WebSocket registerError(Hooks<Throwable> h);
+
+    /**
+     * @deprecated
+     */
+    @Override
+    void beforeHandshake(final SocketSession session) throws RuntimeException;
 
     /**
      * @deprecated
