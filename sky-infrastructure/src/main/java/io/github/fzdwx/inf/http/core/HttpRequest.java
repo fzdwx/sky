@@ -4,6 +4,7 @@ import io.github.fzdwx.inf.http.inter.HttpRequestImpl;
 import io.github.fzdwx.inf.msg.WebSocket;
 import io.github.fzdwx.inf.route.inter.RequestMethod;
 import io.github.fzdwx.lambada.fun.Hooks;
+import io.github.fzdwx.lambada.fun.Result;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.http.FullHttpRequest;
 
@@ -38,4 +39,6 @@ public interface HttpRequest {
      * accept websocket.
      */
     void upgradeToWebSocket(Hooks<WebSocket> h);
+
+    Result<WebSocket> upgradeToWebSocket();
 }

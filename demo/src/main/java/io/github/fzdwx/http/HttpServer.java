@@ -38,13 +38,17 @@ public class HttpServer {
                     resp.file("E:\\project\\fzdwx\\justfile");
                 })
                 .GET("/ws", (req, resp) -> {
-                    req.upgradeToWebSocket(ws -> {
-                        ws.registerText(msg -> {
-                                    ws.send("hello world");
-                                })
-                                .registerClose(h -> {
-                                    ws.send("close!!!!!!!!");
-                                });
+                    // req.upgradeToWebSocket(ws -> {
+                    //     ws.registerText(msg -> {
+                    //                 ws.send("hello world");
+                    //             })
+                    //             .registerClose(h -> {
+                    //                 ws.send("close!!!!!!!!");
+                    //             });
+                    // });
+
+                    req.upgradeToWebSocket().then(ws -> {
+                        ws.send("hello world");
                     });
                 })
                 .GET("/hello", (req, resp) -> resp.json("你好-get"))
@@ -53,13 +57,15 @@ public class HttpServer {
 
         HTTP(8888, router).name("我的http 服务器 !")
                 .log(LogLevel.TRACE, ByteBufFormat.HEX_DUMP)
-                .workerCnt(10)
+                // .workerCnt(10)
                 .dev()
                 .bind()
                 .addListener(f -> {
-                    System.out.println("tttttttttttttttttttttt:"+f.isSuccess());
+                    // sort 2
+                    System.out.println("tttttttttttttttttttttt:" + f.isSuccess());
                 });
 
+        // sort 1
         System.out.println("fffffffffffffffffffffffff");
     }
 }

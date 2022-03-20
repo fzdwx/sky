@@ -109,58 +109,53 @@ public class WebSocketImpl implements WebSocket {
         return this;
     }
 
+
     @Override
-    public Listener toListener() {
-        return new Listener() {
+    public void beforeHandshake(final SocketSession session) throws RuntimeException {
+        if (beforeHandshakeHooks != null) {
+            beforeHandshakeHooks.call(null);
+        }
+    }
 
-            @Override
-            public void beforeHandshake(final SocketSession session) throws RuntimeException {
-                if (beforeHandshakeHooks != null) {
-                    beforeHandshakeHooks.call(null);
-                }
-            }
+    @Override
+    public void onOpen(final SocketSession session) {
+        if (openHooks != null) {
+            openHooks.call(null);
+        }
+    }
 
-            @Override
-            public void onOpen(final SocketSession session) {
-                if (openHooks != null) {
-                    openHooks.call(null);
-                }
-            }
+    @Override
+    public void onclose(final SocketSession session) {
+        if (closeHooks != null) {
+            closeHooks.call(null);
+        }
+    }
 
-            @Override
-            public void onclose(final SocketSession session) {
-                if (closeHooks != null) {
-                    closeHooks.call(null);
-                }
-            }
+    @Override
+    public void onEvent(final SocketSession session, final Object event) {
+        if (eventHooks != null) {
+            eventHooks.call(event);
+        }
+    }
 
-            @Override
-            public void onEvent(final SocketSession session, final Object event) {
-                if (eventHooks != null) {
-                    eventHooks.call(event);
-                }
-            }
+    @Override
+    public void onText(final SocketSession session, final String text) {
+        if (textHooks != null) {
+            textHooks.call(text);
+        }
+    }
 
-            @Override
-            public void onText(final SocketSession session, final String text) {
-                if (textHooks != null) {
-                    textHooks.call(text);
-                }
-            }
+    @Override
+    public void onBinary(final SocketSession session, final ByteBuf content) {
+        if (binaryHooks != null) {
+            binaryHooks.call(content);
+        }
+    }
 
-            @Override
-            public void onBinary(final SocketSession session, final ByteBuf content) {
-                if (binaryHooks != null) {
-                    binaryHooks.call(content);
-                }
-            }
-
-            @Override
-            public void onError(final SocketSession session, final Throwable cause) {
-                if (errorHooks != null) {
-                    errorHooks.call(cause);
-                }
-            }
-        };
+    @Override
+    public void onError(final SocketSession session, final Throwable cause) {
+        if (errorHooks != null) {
+            errorHooks.call(cause);
+        }
     }
 }

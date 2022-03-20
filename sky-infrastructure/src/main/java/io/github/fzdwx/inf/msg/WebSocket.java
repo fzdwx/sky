@@ -13,10 +13,10 @@ import io.netty.channel.ChannelFuture;
  * @date 2022/3/19 16:07
  * @since 0.06
  */
-public interface WebSocket {
+public interface WebSocket extends Listener {
 
     static WebSocket create(SocketSession session, final HttpRequest httpRequest) {
-        return new WebSocketImpl(session,httpRequest);
+        return new WebSocketImpl(session, httpRequest);
     }
 
     ChannelFuture send(String text);
@@ -24,14 +24,14 @@ public interface WebSocket {
     /**
      * @since 0.07
      */
-    WebSocket send(String text,Hooks<ChannelFuture> h);
+    WebSocket send(String text, Hooks<ChannelFuture> h);
 
     ChannelFuture send(byte[] text);
 
     /**
      * @since 0.07
      */
-    WebSocket send(byte[] text,Hooks<ChannelFuture> h);
+    WebSocket send(byte[] text, Hooks<ChannelFuture> h);
 
     ChannelFuture sendBinary(byte[] binary);
 
@@ -77,5 +77,39 @@ public interface WebSocket {
      */
     WebSocket registerError(Hooks<Throwable> h);
 
-    Listener toListener();
+    /**
+     * @deprecated
+     */
+    @Override
+    void onOpen(final SocketSession session);
+
+    /**
+     * @deprecated
+     */
+    @Override
+    void onclose(final SocketSession session);
+
+    /**
+     * @deprecated
+     */
+    @Override
+    void onEvent(final SocketSession session, final Object event);
+
+    /**
+     * @deprecated
+     */
+    @Override
+    void onText(final SocketSession session, final String text);
+
+    /**
+     * @deprecated
+     */
+    @Override
+    void onBinary(final SocketSession session, final ByteBuf content);
+
+    /**
+     * @deprecated
+     */
+    @Override
+    void onError(final SocketSession session, final Throwable cause);
 }

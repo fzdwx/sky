@@ -7,6 +7,7 @@ import io.github.fzdwx.inf.msg.WebSocketHandler;
 import io.github.fzdwx.inf.route.inter.RequestMethod;
 import io.github.fzdwx.inf.route.msg.SocketSession;
 import io.github.fzdwx.lambada.fun.Hooks;
+import io.github.fzdwx.lambada.fun.Result;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelPipeline;
 import io.netty.handler.codec.http.FullHttpRequest;
@@ -49,48 +50,55 @@ public class HttpRequestImpl implements HttpRequest {
 
     @Override
     public void upgradeToWebSocket(Hooks<WebSocket> h) {
-        //region init websocket and convert to linstener
-        String subProtocols = null;
-        final var session = SocketSession.create(ctx.channel());
-        final var webSocket = WebSocket.create(session, this);
-        h.call(webSocket);
-        final var listener = webSocket.toListener();
-        //endregion
+        upgradeToWebSocket().then(h);
+    }
 
-        // handshake
-        listener.beforeHandshake(session);
+    @Override
+    public Result<WebSocket> upgradeToWebSocket() {
+        return (h) -> {
+            //region init websocket and convert to linstener
+            String subProtocols = null;
+            final var session = SocketSession.create(ctx.channel());
+            final var webSocket = WebSocket.create(session, this);
+            //endregion
 
-        //region parse subProtocol
-        if (session.channel().hasAttr(Netty.SubProtocolAttrKey)) {
-            subProtocols = session.channel().attr(Netty.SubProtocolAttrKey).get();
-        }
-        //endregion
+            h.call(webSocket);
 
-        final var handShaker = new WebSocketServerHandshakerFactory(getWebSocketLocation(ctx.pipeline(), request), subProtocols, true)
-                .newHandshaker(request);
-        if (handShaker != null) {
-            final ChannelPipeline pipeline = ctx.pipeline();
-            pipeline.remove(ctx.name());
+            // handshake
+            webSocket.beforeHandshake(session);
 
-            // heart beat
-            // pipeline.addLast(new IdleStateHandler(5, 0, 0, TimeUnit.SECONDS));
+            //region parse subProtocol
+            if (session.channel().hasAttr(Netty.SubProtocolAttrKey)) {
+                subProtocols = session.channel().attr(Netty.SubProtocolAttrKey).get();
+            }
+            //endregion
 
-            // websocket compress
-            // pipeline.addLast(new WebSocketServerCompressionHandler());
+            final var handShaker = new WebSocketServerHandshakerFactory(getWebSocketLocation(ctx.pipeline(), request), subProtocols, true)
+                    .newHandshaker(request);
+            if (handShaker != null) {
+                final ChannelPipeline pipeline = ctx.pipeline();
+                pipeline.remove(ctx.name());
 
-            // add handler
-            pipeline.addLast(new WebSocketHandler(listener, session));
+                // heart beat
+                // pipeline.addLast(new IdleStateHandler(5, 0, 0, TimeUnit.SECONDS));
 
-            handShaker.handshake(session.channel(), request).addListener(future -> {
-                if (future.isSuccess()) {
-                    listener.onOpen(session);
-                } else {
-                    handShaker.close(session.channel(), new CloseWebSocketFrame());
-                }
-            });
-        } else {
-            sendUnsupportedVersionResponse(session.channel());
-        }
+                // websocket compress
+                // pipeline.addLast(new WebSocketServerCompressionHandler());
+
+                // add handler
+                pipeline.addLast(new WebSocketHandler(webSocket, session));
+
+                handShaker.handshake(session.channel(), request).addListener(future -> {
+                    if (future.isSuccess()) {
+                        webSocket.onOpen(session);
+                    } else {
+                        handShaker.close(session.channel(), new CloseWebSocketFrame());
+                    }
+                });
+            } else {
+                sendUnsupportedVersionResponse(session.channel());
+            }
+        };
     }
 
     private static String getWebSocketLocation(final ChannelPipeline cp, final FullHttpRequest req) {

@@ -26,7 +26,7 @@
                 <!-- 设置日志输出格式 -->
 <!--                %d{yyyy-MM-dd HH:mm:ss.SSS} %green(%-5level) %blue(%property{PID}) -&#45;&#45; [ %20thread ] %cyan(%-45logger{50}) : %msg%n-->
 <!--                %highlight(%-5level %d{yyyy-MM-dd HH:mm:ss.SSS} [-%t][%logger{50}]:) %n%msg%n-->
-                %-5level %d{yyyy-MM-dd HH:mm:ss} %white(-&#45;&#45;) %-20(%yellow([%20.20thread])) %-40(%cyan(%.32logger{30}:%L)) => %msg%n
+                %-5level %d{yyyy-MM-dd HH:mm:ss.SSS} %white(-&#45;&#45;) %-20(%yellow([%20.20thread])) %-40(%cyan(%.32logger{30}:%L)) => %msg%n
             </pattern>
         </encoder>
     </appender>
