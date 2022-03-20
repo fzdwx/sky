@@ -1,9 +1,8 @@
 package io.github.fzdwx.http;
 
 import io.github.fzdwx.inf.route.Router;
+import io.netty.handler.logging.ByteBufFormat;
 import io.netty.handler.logging.LogLevel;
-import io.netty.util.internal.logging.InternalLoggerFactory;
-import io.netty.util.internal.logging.Slf4JLoggerFactory;
 import lombok.extern.slf4j.Slf4j;
 
 import static io.github.fzdwx.inf.Netty.HTTP;
@@ -51,7 +50,7 @@ public class HttpServer {
                 .faviconIco(faviconIco);
 
         HTTP(8888, router).name("我的http 服务器 !")
-                .log(LogLevel.DEBUG)
+                .log(LogLevel.TRACE, ByteBufFormat.HEX_DUMP)
                 .workerCnt(10)
                 .dev()
                 .bind();

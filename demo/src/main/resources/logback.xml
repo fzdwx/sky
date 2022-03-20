@@ -181,7 +181,7 @@
 
 
     <!-- root级别 DEBUG -->
-    <root level="DEBUG">
+    <root level="TRACE">
         <appender-ref ref="console"/>
         <!-- 打印debug及以上级别日志 -->
         <!-- 控制台输出 -->

@@ -1,5 +1,6 @@
 package io.github.fzdwx.inf;
 
+import io.github.fzdwx.lambada.fun.Hooks;
 import io.github.fzdwx.lambada.internal.PrintUtil;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.Channel;
@@ -30,9 +31,9 @@ import java.util.Map;
 @Slf4j
 public abstract class ServInf<Serv extends ServInf<Serv>> {
 
-    protected final int port;
     private final Map<ChannelOption<?>, Object> servOptions = new HashMap();
     private final Map<ChannelOption<?>, Object> childOptions = new HashMap();
+    protected int port;
     protected String name;
     protected int bossCnt = 0;
     protected EventLoopGroup bossGroup;
@@ -51,6 +52,7 @@ public abstract class ServInf<Serv extends ServInf<Serv>> {
         this.port = port;
     }
 
+    /* init options start */
     public Serv workerCnt(int workerCnt) {
         this.workerCnt = workerCnt;
         return me();
@@ -95,15 +97,25 @@ public abstract class ServInf<Serv extends ServInf<Serv>> {
         childOptions.put(option, t);
         return me();
     }
+    /* init options end */
+
+    public Channel channel() {
+        return channel;
+    }
 
     @SneakyThrows
     public void bind() {
         init();
 
-        this.channel = this.serverBootstrap.childHandler(addChildHandler())
-                .bind(this.port).sync().addListener(f -> {
-                    PrintUtil.printBanner();
-                    this.onStart(f);
+        this.channel = this.serverBootstrap.childHandler(childHandler())
+                .bind(this.port)
+                .sync().addListener(f -> {
+                    if (f.isSuccess()) {
+                        PrintUtil.printBanner();
+                        this.onStartSuccess(f);
+                    } else {
+                        this.onStartFail(f.cause());
+                    }
                 })
                 .channel();
         this.channel.closeFuture().sync();
@@ -114,15 +126,31 @@ public abstract class ServInf<Serv extends ServInf<Serv>> {
         this.bossGroup.shutdownGracefully();
     }
 
-    public Channel channel() {
-        return channel;
+    @NonNull
+    public final ChannelInitializer<SocketChannel> childHandler() {
+        return new ChannelInitializer<>() {
+            @Override
+            protected void initChannel(final SocketChannel ch) throws Exception {
+                if (logging != null) {
+                    ch.pipeline().addLast(logging);
+                }
+                registerInitChannel().call(ch);
+            }
+        };
     }
 
-    @NonNull
-    public abstract ChannelInitializer<SocketChannel> addChildHandler();
+    public abstract Hooks<SocketChannel> registerInitChannel();
 
     @NonNull
     public abstract Class<? extends ServerChannel> serverChannelClass();
+
+    protected void onStartFail(final Throwable cause) {
+        log.error("start fail", cause);
+    }
+
+    protected void onStartSuccess(final Future<? super Void> f) {
+        log.info(this.name + " start at port: " + this.port);
+    }
 
     protected void init() {
         if (bossGroup == null) {
@@ -148,11 +176,6 @@ public abstract class ServInf<Serv extends ServInf<Serv>> {
         for (Map.Entry<ChannelOption<?>, ?> entry : childOptions.entrySet()) {
             this.serverBootstrap = serverBootstrap.childOption((ChannelOption<Object>) entry.getKey(), entry.getValue());
         }
-
-    }
-
-    protected void onStart(final Future<? super Void> f) {
-        log.info(this.name + " start at port: " + this.port);
     }
 
     protected abstract Serv me();

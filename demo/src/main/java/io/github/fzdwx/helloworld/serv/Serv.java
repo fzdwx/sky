@@ -1,8 +1,7 @@
 package io.github.fzdwx.helloworld.serv;
 
 import io.github.fzdwx.inf.ServInf;
-import io.netty.channel.ChannelInitializer;
-import io.netty.channel.ChannelOption;
+import io.github.fzdwx.lambada.fun.Hooks;
 import io.netty.channel.ServerChannel;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
@@ -23,18 +22,15 @@ public class Serv extends ServInf<Serv> {
     }
 
     @Override
-    public @NonNull ChannelInitializer<SocketChannel> addChildHandler() {
-        return new ChannelInitializer<>() {
-            @Override
-            protected void initChannel(final SocketChannel ch) throws Exception {
-                ch.pipeline()
-                        // 以("\n")为结尾分割的 解码器,防止粘包
-                        .addLast(new DelimiterBasedFrameDecoder(8192, Delimiters.lineDelimiter()))
-                        // 解码和编码，应和客户端一致
-                        .addLast(new StringDecoder())
-                        .addLast(new StringEncoder())
-                        .addLast(new ServHandler());
-            }
+    public Hooks<SocketChannel> registerInitChannel() {
+        return ch -> {
+            ch.pipeline()
+                    // 以("\n")为结尾分割的 解码器,防止粘包
+                    .addLast(new DelimiterBasedFrameDecoder(8192, Delimiters.lineDelimiter()))
+                    // 解码和编码，应和客户端一致
+                    .addLast(new StringDecoder())
+                    .addLast(new StringEncoder())
+                    .addLast(new ServHandler());
         };
     }
 

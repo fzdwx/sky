@@ -1,14 +1,18 @@
 package io.github.fzdwx.inf.http;
 
 import io.github.fzdwx.inf.ServInf;
-import io.github.fzdwx.inf.http.core.HttpServInitializer;
+import io.github.fzdwx.inf.http.core.HttpServerHandler;
 import io.github.fzdwx.inf.http.inter.HttpDevHtml;
 import io.github.fzdwx.inf.route.Router;
-import io.netty.channel.ChannelInitializer;
+import io.github.fzdwx.lambada.fun.Hooks;
 import io.netty.channel.ChannelOption;
 import io.netty.channel.ServerChannel;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
+import io.netty.handler.codec.http.HttpObjectAggregator;
+import io.netty.handler.codec.http.HttpServerCodec;
+import io.netty.handler.codec.http.HttpServerExpectContinueHandler;
+import io.netty.handler.stream.ChunkedWriteHandler;
 import io.netty.util.concurrent.Future;
 import lombok.NonNull;
 import lombok.SneakyThrows;
@@ -53,19 +57,31 @@ public class HttpServ extends ServInf<HttpServ> {
     }
 
     @Override
-    public HttpServ name(String name) {
-        super.name(name);
-        return this;
-    }
-
-    @Override
-    public @NonNull ChannelInitializer<SocketChannel> addChildHandler() {
-        return new HttpServInitializer(router);
+    public Hooks<SocketChannel> registerInitChannel() {
+        return ch -> {
+            ch.pipeline()
+                    .addLast(new HttpServerCodec())
+                    .addLast(new HttpObjectAggregator(1024 * 1024))
+                    .addLast(new ChunkedWriteHandler())
+                    .addLast(new HttpServerExpectContinueHandler())
+                    .addLast(new HttpServerHandler(router));
+        };
     }
 
     @Override
     public @NonNull Class<? extends ServerChannel> serverChannelClass() {
         return NioServerSocketChannel.class;
+    }
+
+    @SneakyThrows
+    @Override
+    protected void onStartSuccess(final Future<? super Void> f) {
+        final var address = "http://" + getLocalHost().getHostAddress() + ":" + this.port;
+        log.info("Server start Listening on:" + address);
+
+        if (dev) {
+            log.info("DEV mode open : " + address + HttpDevHtml.PAGE_PATH);
+        }
     }
 
     @Override
@@ -75,17 +91,6 @@ public class HttpServ extends ServInf<HttpServ> {
         this.childOptions(ChannelOption.SO_KEEPALIVE, true);
 
         super.init();
-    }
-
-    @SneakyThrows
-    @Override
-    protected void onStart(final Future<? super Void> f) {
-        final var address = "http://" + getLocalHost().getHostAddress() + ":" + this.port;
-        log.info("Server start Listening on:" + address);
-
-        if (dev) {
-            log.info("DEV mode open : " + address + HttpDevHtml.PAGE_PATH);
-        }
     }
 
     @Override
