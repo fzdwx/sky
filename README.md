@@ -6,6 +6,7 @@
 
 - [x] Http Server
 - [x] Websocket Server
+- [ ] 大文件发送 继续优化 
 - [ ] todo... need your idea !
 
 ## 启动一个http 服务器

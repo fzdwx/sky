@@ -1,11 +1,12 @@
 package io.github.fzdwx.inf.msg.inter;
 
-import io.github.fzdwx.inf.Listener;
 import io.github.fzdwx.inf.http.core.HttpRequest;
 import io.github.fzdwx.inf.msg.WebSocket;
 import io.github.fzdwx.inf.route.msg.SocketSession;
 import io.github.fzdwx.lambada.fun.Hooks;
 import io.netty.buffer.ByteBuf;
+import io.netty.channel.Channel;
+import io.netty.channel.ChannelFuture;
 import lombok.Getter;
 
 /**
@@ -35,20 +36,51 @@ public class WebSocketImpl implements WebSocket {
     }
 
     @Override
-    public WebSocket send(final String text) {
-        session.send(text);
+    public Channel channel() {
+        return this.session.channel();
+    }
+
+    @Override
+    public ChannelFuture reject() {
+        return session.reject();
+    }
+
+    @Override
+    public ChannelFuture reject(final String text) {
+        return session.reject(text);
+    }
+
+    @Override
+    public ChannelFuture send(final String text) {
+        return session.send(text);
+    }
+
+    @Override
+    public WebSocket send(final String text, final Hooks<ChannelFuture> h) {
+        h.call(send(text));
         return this;
     }
 
     @Override
-    public WebSocket send(final byte[] text) {
-        session.send(text);
+    public ChannelFuture send(final byte[] text) {
+        return session.send(text);
+    }
+
+    @Override
+    public WebSocket send(final byte[] text, final Hooks<ChannelFuture> h) {
+        h.call(send(text));
         return this;
     }
 
     @Override
-    public WebSocket sendBinary(final byte[] binary) {
-        session.sendBinary(binary);
+    public ChannelFuture sendBinary(final byte[] binary) {
+        return session.sendBinary(binary);
+    }
+
+    @Override
+    public WebSocket sendBinary(final byte[] binary, final Hooks<ChannelFuture> h) {
+        h.call(sendBinary(binary));
+
         return this;
     }
 
@@ -66,6 +98,11 @@ public class WebSocketImpl implements WebSocket {
     @Override
     public WebSocket registerEvent(final Hooks<Object> h) {
         this.eventHooks = h;
+        return this;
+    }
+
+    public WebSocket registerText(Hooks<String> h) {
+        this.textHooks = h;
         return this;
     }
 
@@ -87,63 +124,53 @@ public class WebSocketImpl implements WebSocket {
         return this;
     }
 
-    public WebSocket registerText(Hooks<String> h) {
-        this.textHooks = h;
-        return this;
+
+    @Override
+    public void beforeHandshake(final SocketSession session) throws RuntimeException {
+        if (beforeHandshakeHooks != null) {
+            beforeHandshakeHooks.call(null);
+        }
     }
 
     @Override
-    public Listener toListener() {
-        return new Listener() {
+    public void onOpen(final SocketSession session) {
+        if (openHooks != null) {
+            openHooks.call(null);
+        }
+    }
 
-            @Override
-            public void beforeHandshake(final SocketSession session) throws RuntimeException {
-                if (beforeHandshakeHooks != null) {
-                    beforeHandshakeHooks.call(null);
-                }
-            }
+    @Override
+    public void onclose(final SocketSession session) {
+        if (closeHooks != null) {
+            closeHooks.call(null);
+        }
+    }
 
-            @Override
-            public void onOpen(final SocketSession session) {
-                if (openHooks != null) {
-                    openHooks.call(null);
-                }
-            }
+    @Override
+    public void onEvent(final SocketSession session, final Object event) {
+        if (eventHooks != null) {
+            eventHooks.call(event);
+        }
+    }
 
-            @Override
-            public void onclose(final SocketSession session) {
-                if (closeHooks != null) {
-                    closeHooks.call(null);
-                }
-            }
+    @Override
+    public void onText(final SocketSession session, final String text) {
+        if (textHooks != null) {
+            textHooks.call(text);
+        }
+    }
 
-            @Override
-            public void onEvent(final SocketSession session, final Object event) {
-                if (eventHooks != null) {
-                    eventHooks.call(event);
-                }
-            }
+    @Override
+    public void onBinary(final SocketSession session, final ByteBuf content) {
+        if (binaryHooks != null) {
+            binaryHooks.call(content);
+        }
+    }
 
-            @Override
-            public void onText(final SocketSession session, final String text) {
-                if (textHooks != null) {
-                    textHooks.call(text);
-                }
-            }
-
-            @Override
-            public void onBinary(final SocketSession session, final ByteBuf content) {
-                if (binaryHooks != null) {
-                    binaryHooks.call(content);
-                }
-            }
-
-            @Override
-            public void onError(final SocketSession session, final Throwable cause) {
-                if (errorHooks != null) {
-                    errorHooks.call(cause);
-                }
-            }
-        };
+    @Override
+    public void onError(final SocketSession session, final Throwable cause) {
+        if (errorHooks != null) {
+            errorHooks.call(cause);
+        }
     }
 }

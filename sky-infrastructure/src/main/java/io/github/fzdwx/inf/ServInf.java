@@ -1,18 +1,24 @@
 package io.github.fzdwx.inf;
 
+import io.github.fzdwx.lambada.fun.Hooks;
 import io.github.fzdwx.lambada.internal.PrintUtil;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.Channel;
-import io.netty.channel.ChannelHandler;
+import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelInitializer;
+import io.netty.channel.ChannelOption;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.ServerChannel;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
-import io.netty.util.concurrent.Future;
+import io.netty.handler.logging.ByteBufFormat;
+import io.netty.handler.logging.LogLevel;
+import io.netty.handler.logging.LoggingHandler;
 import lombok.NonNull;
-import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
+
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * server based class.
@@ -22,18 +28,18 @@ import lombok.extern.slf4j.Slf4j;
  * @since 0.06
  */
 @Slf4j
-public abstract class ServInf {
+public abstract class ServInf<Serv extends ServInf<Serv>> {
 
-    protected final int port;
+    private final Map<ChannelOption<?>, Object> servOptions = new HashMap();
+    private final Map<ChannelOption<?>, Object> childOptions = new HashMap();
+    protected int port;
     protected String name;
     protected int bossCnt = 0;
     protected EventLoopGroup bossGroup;
-
     protected int workerCnt = 0;
     protected EventLoopGroup workerGroup;
-
     protected ServerBootstrap serverBootstrap;
-
+    private LoggingHandler logging;
     private Channel channel;
 
     public ServInf(final int port) {
@@ -45,33 +51,114 @@ public abstract class ServInf {
         this.port = port;
     }
 
-    public ServInf workerCnt(int workerCnt) {
+    /* init options start */
+    public Serv workerCnt(int workerCnt) {
         this.workerCnt = workerCnt;
-        return this;
+        return me();
     }
 
-    public ServInf bossCnt(int bossCnt) {
+    public Serv bossCnt(int bossCnt) {
         this.bossCnt = bossCnt;
-        return this;
+        return me();
     }
 
-    public ServInf bossGroup(EventLoopGroup bossGroup) {
+    public Serv bossGroup(EventLoopGroup bossGroup) {
         this.bossGroup = bossGroup;
-        return this;
+        return me();
     }
 
-    public ServInf workerGroup(EventLoopGroup workerGroup) {
+    public Serv workerGroup(EventLoopGroup workerGroup) {
         this.workerGroup = workerGroup;
-        return this;
+        return me();
     }
 
-    public ServInf name(String name) {
+    public Serv log(LogLevel level) {
+        logging = new LoggingHandler(level);
+        return me();
+    }
+
+    public Serv log(LogLevel level, ByteBufFormat format) {
+        logging = new LoggingHandler(level, format);
+        return me();
+    }
+
+    public Serv name(String name) {
         this.name = name;
-        return this;
+        return me();
     }
 
-    @SneakyThrows
-    public void start() {
+    public <T> Serv servOptions(ChannelOption<T> option, T t) {
+        servOptions.put(option, t);
+        return me();
+    }
+
+    public <T> Serv childOptions(ChannelOption<T> option, T t) {
+        childOptions.put(option, t);
+        return me();
+    }
+    /* init options end */
+
+    public Channel channel() {
+        return channel;
+    }
+
+    public void bind(Hooks<ChannelFuture> h) {
+        h.call(bind());
+    }
+
+    public ChannelFuture bind() {
+        init();
+
+        final var bindFuture = this.serverBootstrap
+                .childHandler(childHandler())
+                .bind(this.port);
+
+        this.channel = bindFuture.channel();
+
+        bindFuture.addListener(f -> {
+            if (bindFuture.isSuccess()) {
+                PrintUtil.printBanner();
+
+                this.onStartSuccess();
+            }
+        });
+
+        return bindFuture;
+    }
+
+    public void stop() {
+        if (!this.workerGroup.isShutdown()) {
+            this.workerGroup.shutdownGracefully();
+        }
+        if (!this.bossGroup.isShutdown()) {
+            this.bossGroup.shutdownGracefully();
+        }
+    }
+
+    @NonNull
+    public final ChannelInitializer<SocketChannel> childHandler() {
+        return new ChannelInitializer<>() {
+            @Override
+            protected void initChannel(final SocketChannel ch) throws Exception {
+                if (logging != null) {
+                    ch.pipeline().addLast(logging);
+                }
+                registerInitChannel().call(ch);
+            }
+        };
+    }
+
+    public abstract Hooks<SocketChannel> registerInitChannel();
+
+    @NonNull
+    public abstract Class<? extends ServerChannel> serverChannelClass();
+
+    protected void onStartSuccess() {
+        log.info(this.name + " start at port: " + this.port);
+        Runtime.getRuntime().addShutdownHook(new Thread(this::stop));
+    }
+
+    protected void init() {
         if (bossGroup == null) {
             this.bossGroup = new NioEventLoopGroup(this.bossCnt);
         }
@@ -79,45 +166,23 @@ public abstract class ServInf {
             this.workerGroup = new NioEventLoopGroup(this.workerCnt);
         }
 
-        this.serverBootstrap = new ServerBootstrap();
-        this.serverBootstrap.group(this.bossGroup, this.workerGroup)
+        this.serverBootstrap = new ServerBootstrap()
+                .group(this.bossGroup, this.workerGroup)
                 .channel(this.serverChannelClass());
-        final var channelHandler = servHandlers();
-        if (channelHandler != null) {
-            this.serverBootstrap.handler(servHandlers());
+
+
+        if (logging != null) {
+            this.serverBootstrap = this.serverBootstrap.handler(logging);
         }
-        this.addServOptions();
-        this.channel = this.serverBootstrap.childHandler(this.addChildHandler())
-                .bind(this.port).sync().addListener(f -> {
-                    PrintUtil.printBanner();
-                    this.onStart(f);
-                })
-                .channel();
-        this.channel.closeFuture().sync();
+
+        for (Map.Entry<ChannelOption<?>, ?> entry : servOptions.entrySet()) {
+            this.serverBootstrap = serverBootstrap.option((ChannelOption<Object>) entry.getKey(), entry.getValue());
+        }
+
+        for (Map.Entry<ChannelOption<?>, ?> entry : childOptions.entrySet()) {
+            this.serverBootstrap = serverBootstrap.childOption((ChannelOption<Object>) entry.getKey(), entry.getValue());
+        }
     }
 
-    public void stop() {
-        this.workerGroup.shutdownGracefully();
-        this.bossGroup.shutdownGracefully();
-    }
-
-    public Channel channel() {
-        return channel;
-    }
-
-    @NonNull
-    public abstract ChannelInitializer<SocketChannel> addChildHandler();
-
-    public ChannelHandler servHandlers() {
-        return null;
-    }
-
-    @NonNull
-    public abstract Class<? extends ServerChannel> serverChannelClass();
-
-    public abstract void addServOptions();
-
-    protected void onStart(final Future<? super Void> f) {
-        log.info(this.name + " start at port: " + this.port);
-    }
+    protected abstract Serv me();
 }

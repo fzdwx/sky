@@ -72,7 +72,7 @@ public class HttpDevHtml implements HttpHandler {
         this.fileList = of(listFileNames(""))
                 .map(h -> {
                     router.GET("/" + h, (req, response) -> {
-                        response.output(readString(h, CHARSET), ContentType.TEXT_PLAIN);
+                        response.contentType(ContentType.TEXT_PLAIN) .output(readString(h, CHARSET));
                     });
                     var s = """
                                         <li><div><a href="/%s">%s</a></div></li>

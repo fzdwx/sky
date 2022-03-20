@@ -1,19 +1,23 @@
 package io.github.fzdwx.inf.http;
 
 import io.github.fzdwx.inf.ServInf;
-import io.github.fzdwx.inf.http.core.HttpServInitializer;
+import io.github.fzdwx.inf.http.core.HttpServerHandler;
 import io.github.fzdwx.inf.http.inter.HttpDevHtml;
 import io.github.fzdwx.inf.route.Router;
-import io.netty.channel.ChannelInitializer;
+import io.github.fzdwx.lambada.fun.Hooks;
 import io.netty.channel.ChannelOption;
 import io.netty.channel.ServerChannel;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
-import io.netty.util.concurrent.Future;
+import io.netty.handler.codec.http.HttpObjectAggregator;
+import io.netty.handler.codec.http.HttpServerCodec;
+import io.netty.handler.codec.http.HttpServerExpectContinueHandler;
+import io.netty.handler.stream.ChunkedWriteHandler;
 import lombok.NonNull;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 
+import static io.github.fzdwx.lambada.Lang.todo;
 import static java.net.InetAddress.getLocalHost;
 
 /**
@@ -24,10 +28,11 @@ import static java.net.InetAddress.getLocalHost;
  * @since 0.06
  */
 @Slf4j
-public class HttpServ extends ServInf {
+public class HttpServ extends ServInf<HttpServ> {
 
     private final Router router;
     private boolean dev;
+    private boolean ssl;
 
     /**
      * http server
@@ -52,15 +57,20 @@ public class HttpServ extends ServInf {
         return this;
     }
 
-    @Override
-    public HttpServ name(String name) {
-        super.name(name);
-        return this;
+    public HttpServ ssl() {
+        return todo();
     }
 
     @Override
-    public @NonNull ChannelInitializer<SocketChannel> addChildHandler() {
-        return new HttpServInitializer(router);
+    public Hooks<SocketChannel> registerInitChannel() {
+        return ch -> {
+            ch.pipeline()
+                    .addLast(new HttpServerCodec())
+                    .addLast(new HttpObjectAggregator(1024 * 1024))
+                    .addLast(new ChunkedWriteHandler())
+                    .addLast(new HttpServerExpectContinueHandler())
+                    .addLast(new HttpServerHandler(router));
+        };
     }
 
     @Override
@@ -68,21 +78,28 @@ public class HttpServ extends ServInf {
         return NioServerSocketChannel.class;
     }
 
-    @Override
-    public void addServOptions() {
-        this.serverBootstrap.option(ChannelOption.SO_BACKLOG, 1024);
-        this.serverBootstrap.childOption(ChannelOption.TCP_NODELAY, true);
-        this.serverBootstrap.childOption(ChannelOption.SO_KEEPALIVE, true);
-    }
-
     @SneakyThrows
     @Override
-    protected void onStart(final Future<? super Void> f) {
-        final var address = "http://" + getLocalHost().getHostAddress() + ":" + this.port;
+    protected void onStartSuccess() {
+        final var address = (ssl ? "https" : "http") + "://" + getLocalHost().getHostAddress() + ":" + this.port;
         log.info("Server start Listening on:" + address);
 
         if (dev) {
             log.info("DEV mode open : " + address + HttpDevHtml.PAGE_PATH);
         }
+    }
+
+    @Override
+    protected void init() {
+        this.servOptions(ChannelOption.SO_BACKLOG, 1024);
+        this.childOptions(ChannelOption.TCP_NODELAY, true);
+        this.childOptions(ChannelOption.SO_KEEPALIVE, true);
+
+        super.init();
+    }
+
+    @Override
+    protected HttpServ me() {
+        return this;
     }
 }

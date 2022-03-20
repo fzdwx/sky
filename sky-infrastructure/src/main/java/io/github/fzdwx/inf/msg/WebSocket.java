@@ -6,23 +6,57 @@ import io.github.fzdwx.inf.msg.inter.WebSocketImpl;
 import io.github.fzdwx.inf.route.msg.SocketSession;
 import io.github.fzdwx.lambada.fun.Hooks;
 import io.netty.buffer.ByteBuf;
+import io.netty.channel.Channel;
+import io.netty.channel.ChannelFuture;
 
 /**
  * @author <a href="mailto:likelovec@gmail.com">韦朕</a>
  * @date 2022/3/19 16:07
  * @since 0.06
  */
-public interface WebSocket {
+public interface WebSocket extends Listener {
 
     static WebSocket create(SocketSession session, final HttpRequest httpRequest) {
-        return new WebSocketImpl(session,httpRequest);
+        return new WebSocketImpl(session, httpRequest);
     }
 
-    WebSocket send(String text);
+    Channel channel();
 
-    WebSocket send(byte[] text);
+    /**
+     * reject connection.
+     *
+     * @since 0.07
+     */
+    ChannelFuture reject();
 
-    WebSocket sendBinary(byte[] binary);
+    /**
+     * reject connection.
+     *
+     * @since 0.07
+     * @return
+     */
+    ChannelFuture reject(String text);
+
+    ChannelFuture send(String text);
+
+    /**
+     * @since 0.07
+     */
+    WebSocket send(String text, Hooks<ChannelFuture> h);
+
+    ChannelFuture send(byte[] text);
+
+    /**
+     * @since 0.07
+     */
+    WebSocket send(byte[] text, Hooks<ChannelFuture> h);
+
+    ChannelFuture sendBinary(byte[] binary);
+
+    /**
+     * @since 0.07
+     */
+    WebSocket sendBinary(byte[] binary, Hooks<ChannelFuture> h);
 
     /**
      * before handshake.
@@ -50,7 +84,7 @@ public interface WebSocket {
     WebSocket registerBinary(Hooks<ByteBuf> h);
 
     /**
-     * on client close connection while call this method.
+     * on client or server close connection while call this method.
      *
      * @apiNote can not send message to client.
      */
@@ -61,5 +95,45 @@ public interface WebSocket {
      */
     WebSocket registerError(Hooks<Throwable> h);
 
-    Listener toListener();
+    /**
+     * @deprecated
+     */
+    @Override
+    void beforeHandshake(final SocketSession session) throws RuntimeException;
+
+    /**
+     * @deprecated
+     */
+    @Override
+    void onOpen(final SocketSession session);
+
+    /**
+     * @deprecated
+     */
+    @Override
+    void onclose(final SocketSession session);
+
+    /**
+     * @deprecated
+     */
+    @Override
+    void onEvent(final SocketSession session, final Object event);
+
+    /**
+     * @deprecated
+     */
+    @Override
+    void onText(final SocketSession session, final String text);
+
+    /**
+     * @deprecated
+     */
+    @Override
+    void onBinary(final SocketSession session, final ByteBuf content);
+
+    /**
+     * @deprecated
+     */
+    @Override
+    void onError(final SocketSession session, final Throwable cause);
 }

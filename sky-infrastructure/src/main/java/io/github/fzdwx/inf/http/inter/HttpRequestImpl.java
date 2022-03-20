@@ -7,12 +7,14 @@ import io.github.fzdwx.inf.msg.WebSocketHandler;
 import io.github.fzdwx.inf.route.inter.RequestMethod;
 import io.github.fzdwx.inf.route.msg.SocketSession;
 import io.github.fzdwx.lambada.fun.Hooks;
+import io.github.fzdwx.lambada.fun.Result;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelPipeline;
 import io.netty.handler.codec.http.FullHttpRequest;
 import io.netty.handler.codec.http.HttpHeaderNames;
 import io.netty.handler.codec.http.websocketx.CloseWebSocketFrame;
 import io.netty.handler.codec.http.websocketx.WebSocketServerHandshakerFactory;
+import io.netty.handler.ssl.SslHandler;
 
 import static io.github.fzdwx.inf.route.inter.RequestMethod.of;
 import static io.netty.handler.codec.http.websocketx.WebSocketServerHandshakerFactory.sendUnsupportedVersionResponse;
@@ -48,52 +50,63 @@ public class HttpRequestImpl implements HttpRequest {
 
     @Override
     public void upgradeToWebSocket(Hooks<WebSocket> h) {
-        //region init websocket and convert to linstener
-        String subProtocols = null;
-        final var session = SocketSession.create(ctx.channel());
-        final var webSocket = WebSocket.create(session, this);
-        h.call(webSocket);
-        final var listener = webSocket.toListener();
-        //endregion
-
-        // handshake
-        listener.beforeHandshake(session);
-
-        //region parse subProtocol
-        if (session.channel().hasAttr(Netty.SubProtocolAttrKey)) {
-            subProtocols = session.channel().attr(Netty.SubProtocolAttrKey).get();
-        }
-        //endregion
-
-        final var handShaker = new WebSocketServerHandshakerFactory(getWebSocketLocation(request), subProtocols, true)
-                .newHandshaker(request);
-        if (handShaker != null) {
-            final ChannelPipeline pipeline = ctx.pipeline();
-            pipeline.remove(ctx.name());
-
-            // heart beat
-            // pipeline.addLast(new IdleStateHandler(5, 0, 0, TimeUnit.SECONDS));
-
-            // websocket compress
-            // pipeline.addLast(new WebSocketServerCompressionHandler());
-
-            // add handler
-            pipeline.addLast(new WebSocketHandler(listener, session));
-
-            handShaker.handshake(session.channel(), request).addListener(future -> {
-                if (future.isSuccess()) {
-                    listener.onOpen(session);
-                } else {
-                    handShaker.close(session.channel(), new CloseWebSocketFrame());
-                }
-            });
-        } else {
-            sendUnsupportedVersionResponse(session.channel());
-        }
+        upgradeToWebSocket().then(h);
     }
 
-    private static String getWebSocketLocation(final FullHttpRequest req) {
-        final String location = req.headers().get(HttpHeaderNames.HOST) + req.uri();
-        return "ws://" + location;
+    @Override
+    public Result<WebSocket> upgradeToWebSocket() {
+        return (h) -> {
+            //region init websocket and convert to linstener
+            String subProtocols = null;
+            final var session = SocketSession.create(ctx.channel());
+            final var webSocket = WebSocket.create(session, this);
+            //endregion
+
+            h.call(webSocket);
+
+            // handshake
+            webSocket.beforeHandshake(session);
+
+            //region parse subProtocol
+            if (session.channel().hasAttr(Netty.SubProtocolAttrKey)) {
+                subProtocols = session.channel().attr(Netty.SubProtocolAttrKey).get();
+            }
+            //endregion
+
+            final var handShaker = new WebSocketServerHandshakerFactory(getWebSocketLocation(ctx.pipeline(), request), subProtocols, true)
+                    .newHandshaker(request);
+            if (handShaker != null) {
+                final ChannelPipeline pipeline = ctx.pipeline();
+                pipeline.remove(ctx.name());
+
+                // heart beat
+                // pipeline.addLast(new IdleStateHandler(5, 0, 0, TimeUnit.SECONDS));
+
+                // websocket compress
+                // pipeline.addLast(new WebSocketServerCompressionHandler());
+
+                // add handler
+                pipeline.addLast(new WebSocketHandler(webSocket, session));
+
+                handShaker.handshake(session.channel(), request).addListener(future -> {
+                    if (future.isSuccess()) {
+                        webSocket.onOpen(session);
+                    } else {
+                        handShaker.close(session.channel(), new CloseWebSocketFrame());
+                    }
+                });
+            } else {
+                sendUnsupportedVersionResponse(session.channel());
+            }
+        };
+    }
+
+    private static String getWebSocketLocation(final ChannelPipeline cp, final FullHttpRequest req) {
+        String protocol = "ws";
+        if (cp.get(SslHandler.class) != null) {
+            // SSL in use so use Secure WebSockets
+            protocol = "wss";
+        }
+        return protocol + "://" + req.headers().get(HttpHeaderNames.HOST) + req.uri();
     }
 }

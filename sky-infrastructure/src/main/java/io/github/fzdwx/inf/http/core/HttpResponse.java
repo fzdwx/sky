@@ -1,9 +1,13 @@
 package io.github.fzdwx.inf.http.core;
 
 import io.github.fzdwx.inf.http.inter.HttpResponseImpl;
+import io.github.fzdwx.lambada.fun.Hooks;
 import io.netty.channel.Channel;
+import io.netty.channel.ChannelFuture;
+import io.netty.handler.codec.http.HttpMessage;
 
 import java.io.File;
+import java.io.InputStream;
 
 /**
  * http response.
@@ -18,21 +22,132 @@ public interface HttpResponse {
         return new HttpResponseImpl(channel);
     }
 
-    void json(final String json);
+    Channel channel();
 
-    void json(final byte[] json);
+    HttpResponse contentType(final String contentType);
 
-    void html(String html);
+    HttpResponse contentDisposition(final String contentDisposition);
 
-    void bytes(byte[] bytes);
+    HttpResponse contentDispositionFull(String contentDisposition);
 
+    ChannelFuture reject();
+
+    ChannelFuture reject(HttpMessage result);
+
+    /**
+     * @apiNote auto flush and close
+     */
     void redirect(String url);
 
-    void file(File file);
+    /**
+     * @since 0.07
+     */
+    void redirect(String url, Hooks<ChannelFuture> h);
 
+
+    /**
+     * out put json data to client.
+     *
+     * @apiNote auto flush and close
+     */
+    void json(final String json);
+
+    /**
+     * @since 0.07
+     */
+    void json(final String json, Hooks<ChannelFuture> h);
+
+    /**
+     * @apiNote auto flush and close
+     */
+    void json(final byte[] json);
+
+    /**
+     * @since 0.07
+     */
+    void json(final byte[] json, Hooks<ChannelFuture> h);
+
+    /**
+     * @apiNote auto flush and close
+     */
+    void html(String html);
+
+    /**
+     * @since 0.07
+     */
+    void html(String html, Hooks<ChannelFuture> h);
+
+    /**
+     * @apiNote auto flush and close
+     */
     void file(String filePath);
 
-    void file(byte[] bytes, String fileName);
+    /**
+     * @since 0.07
+     */
+    void file(String filePath, Hooks<ChannelFuture> h);
 
-    void output(String str, String contentType);
+    /**
+     * @apiNote auto flush and close
+     */
+    void file(File file);
+
+    /**
+     * @since 0.07
+     */
+    void file(File file, Hooks<ChannelFuture> h);
+
+    /**
+     * output string to client.
+     *
+     * @apiNote auto flush and close
+     * @see #contentType
+     * @see io.netty.handler.codec.http.HttpHeaderValues
+     */
+    void output(String str);
+
+    /**
+     * @see #contentType
+     * @since 0.07
+     */
+    void output(String str, Hooks<ChannelFuture> h);
+
+    /**
+     * @apiNote auto flush and close
+     */
+    void bytes(byte[] bytes);
+
+    /**
+     * @since 0.07
+     */
+    void bytes(byte[] bytes, Hooks<ChannelFuture> h);
+
+    /**
+     * @param stream stream
+     * @apiNote auto flush and close
+     * @see #contentDisposition
+     * @since 0.07
+     */
+    void output(InputStream stream);
+
+    /**
+     * @see #contentDisposition
+     * @since 0.07
+     */
+    void output(InputStream stream, Hooks<ChannelFuture> h);
+
+
+    /**
+     * output http result to client.
+     *
+     * @apiNote auto flush and close
+     * @see ContentType
+     * @see io.netty.handler.codec.http.HttpHeaderValues
+     */
+    void output(HttpMessage result);
+
+    /**
+     * @since 0.07
+     */
+    void output(HttpMessage result, Hooks<ChannelFuture> h);
 }
