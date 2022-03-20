@@ -13,7 +13,6 @@ import io.netty.handler.codec.http.HttpObjectAggregator;
 import io.netty.handler.codec.http.HttpServerCodec;
 import io.netty.handler.codec.http.HttpServerExpectContinueHandler;
 import io.netty.handler.stream.ChunkedWriteHandler;
-import io.netty.util.concurrent.Future;
 import lombok.NonNull;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
@@ -75,7 +74,7 @@ public class HttpServ extends ServInf<HttpServ> {
 
     @SneakyThrows
     @Override
-    protected void onStartSuccess(final Future<? super Void> f) {
+    protected void onStartSuccess() {
         final var address = "http://" + getLocalHost().getHostAddress() + ":" + this.port;
         log.info("Server start Listening on:" + address);
 

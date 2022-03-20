@@ -4,6 +4,7 @@ import io.github.fzdwx.lambada.fun.Hooks;
 import io.github.fzdwx.lambada.internal.PrintUtil;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.Channel;
+import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelOption;
 import io.netty.channel.EventLoopGroup;
@@ -13,7 +14,6 @@ import io.netty.channel.socket.SocketChannel;
 import io.netty.handler.logging.ByteBufFormat;
 import io.netty.handler.logging.LogLevel;
 import io.netty.handler.logging.LoggingHandler;
-import io.netty.util.concurrent.Future;
 import lombok.NonNull;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
@@ -104,21 +104,27 @@ public abstract class ServInf<Serv extends ServInf<Serv>> {
     }
 
     @SneakyThrows
-    public void bind() {
+    public void bind(Hooks<ChannelFuture> h) {
+        h.call(bind());
+    }
+
+    @SneakyThrows
+    public ChannelFuture bind() {
         init();
 
-        this.channel = this.serverBootstrap.childHandler(childHandler())
+        final var bindFuture = this.serverBootstrap
+                .childHandler(childHandler())
                 .bind(this.port)
-                .sync().addListener(f -> {
-                    if (f.isSuccess()) {
-                        PrintUtil.printBanner();
-                        this.onStartSuccess(f);
-                    } else {
-                        this.onStartFail(f.cause());
-                    }
-                })
-                .channel();
-        this.channel.closeFuture().sync();
+                .sync();
+
+        this.channel = bindFuture.channel();
+        if (bindFuture.isSuccess()) {
+            PrintUtil.printBanner();
+
+            this.onStartSuccess();
+        }
+
+        return bindFuture;
     }
 
     public void stop() {
@@ -148,11 +154,7 @@ public abstract class ServInf<Serv extends ServInf<Serv>> {
     @NonNull
     public abstract Class<? extends ServerChannel> serverChannelClass();
 
-    protected void onStartFail(final Throwable cause) {
-        log.error("start fail", cause);
-    }
-
-    protected void onStartSuccess(final Future<? super Void> f) {
+    protected void onStartSuccess() {
         log.info(this.name + " start at port: " + this.port);
         Runtime.getRuntime().addShutdownHook(new Thread(this::stop));
     }
