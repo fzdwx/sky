@@ -122,8 +122,12 @@ public abstract class ServInf<Serv extends ServInf<Serv>> {
     }
 
     public void stop() {
-        this.workerGroup.shutdownGracefully();
-        this.bossGroup.shutdownGracefully();
+        if (!this.workerGroup.isShutdown()) {
+            this.workerGroup.shutdownGracefully();
+        }
+        if (!this.bossGroup.isShutdown()) {
+            this.bossGroup.shutdownGracefully();
+        }
     }
 
     @NonNull
@@ -150,6 +154,7 @@ public abstract class ServInf<Serv extends ServInf<Serv>> {
 
     protected void onStartSuccess(final Future<? super Void> f) {
         log.info(this.name + " start at port: " + this.port);
+        Runtime.getRuntime().addShutdownHook(new Thread(this::stop));
     }
 
     protected void init() {
