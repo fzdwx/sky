@@ -8,13 +8,16 @@ import io.github.fzdwx.inf.route.inter.RequestMethod;
 import io.github.fzdwx.inf.route.msg.SocketSession;
 import io.github.fzdwx.lambada.fun.Hooks;
 import io.github.fzdwx.lambada.fun.Result;
+import io.github.fzdwx.lambada.lang.NvMap;
+import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelPipeline;
-import io.netty.handler.codec.http.FullHttpRequest;
 import io.netty.handler.codec.http.HttpHeaderNames;
+import io.netty.handler.codec.http.HttpHeaders;
+import io.netty.handler.codec.http.HttpRequest;
+import io.netty.handler.codec.http.HttpVersion;
 import io.netty.handler.codec.http.websocketx.CloseWebSocketFrame;
 import io.netty.handler.codec.http.websocketx.WebSocketServerHandshakerFactory;
-import io.netty.handler.ssl.SslHandler;
 
 import static io.github.fzdwx.inf.route.inter.RequestMethod.of;
 import static io.netty.handler.codec.http.websocketx.WebSocketServerHandshakerFactory.sendUnsupportedVersionResponse;
@@ -29,13 +32,47 @@ import static io.netty.handler.codec.http.websocketx.WebSocketServerHandshakerFa
 public class HttpServerRequestImpl implements HttpServerRequest {
 
     private final ChannelHandlerContext ctx;
-    private final FullHttpRequest request;
+    private final Channel channel;
+    private final HttpRequest request;
     private final RequestMethod methodType;
+    private final HttpVersion version;
+    private final HttpHeaders headers;
+    private final boolean ssl;
 
-    public HttpServerRequestImpl(final ChannelHandlerContext ctx, final FullHttpRequest request) {
+    private NvMap params;
+
+    public HttpServerRequestImpl(final ChannelHandlerContext ctx, final boolean ssl, final HttpRequest request) {
         this.ctx = ctx;
+        this.channel = ctx.channel();
         this.request = request;
         this.methodType = of(request);
+        this.version = request.protocolVersion();
+        this.headers = request.headers();
+        this.ssl = ssl;
+    }
+
+    @Override
+    public HttpVersion version() {
+        return version;
+    }
+
+    @Override
+    public HttpHeaders headers() {
+        return headers;
+    }
+
+    @Override
+    public NvMap params() {
+        if (params == null) {
+            params = Netty.params(uri());
+        }
+
+        return params;
+    }
+
+    @Override
+    public boolean ssl() {
+        return this.ssl;
     }
 
     @Override
@@ -58,7 +95,7 @@ public class HttpServerRequestImpl implements HttpServerRequest {
         return (h) -> {
             //region init websocket and convert to linstener
             String subProtocols = null;
-            final var session = SocketSession.create(ctx.channel());
+            final var session = SocketSession.create(channel);
             final var webSocket = WebSocket.create(session, this);
             //endregion
 
@@ -73,7 +110,7 @@ public class HttpServerRequestImpl implements HttpServerRequest {
             }
             //endregion
 
-            final var handShaker = new WebSocketServerHandshakerFactory(getWebSocketLocation(ctx.pipeline(), request), subProtocols, true)
+            final var handShaker = new WebSocketServerHandshakerFactory(getWebSocketLocation(ssl, request), subProtocols, true)
                     .newHandshaker(request);
             if (handShaker != null) {
                 final ChannelPipeline pipeline = ctx.pipeline();
@@ -101,12 +138,9 @@ public class HttpServerRequestImpl implements HttpServerRequest {
         };
     }
 
-    private static String getWebSocketLocation(final ChannelPipeline cp, final FullHttpRequest req) {
-        String protocol = "ws";
-        if (cp.get(SslHandler.class) != null) {
-            // SSL in use so use Secure WebSockets
-            protocol = "wss";
-        }
-        return protocol + "://" + req.headers().get(HttpHeaderNames.HOST) + req.uri();
+    private static String getWebSocketLocation(final boolean ssl, final HttpRequest req) {
+        String scheme = ssl ? "wss" : "ws";
+
+        return scheme + "://" + req.headers().get(HttpHeaderNames.HOST) + req.uri();
     }
 }

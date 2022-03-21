@@ -14,6 +14,7 @@ import io.netty.channel.socket.SocketChannel;
 import io.netty.handler.logging.ByteBufFormat;
 import io.netty.handler.logging.LogLevel;
 import io.netty.handler.logging.LoggingHandler;
+import io.netty.handler.ssl.SslHandler;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 
@@ -41,6 +42,7 @@ public abstract class ServInf<Serv extends ServInf<Serv>> {
     protected ServerBootstrap serverBootstrap;
     private LoggingHandler logging;
     private Channel channel;
+    private Boolean ssl;
 
     public ServInf(final int port) {
         this("serv", port);
@@ -102,6 +104,13 @@ public abstract class ServInf<Serv extends ServInf<Serv>> {
         return channel;
     }
 
+    public Boolean ssl() {
+        if (this.ssl == null) {
+            this.ssl = channel.pipeline().get(SslHandler.class) != null;
+        }
+        return ssl;
+    }
+
     public void bind(Hooks<ChannelFuture> h) {
         h.call(bind());
     }
@@ -122,7 +131,6 @@ public abstract class ServInf<Serv extends ServInf<Serv>> {
                 this.onStartSuccess();
             }
         });
-
         return bindFuture;
     }
 

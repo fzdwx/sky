@@ -1,25 +1,35 @@
 package io.github.fzdwx.inf.http.inter;
 
-import cn.hutool.core.io.FileUtil;
 import io.github.fzdwx.inf.Netty;
-import io.github.fzdwx.inf.http.core.ContentType;
+import io.github.fzdwx.inf.http.core.HttpServerRequest;
 import io.github.fzdwx.inf.http.core.HttpServerResponse;
+import io.github.fzdwx.inf.route.inter.RequestMethod;
+import io.github.fzdwx.inf.ser.Json;
 import io.github.fzdwx.lambada.fun.Hooks;
+import io.netty.buffer.ByteBuf;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
-import io.netty.handler.codec.http.HttpChunkedInput;
+import io.netty.channel.ChannelPromise;
+import io.netty.handler.codec.http.DefaultHttpContent;
+import io.netty.handler.codec.http.DefaultHttpHeaders;
+import io.netty.handler.codec.http.EmptyHttpHeaders;
+import io.netty.handler.codec.http.HttpHeaderNames;
+import io.netty.handler.codec.http.HttpHeaderValues;
+import io.netty.handler.codec.http.HttpHeaders;
 import io.netty.handler.codec.http.HttpMessage;
-import io.netty.handler.stream.ChunkedStream;
-import lombok.SneakyThrows;
+import io.netty.handler.codec.http.HttpObject;
+import io.netty.handler.codec.http.HttpResponseStatus;
+import io.netty.handler.codec.http.HttpVersion;
+import io.netty.handler.codec.http.cookie.Cookie;
+import io.netty.handler.codec.http.cookie.DefaultCookie;
+import io.netty.handler.codec.http.cookie.ServerCookieEncoder;
 
-import java.io.ByteArrayInputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.List;
 
 import static io.github.fzdwx.inf.Netty.close;
 import static io.github.fzdwx.inf.http.core.ContentType.JSON;
-import static io.github.fzdwx.lambada.Lang.CHARSET;
+import static io.github.fzdwx.inf.http.core.ContentType.TEXT_HTML;
 
 /**
  * @author <a href="mailto:likelovec@gmail.com">韦朕</a>
@@ -27,12 +37,46 @@ import static io.github.fzdwx.lambada.Lang.CHARSET;
  */
 public class HttpServerResponseImpl implements HttpServerResponse {
 
-    public final Channel channel;
+    private static final String RESPONSE_WRITTEN = "Response has already been written";
+
+    private final Channel channel;
+    private final HttpServerRequest request;
+    private final HttpResponseStatus status;
+    private final HttpHeaders headers;
+    private final HttpHeaders trailingHeaders = EmptyHttpHeaders.INSTANCE;
+    private final HttpVersion version;
+    private final boolean keepAlive;
+    private final boolean head; // method type is head?
+
+    private List<Cookie> cookie;
     private String contentType;
     private String contentDisposition;
 
-    public HttpServerResponseImpl(final Channel channel) {
+    private Hooks<Void> bodyEndHooks;
+
+    /**
+     * 标识是否已经写入了头响应
+     */
+    private boolean headWritten;
+    /**
+     * 标记是否已经写入结束了
+     */
+    private boolean endWritten;
+    /**
+     * 标识已经写入了多少字节
+     */
+    private long bytesWritten;
+    private boolean closed;
+
+    public HttpServerResponseImpl(final Channel channel, final HttpServerRequest httpRequest) {
         this.channel = channel;
+        this.request = httpRequest;
+        this.headers = new DefaultHttpHeaders();
+        this.version = httpRequest.version();
+        this.status = HttpResponseStatus.OK;
+        this.keepAlive = (version == HttpVersion.HTTP_1_1 && !request.headers().contains(HttpHeaderNames.CONNECTION, HttpHeaderValues.CLOSE, true))
+                || (version == HttpVersion.HTTP_1_0 && request.headers().contains(HttpHeaderNames.CONNECTION, HttpHeaderValues.KEEP_ALIVE, true));
+        this.head = request.methodType() == RequestMethod.HEAD;
     }
 
     @Override
@@ -40,23 +84,83 @@ public class HttpServerResponseImpl implements HttpServerResponse {
         return channel;
     }
 
-    public HttpServerResponse contentType(final String contentType) {
-        this.contentType = contentType;
+    @Override
+    public HttpHeaders headers() {
+        return headers;
+    }
+
+    @Override
+    public HttpVersion version() {
+        return this.version;
+    }
+
+    @Override
+    public HttpServerResponse registerBodyEnd(final Hooks<Void> endH) {
+        this.bodyEndHooks = endH;
         return this;
     }
 
-    public HttpServerResponse contentDisposition(String fileName) {
-        if (fileName == null) return this;
-
-        this.contentDisposition = "attachment; filename=" + fileName;
+    @Override
+    public HttpServerResponse chunked() {
+        if (version != HttpVersion.HTTP_1_0) {
+            headers.set(HttpHeaderNames.TRANSFER_ENCODING, HttpHeaderValues.CHUNKED);
+        }
         return this;
     }
 
-    public HttpServerResponse contentDispositionFull(String contentDisposition) {
-        if (contentDisposition == null) return this;
-
-        this.contentDisposition = contentDisposition;
+    @Override
+    public HttpServerResponse unChunked() {
+        if (version != HttpVersion.HTTP_1_0) {
+            headers.remove(HttpHeaderNames.TRANSFER_ENCODING);
+        }
         return this;
+    }
+
+    @Override
+    public boolean isChunked() {
+        return headers.contains(HttpHeaderNames.TRANSFER_ENCODING, HttpHeaderValues.CHUNKED, true);
+    }
+
+    @Override
+    public HttpServerResponse header(final CharSequence key, final CharSequence val) {
+        headers.set(key, val);
+        return this;
+    }
+
+    @Override
+    public HttpServerResponse cookie(final String key, final String val) {
+        if (this.cookie == null) this.cookie = new ArrayList<>();
+
+        this.cookie.add(new DefaultCookie(key, val));
+        return this;
+    }
+
+    @Override
+    public ChannelFuture write(final ByteBuf buf) {
+        final var promise = channel.newPromise();
+
+        write(buf, promise);
+
+        return promise;
+    }
+
+    @Override
+    public ChannelFuture end(final ByteBuf buf) {
+        final var promise = channel.newPromise();
+        end(buf, promise);
+        return promise;
+    }
+
+    @Override
+    public void close() {
+        if (!closed) {
+            if (headWritten) {
+                channel.writeAndFlush(Netty.empty).addListener(close);
+            } else {
+                channel.close();
+            }
+            closed = true;
+        }
     }
 
     @Override
@@ -80,112 +184,132 @@ public class HttpServerResponseImpl implements HttpServerResponse {
     }
 
     @Override
-    public void json(final String json) {
-        json(json.getBytes());
-    }
-
-    @Override
-    public void json(final String json, final Hooks<ChannelFuture> h) {
-        json(json.getBytes(CHARSET), h);
-    }
-
-    @Override
-    public void json(final byte[] json) {
-        json(json, f -> f.addListener(close));
-    }
-
-    @Override
-    public void json(final byte[] json, final Hooks<ChannelFuture> h) {
-        contentType = JSON;
-        bytes(json, h);
-    }
-
-    @Override
-    public void html(final String html) {
-        html(html, f -> f.addListener(close));
-    }
-
-    @Override
-    public void html(final String html, final Hooks<ChannelFuture> h) {
-        contentType = ContentType.TEXT_HTML;
-        bytes(html.getBytes(CHARSET), h);
-    }
-
-    @Override
-    public void file(final String filePath) {
-        file(new File(filePath));
-    }
-
-    @Override
-    public void file(final String filePath, final Hooks<ChannelFuture> h) {
-        file(new File(filePath), h);
-    }
-
-    @Override
-    public void file(final File file) {
-        file(file, c -> c.addListener(f -> channel.flush().close()));
-    }
-
-    @SneakyThrows
-    @Override
-    public void file(final File file, final Hooks<ChannelFuture> h) {
-        if (file.isHidden() || !file.exists()) {
-            this.reject(HttpResult.NOT_FOUND);
-            return;
+    public ChannelFuture json(final Object obj) {
+        if (obj == null) {
+            this.header(HttpHeaderNames.CONTENT_TYPE, JSON);
+            return end("null");
         }
 
-        if (file.isDirectory()) {
-            this.reject(HttpResult.fail("It is Directory"));
-            return;
+        // no catch exception
+        final var buf = Json.codec.encodeToBuf(obj);
+        this.header(HttpHeaderNames.CONTENT_TYPE, JSON);
+        return end(buf);
+    }
+
+    @Override
+    public ChannelFuture html(final String html) {
+        this.header(HttpHeaderNames.CONTENT_TYPE, TEXT_HTML);
+        return end(html);
+    }
+
+    @Override
+    public void end(final byte[] bytes) {
+        // TODO: 2022/3/21  
+    }
+
+    @Override
+    public HttpServerResponse contentType(final String contentType) {
+        this.headers.set(HttpHeaderNames.CONTENT_TYPE, contentType);
+        return this;
+    }
+
+    @Override
+    public HttpServerResponse contentDisposition(String fileName) {
+        if (fileName == null) return this;
+
+        this.contentDisposition = "attachment; filename=" + fileName;
+        this.headers.set(HttpHeaderNames.CONTENT_DISPOSITION, contentDisposition);
+        return this;
+    }
+
+    @Override
+    public HttpServerResponse contentDispositionFull(String contentDisposition) {
+        if (contentDisposition == null) return this;
+
+        this.contentDisposition = contentDisposition;
+        return this;
+    }
+
+    private void end(final ByteBuf buf, final ChannelPromise promise) {
+        if (endWritten) { // 已经调用过end了
+            throw new IllegalStateException(RESPONSE_WRITTEN);
         }
 
-        if (!file.isFile()) {
-            this.reject(HttpResult.fail("It is not File"));
-            return;
+        bytesWritten += buf.readableBytes();
+        HttpObject msg;
+        if (!headWritten) { // 如果 response head 没有写入,则一起写
+            prepareHeaders(bytesWritten);
+            msg = new AssembledFullHttpResponse(head, version, status, headers, buf, trailingHeaders);
+        } else {
+            msg = new AssembledLastHttpContent(buf, trailingHeaders);
         }
 
-        if (file.length() <= Netty.DEFAULT_CHUNK_SIZE) {
-            this.bytes(FileUtil.readBytes(file), h);
-            return;
+        endWritten = true;
+        if (bodyEndHooks != null) {
+            bodyEndHooks.call(null);
         }
 
-        output(new FileInputStream(file), h);
+        if (!keepAlive) {
+            this.closed = true;
+            this.channel.writeAndFlush(msg, promise).addListener(close);
+        } else {
+            this.channel.write(msg, promise);
+        }
     }
 
-    @Override
-    public void output(final String str) {
-        bytes(str.getBytes(CHARSET));
-    }
-
-    @Override
-    public void output(final String str, final Hooks<ChannelFuture> h) {
-        bytes(str.getBytes(CHARSET), h);
-    }
-
-    @Override
-    public void bytes(final byte[] bytes, final Hooks<ChannelFuture> h) {
-        if (bytes.length <= Netty.DEFAULT_CHUNK_SIZE) {
-            h.call(channel.write(HttpResult.ok(bytes).contentType(contentType).contentDisposition(contentDisposition)));
-            return;
+    private HttpServerResponse write(ByteBuf buf, ChannelPromise promise) {
+        // preCheck
+        if (!headWritten && !headers.contains(HttpHeaderNames.TRANSFER_ENCODING) && !headers.contains(HttpHeaderNames.CONTENT_LENGTH)) {
+            if (version != HttpVersion.HTTP_1_0) {
+                throw new IllegalStateException("You must set the Content-Length header to be the total size of the message "
+                        + "body BEFORE sending any data if you are not using HTTP chunked encoding.");
+            }
         }
 
-        // 分片执行
-        output(new ByteArrayInputStream(bytes), h);
+        bytesWritten += buf.readableBytes();
+        HttpObject response;
+        if (!headWritten) { // don't have written head response(e.g. contentType,http status,content length...)
+            prepareHeaders(-1);
+            response = new AssembledHttpResponse(head, version, status, headers, buf);
+        } else {
+            response = new DefaultHttpContent(buf);
+        }
+
+        // written response to client
+        channel.write(response, promise);
+
+        return this;
     }
 
-    @SneakyThrows
-    @Override
-    public void output(final InputStream stream, final Hooks<ChannelFuture> h) {
-        final var httpResult = SimpleHttpResult.empty()
-                .contentType(contentType)
-                .contentDispositionFull(contentDisposition)
-                .contentLength(stream.available());
+    private void prepareHeaders(final long contentLength) {
+        if (version == HttpVersion.HTTP_1_0 && keepAlive) {
+            headers.set(HttpHeaderNames.CONNECTION, HttpHeaderNames.KEEP_ALIVE);
+        } else if (version == HttpVersion.HTTP_1_1 && !keepAlive) {
+            headers.set(HttpHeaderNames.CONNECTION, HttpHeaderValues.CLOSE);
+        }
+        if (head || status == HttpResponseStatus.NOT_MODIFIED) {
+            // For HEAD request or NOT_MODIFIED response
+            // don't set automatically the content-length
+            // and remove the transfer-encoding
+            headers.remove(HttpHeaderNames.TRANSFER_ENCODING);
+        } else {
+            // Set content-length header automatically
+            if (contentLength >= 0 && !headers.contains(HttpHeaderNames.CONTENT_LENGTH) && !headers.contains(HttpHeaderNames.TRANSFER_ENCODING)) {
+                String value = contentLength == 0 ? "0" : String.valueOf(contentLength);
+                headers.set(HttpHeaderNames.CONTENT_LENGTH, value);
+            }
+        }
 
-        output(httpResult, f -> h.call(channel.writeAndFlush(new HttpChunkedInput(new ChunkedStream(stream, Netty.DEFAULT_CHUNK_SIZE)))));
+        if (cookie != null) {
+            setCookies();
+        }
+
+        headWritten = true;
     }
 
-    @Override
-    public void output(final HttpMessage result, final Hooks<ChannelFuture> h) {
-        h.call(channel.write(result));
+    private void setCookies() {
+        for (final Cookie c : cookie) {
+            headers.add(HttpHeaderNames.SET_COOKIE, ServerCookieEncoder.STRICT.encode(c));
+        }
     }
 }

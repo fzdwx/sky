@@ -8,6 +8,7 @@ import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.handler.codec.http.FullHttpRequest;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import io.netty.util.ReferenceCountUtil;
+import lombok.SneakyThrows;
 
 /**
  * http server handler.
@@ -19,9 +20,11 @@ import io.netty.util.ReferenceCountUtil;
 public class HttpServerHandler extends ChannelInboundHandlerAdapter {
 
     private final Router router;
+    private final boolean ssl;
 
-    public HttpServerHandler(final Router router) {
+    public HttpServerHandler(final Router router, final Boolean ssl) {
         this.router = router;
+        this.ssl = ssl;
     }
 
     @Override
@@ -54,9 +57,10 @@ public class HttpServerHandler extends ChannelInboundHandlerAdapter {
      * @param ctx     ctx
      * @param request http request
      */
+    @SneakyThrows
     public void handleRequest(final ChannelHandlerContext ctx, final FullHttpRequest request) {
         // find the handler for the request path and method
-        final var httpRequest = HttpServerRequest.create(ctx, request);
+        final var httpRequest = HttpServerRequest.create(ctx, ssl, request);
 
         final var handler = router.matchOne(httpRequest);
 
@@ -67,9 +71,10 @@ public class HttpServerHandler extends ChannelInboundHandlerAdapter {
 
         try {
             // handle the request
-            handler.handle(httpRequest, HttpServerResponse.create(ctx.channel()));
+            handler.handle(httpRequest, HttpServerResponse.create(ctx.channel(), httpRequest));
         } catch (Exception e) {
             ctx.writeAndFlush(HttpResult.fail(e)).addListener(Netty.close);
+            throw e;
         }
     }
 }

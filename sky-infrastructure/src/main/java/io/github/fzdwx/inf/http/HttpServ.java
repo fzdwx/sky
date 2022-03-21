@@ -17,7 +17,6 @@ import lombok.NonNull;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 
-import static io.github.fzdwx.lambada.Lang.todo;
 import static java.net.InetAddress.getLocalHost;
 
 /**
@@ -32,7 +31,6 @@ public class HttpServ extends ServInf<HttpServ> {
 
     private final Router router;
     private boolean dev;
-    private boolean ssl;
 
     /**
      * http server
@@ -43,6 +41,10 @@ public class HttpServ extends ServInf<HttpServ> {
     public HttpServ(final int port, final Router router) {
         super(port);
         this.router = router;
+    }
+
+    public String scheme() {
+        return ssl() ? "https" : "http";
     }
 
     /**
@@ -57,10 +59,6 @@ public class HttpServ extends ServInf<HttpServ> {
         return this;
     }
 
-    public HttpServ ssl() {
-        return todo();
-    }
-
     @Override
     public Hooks<SocketChannel> registerInitChannel() {
         return ch -> {
@@ -69,7 +67,7 @@ public class HttpServ extends ServInf<HttpServ> {
                     .addLast(new HttpObjectAggregator(1024 * 1024))
                     .addLast(new ChunkedWriteHandler())
                     .addLast(new HttpServerExpectContinueHandler())
-                    .addLast(new HttpServerHandler(router));
+                    .addLast(new HttpServerHandler(router, ssl()));
         };
     }
 
@@ -81,7 +79,7 @@ public class HttpServ extends ServInf<HttpServ> {
     @SneakyThrows
     @Override
     protected void onStartSuccess() {
-        final var address = (ssl ? "https" : "http") + "://" + getLocalHost().getHostAddress() + ":" + this.port;
+        final var address = scheme() + "://" + getLocalHost().getHostAddress() + ":" + this.port;
         log.info("Server start Listening on:" + address);
 
         if (dev) {

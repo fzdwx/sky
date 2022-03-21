@@ -2,8 +2,6 @@ package io.github.fzdwx.http;
 
 import io.github.fzdwx.inf.http.core.ContentType;
 import io.github.fzdwx.inf.route.Router;
-import io.netty.handler.logging.ByteBufFormat;
-import io.netty.handler.logging.LogLevel;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 
@@ -43,7 +41,7 @@ public class HttpServer {
                 })
                 .GET("/image", (req, resp) -> {
                     resp.contentType(ContentType.IMAGE_JPEG)
-                            .bytes(faviconIco);
+                            .end(faviconIco);
                 })
                 .GET("/stream", (rep, resp) -> {
                     resp.contentDisposition("vscode.exe")
@@ -74,7 +72,7 @@ public class HttpServer {
                 .faviconIco(faviconIco);
 
         HTTP(8888, router).name("我的http 服务器 !")
-                .log(LogLevel.INFO, ByteBufFormat.HEX_DUMP)
+                // .log(LogLevel.INFO, ByteBufFormat.HEX_DUMP)
                 // .workerCnt(10)
                 .dev()
                 .bind();

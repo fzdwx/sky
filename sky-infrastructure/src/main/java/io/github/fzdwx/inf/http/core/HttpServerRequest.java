@@ -5,8 +5,11 @@ import io.github.fzdwx.inf.msg.WebSocket;
 import io.github.fzdwx.inf.route.inter.RequestMethod;
 import io.github.fzdwx.lambada.fun.Hooks;
 import io.github.fzdwx.lambada.fun.Result;
+import io.github.fzdwx.lambada.lang.NvMap;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.http.FullHttpRequest;
+import io.netty.handler.codec.http.HttpHeaders;
+import io.netty.handler.codec.http.HttpVersion;
 
 /**
  * http request.
@@ -17,9 +20,17 @@ import io.netty.handler.codec.http.FullHttpRequest;
  */
 public interface HttpServerRequest {
 
-    static HttpServerRequest create(ChannelHandlerContext ctx, FullHttpRequest request) {
-        return new HttpServerRequestImpl(ctx, request);
+    static HttpServerRequest create(ChannelHandlerContext ctx, final boolean ssl, FullHttpRequest request) {
+        return new HttpServerRequestImpl(ctx, ssl, request);
     }
+
+    HttpVersion version();
+
+    HttpHeaders headers();
+
+    NvMap params();
+
+    boolean ssl();
 
     /**
      * request uri

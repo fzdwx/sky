@@ -2,15 +2,20 @@ package io.github.fzdwx.inf;
 
 import io.github.fzdwx.inf.http.HttpServ;
 import io.github.fzdwx.inf.route.Router;
+import io.github.fzdwx.lambada.lang.NvMap;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelFutureListener;
 import io.netty.handler.codec.http.HttpHeaderNames;
 import io.netty.handler.codec.http.HttpHeaderValues;
 import io.netty.handler.codec.http.HttpHeaders;
+import io.netty.handler.codec.http.QueryStringDecoder;
 import io.netty.util.AttributeKey;
 import io.netty.util.concurrent.Future;
 import io.netty.util.concurrent.GenericFutureListener;
+
+import java.util.List;
+import java.util.Map;
 
 /**
  * netty tool.
@@ -23,8 +28,8 @@ public final class Netty {
 
     public static final AttributeKey<String> SubProtocolAttrKey = AttributeKey.valueOf("subProtocol");
     public static final int DEFAULT_CHUNK_SIZE = 1024 * 1024 * 4;
-
     public static GenericFutureListener<? extends Future<? super Void>> close = ChannelFutureListener.CLOSE;
+    public static ByteBuf empty = Unpooled.EMPTY_BUFFER;
 
     public static String read(ByteBuf buf) {
         final var dest = new byte[buf.readableBytes()];
@@ -56,5 +61,18 @@ public final class Netty {
      */
     public static HttpServ HTTP(int port, Router router) {
         return new HttpServ(port, router);
+    }
+
+    public static NvMap params(final String uri) {
+        QueryStringDecoder queryStringDecoder = new QueryStringDecoder(uri);
+        final var parameters = queryStringDecoder.parameters();
+
+        NvMap params = NvMap.create();
+        if (!parameters.isEmpty()) {
+            for (Map.Entry<String, List<String>> entry : parameters.entrySet()) {
+                params.add(entry.getKey(), entry.getValue());
+            }
+        }
+        return null;
     }
 }

@@ -9,7 +9,9 @@ import com.alibaba.fastjson.JSON;
  * @date 2022/3/17 17:28
  * @since 0.06
  */
-public class FasJsonSerializer implements Serializer {
+public class FasJsonSerializer implements Json {
+
+    public static FasJsonSerializer instance = new FasJsonSerializer();
 
     @Override
     public byte[] serialize(final Object obj) {
@@ -19,15 +21,5 @@ public class FasJsonSerializer implements Serializer {
     @Override
     public <T> T deserialize(final Class<T> clazz, final byte[] data) {
         return JSON.parseObject(data, clazz);
-    }
-
-    public static FasJsonSerializer instance = new FasJsonSerializer();
-
-    public static byte[] encode(final Object obj) {
-        return instance.serialize(obj);
-    }
-
-    public static <T> T decode(final Class<T> clazz, final byte[] data) {
-        return instance.deserialize(clazz, data);
     }
 }

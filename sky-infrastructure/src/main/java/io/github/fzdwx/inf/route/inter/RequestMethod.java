@@ -1,7 +1,6 @@
 package io.github.fzdwx.inf.route.inter;
 
-import io.netty.handler.codec.http.FullHttpRequest;
-import io.netty.handler.codec.http.HttpHeaderNames;
+import io.netty.handler.codec.http.HttpRequest;
 
 public enum RequestMethod {
     //http
@@ -45,7 +44,7 @@ public enum RequestMethod {
         this.signal = signal;
     }
 
-    public static RequestMethod of(FullHttpRequest request) {
+    public static RequestMethod of(HttpRequest request) {
         final var methodName = request.method().name();
         return switch (methodName) {
             case "GET" ->
