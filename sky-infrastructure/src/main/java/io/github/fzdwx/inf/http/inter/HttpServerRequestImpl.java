@@ -1,7 +1,7 @@
 package io.github.fzdwx.inf.http.inter;
 
 import io.github.fzdwx.inf.Netty;
-import io.github.fzdwx.inf.http.core.HttpRequest;
+import io.github.fzdwx.inf.http.core.HttpServerRequest;
 import io.github.fzdwx.inf.msg.WebSocket;
 import io.github.fzdwx.inf.msg.WebSocketHandler;
 import io.github.fzdwx.inf.route.inter.RequestMethod;
@@ -26,13 +26,13 @@ import static io.netty.handler.codec.http.websocketx.WebSocketServerHandshakerFa
  * @date 2022/3/18 19:58
  * @since 0.06
  */
-public class HttpRequestImpl implements HttpRequest {
+public class HttpServerRequestImpl implements HttpServerRequest {
 
     private final ChannelHandlerContext ctx;
     private final FullHttpRequest request;
     private final RequestMethod methodType;
 
-    public HttpRequestImpl(final ChannelHandlerContext ctx, final FullHttpRequest request) {
+    public HttpServerRequestImpl(final ChannelHandlerContext ctx, final FullHttpRequest request) {
         this.ctx = ctx;
         this.request = request;
         this.methodType = of(request);

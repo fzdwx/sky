@@ -56,7 +56,7 @@ public class HttpServerHandler extends ChannelInboundHandlerAdapter {
      */
     public void handleRequest(final ChannelHandlerContext ctx, final FullHttpRequest request) {
         // find the handler for the request path and method
-        final var httpRequest = HttpRequest.create(ctx, request);
+        final var httpRequest = HttpServerRequest.create(ctx, request);
 
         final var handler = router.matchOne(httpRequest);
 
@@ -67,7 +67,7 @@ public class HttpServerHandler extends ChannelInboundHandlerAdapter {
 
         try {
             // handle the request
-            handler.handle(httpRequest, HttpResponse.create(ctx.channel()));
+            handler.handle(httpRequest, HttpServerResponse.create(ctx.channel()));
         } catch (Exception e) {
             ctx.writeAndFlush(HttpResult.fail(e)).addListener(Netty.close);
         }

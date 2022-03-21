@@ -1,6 +1,6 @@
 package io.github.fzdwx.inf.http.core;
 
-import io.github.fzdwx.inf.http.inter.HttpResponseImpl;
+import io.github.fzdwx.inf.http.inter.HttpServerResponseImpl;
 import io.github.fzdwx.lambada.fun.Hooks;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
@@ -9,6 +9,8 @@ import io.netty.handler.codec.http.HttpMessage;
 import java.io.File;
 import java.io.InputStream;
 
+import static io.github.fzdwx.inf.Netty.close;
+
 /**
  * http response.
  *
@@ -16,19 +18,19 @@ import java.io.InputStream;
  * @date 2022/3/18 15:23
  * @since 0.06
  */
-public interface HttpResponse {
+public interface HttpServerResponse {
 
-    static HttpResponse create(Channel channel) {
-        return new HttpResponseImpl(channel);
+    static HttpServerResponse create(Channel channel) {
+        return new HttpServerResponseImpl(channel);
     }
 
     Channel channel();
 
-    HttpResponse contentType(final String contentType);
+    HttpServerResponse contentType(final String contentType);
 
-    HttpResponse contentDisposition(final String contentDisposition);
+    HttpServerResponse contentDisposition(final String contentDisposition);
 
-    HttpResponse contentDispositionFull(String contentDisposition);
+    HttpServerResponse contentDispositionFull(String contentDisposition);
 
     ChannelFuture reject();
 
@@ -115,7 +117,9 @@ public interface HttpResponse {
     /**
      * @apiNote auto flush and close
      */
-    void bytes(byte[] bytes);
+    default void bytes(byte[] bytes) {
+        bytes(bytes, c -> c.addListener(f -> channel().flush().close()));
+    }
 
     /**
      * @since 0.07
@@ -128,7 +132,9 @@ public interface HttpResponse {
      * @see #contentDisposition
      * @since 0.07
      */
-    void output(InputStream stream);
+    default void output(InputStream stream) {
+        output(stream, f -> f.addListener(close));
+    }
 
     /**
      * @see #contentDisposition
@@ -144,7 +150,11 @@ public interface HttpResponse {
      * @see ContentType
      * @see io.netty.handler.codec.http.HttpHeaderValues
      */
-    void output(HttpMessage result);
+    default void output(HttpMessage result) {
+        output(result, c -> c.addListener(f -> {
+            channel().flush().close();
+        }));
+    }
 
     /**
      * @since 0.07

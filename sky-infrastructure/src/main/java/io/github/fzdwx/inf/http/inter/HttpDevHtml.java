@@ -2,8 +2,8 @@ package io.github.fzdwx.inf.http.inter;
 
 import io.github.fzdwx.inf.http.core.ContentType;
 import io.github.fzdwx.inf.http.core.HttpHandler;
-import io.github.fzdwx.inf.http.core.HttpRequest;
-import io.github.fzdwx.inf.http.core.HttpResponse;
+import io.github.fzdwx.inf.http.core.HttpServerRequest;
+import io.github.fzdwx.inf.http.core.HttpServerResponse;
 import io.github.fzdwx.inf.route.Router;
 import lombok.extern.slf4j.Slf4j;
 
@@ -35,7 +35,7 @@ public class HttpDevHtml implements HttpHandler {
     }
 
     @Override
-    public void handle(final HttpRequest request, final HttpResponse resp) throws Exception {
+    public void handle(final HttpServerRequest request, final HttpServerResponse resp) throws Exception {
         final var html = """
                 <html lang="zh">
                     <meta charset="UTF-8">

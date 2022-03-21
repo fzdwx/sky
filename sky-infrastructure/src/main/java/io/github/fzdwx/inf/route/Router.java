@@ -1,7 +1,7 @@
 package io.github.fzdwx.inf.route;
 
 import io.github.fzdwx.inf.http.core.HttpHandler;
-import io.github.fzdwx.inf.http.core.HttpRequest;
+import io.github.fzdwx.inf.http.core.HttpServerRequest;
 import io.github.fzdwx.inf.route.inter.RequestMethod;
 import io.github.fzdwx.inf.route.inter.RouterTable;
 import io.github.fzdwx.inf.route.inter.Routing;
@@ -92,7 +92,7 @@ public interface Router {
      * @since 0.06
      */
     @Nullable
-    HttpHandler matchOne(HttpRequest request);
+    HttpHandler matchOne(HttpServerRequest request);
 
     /**
      * get all request handlers.
@@ -132,7 +132,7 @@ public interface Router {
         }
 
         @Override
-        public HttpHandler matchOne(HttpRequest request) {
+        public HttpHandler matchOne(HttpServerRequest request) {
             return httpHandlers.matchOne(request.uri(), request.methodType());
         }
 

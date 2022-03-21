@@ -1,6 +1,6 @@
 package io.github.fzdwx.inf.http.core;
 
-import io.github.fzdwx.inf.http.inter.HttpRequestImpl;
+import io.github.fzdwx.inf.http.inter.HttpServerRequestImpl;
 import io.github.fzdwx.inf.msg.WebSocket;
 import io.github.fzdwx.inf.route.inter.RequestMethod;
 import io.github.fzdwx.lambada.fun.Hooks;
@@ -15,10 +15,10 @@ import io.netty.handler.codec.http.FullHttpRequest;
  * @date 2022/3/18 19:57
  * @since 0.06
  */
-public interface HttpRequest {
+public interface HttpServerRequest {
 
-    static HttpRequest create(ChannelHandlerContext ctx, FullHttpRequest request) {
-        return new HttpRequestImpl(ctx, request);
+    static HttpServerRequest create(ChannelHandlerContext ctx, FullHttpRequest request) {
+        return new HttpServerRequestImpl(ctx, request);
     }
 
     /**

@@ -1,11 +1,9 @@
 package io.github.fzdwx.inf.http.inter;
 
-import ch.qos.logback.core.util.ContentTypeUtil;
-import cn.hutool.core.io.FileTypeUtil;
 import cn.hutool.core.io.FileUtil;
 import io.github.fzdwx.inf.Netty;
 import io.github.fzdwx.inf.http.core.ContentType;
-import io.github.fzdwx.inf.http.core.HttpResponse;
+import io.github.fzdwx.inf.http.core.HttpServerResponse;
 import io.github.fzdwx.lambada.fun.Hooks;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
@@ -27,13 +25,13 @@ import static io.github.fzdwx.lambada.Lang.CHARSET;
  * @author <a href="mailto:likelovec@gmail.com">韦朕</a>
  * @date 2022/3/18 15:27
  */
-public class HttpResponseImpl implements HttpResponse {
+public class HttpServerResponseImpl implements HttpServerResponse {
 
     public final Channel channel;
     private String contentType;
     private String contentDisposition;
 
-    public HttpResponseImpl(final Channel channel) {
+    public HttpServerResponseImpl(final Channel channel) {
         this.channel = channel;
     }
 
@@ -42,19 +40,19 @@ public class HttpResponseImpl implements HttpResponse {
         return channel;
     }
 
-    public HttpResponse contentType(final String contentType) {
+    public HttpServerResponse contentType(final String contentType) {
         this.contentType = contentType;
         return this;
     }
 
-    public HttpResponse contentDisposition(String fileName) {
+    public HttpServerResponse contentDisposition(String fileName) {
         if (fileName == null) return this;
 
         this.contentDisposition = "attachment; filename=" + fileName;
         return this;
     }
 
-    public HttpResponse contentDispositionFull(String contentDisposition) {
+    public HttpServerResponse contentDispositionFull(String contentDisposition) {
         if (contentDisposition == null) return this;
 
         this.contentDisposition = contentDisposition;
@@ -165,11 +163,6 @@ public class HttpResponseImpl implements HttpResponse {
     }
 
     @Override
-    public void bytes(final byte[] bytes) {
-        bytes(bytes, c -> c.addListener(f -> channel.flush().close()));
-    }
-
-    @Override
     public void bytes(final byte[] bytes, final Hooks<ChannelFuture> h) {
         if (bytes.length <= Netty.DEFAULT_CHUNK_SIZE) {
             h.call(channel.write(HttpResult.ok(bytes).contentType(contentType).contentDisposition(contentDisposition)));
@@ -182,12 +175,6 @@ public class HttpResponseImpl implements HttpResponse {
 
     @SneakyThrows
     @Override
-    public void output(final InputStream stream) {
-        output(stream, f -> f.addListener(close));
-    }
-
-    @SneakyThrows
-    @Override
     public void output(final InputStream stream, final Hooks<ChannelFuture> h) {
         final var httpResult = SimpleHttpResult.empty()
                 .contentType(contentType)
@@ -195,13 +182,6 @@ public class HttpResponseImpl implements HttpResponse {
                 .contentLength(stream.available());
 
         output(httpResult, f -> h.call(channel.writeAndFlush(new HttpChunkedInput(new ChunkedStream(stream, Netty.DEFAULT_CHUNK_SIZE)))));
-    }
-
-    @Override
-    public void output(final HttpMessage result) {
-        output(result, c -> c.addListener(f -> {
-            channel.flush().close();
-        }));
     }
 
     @Override

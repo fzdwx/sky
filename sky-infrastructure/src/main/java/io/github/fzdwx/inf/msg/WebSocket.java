@@ -1,7 +1,7 @@
 package io.github.fzdwx.inf.msg;
 
 import io.github.fzdwx.inf.Listener;
-import io.github.fzdwx.inf.http.core.HttpRequest;
+import io.github.fzdwx.inf.http.core.HttpServerRequest;
 import io.github.fzdwx.inf.msg.inter.WebSocketImpl;
 import io.github.fzdwx.inf.route.msg.SocketSession;
 import io.github.fzdwx.lambada.fun.Hooks;
@@ -16,8 +16,8 @@ import io.netty.channel.ChannelFuture;
  */
 public interface WebSocket extends Listener {
 
-    static WebSocket create(SocketSession session, final HttpRequest httpRequest) {
-        return new WebSocketImpl(session, httpRequest);
+    static WebSocket create(SocketSession session, final HttpServerRequest httpServerRequest) {
+        return new WebSocketImpl(session, httpServerRequest);
     }
 
     Channel channel();

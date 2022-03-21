@@ -1,6 +1,6 @@
 package io.github.fzdwx.inf.msg.inter;
 
-import io.github.fzdwx.inf.http.core.HttpRequest;
+import io.github.fzdwx.inf.http.core.HttpServerRequest;
 import io.github.fzdwx.inf.msg.WebSocket;
 import io.github.fzdwx.inf.route.msg.SocketSession;
 import io.github.fzdwx.lambada.fun.Hooks;
@@ -21,7 +21,7 @@ import lombok.Getter;
 public class WebSocketImpl implements WebSocket {
 
     private final SocketSession session;
-    private final HttpRequest httpRequest;
+    private final HttpServerRequest httpServerRequest;
     private Hooks<String> textHooks;
     private Hooks<Void> beforeHandshakeHooks;
     private Hooks<Void> openHooks;
@@ -30,9 +30,9 @@ public class WebSocketImpl implements WebSocket {
     private Hooks<Void> closeHooks;
     private Hooks<Throwable> errorHooks;
 
-    public WebSocketImpl(SocketSession session, final HttpRequest httpRequest) {
+    public WebSocketImpl(SocketSession session, final HttpServerRequest httpServerRequest) {
         this.session = session;
-        this.httpRequest = httpRequest;
+        this.httpServerRequest = httpServerRequest;
     }
 
     @Override
