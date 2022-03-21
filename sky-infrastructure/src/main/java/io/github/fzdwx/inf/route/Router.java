@@ -76,7 +76,7 @@ public interface Router {
      * @since 0.06
      */
     default Router faviconIco(byte[] bytes) {
-        return GET(FAVICON_ICO, (req, resp) -> resp.bytes(bytes));
+        return GET(FAVICON_ICO, (req, resp) -> resp.end(bytes));
     }
 
     /**

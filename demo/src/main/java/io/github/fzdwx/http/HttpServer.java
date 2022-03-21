@@ -1,11 +1,10 @@
 package io.github.fzdwx.http;
 
+import io.github.fzdwx.inf.Netty;
 import io.github.fzdwx.inf.http.core.ContentType;
 import io.github.fzdwx.inf.route.Router;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
-
-import java.io.FileInputStream;
 
 import static io.github.fzdwx.inf.Netty.HTTP;
 
@@ -36,16 +35,21 @@ public class HttpServer {
                     resp.redirect("/hello");
                 })
                 .GET("/file", (req, resp) -> {
-                    resp.contentDisposition("qwe.exe")
-                            .file("C:\\Users\\98065\\Downloads\\VSCodeUserSetup-x64-1.64.2.exe");
+                    resp.file("C:\\Users\\98065\\Downloads\\VSCodeUserSetup-x64-1.64.2.exe");
                 })
                 .GET("/image", (req, resp) -> {
                     resp.contentType(ContentType.IMAGE_JPEG)
                             .end(faviconIco);
                 })
                 .GET("/stream", (rep, resp) -> {
-                    resp.contentDisposition("vscode.exe")
-                            .output(new FileInputStream("C:\\Users\\98065\\Downloads\\VSCodeUserSetup-x64-1.64.2.exe"));
+                    resp.chunked();
+                    resp.write("hello world");
+                    resp.write("hello world");
+                    resp.write("hello world");
+
+                    resp.end("hello world-end", Netty.pass).close();
+                    // resp.contentDisposition("vscode.exe")
+                    //         .output(new FileInputStream("C:\\Users\\98065\\Downloads\\VSCodeUserSetup-x64-1.64.2.exe"));
                 })
                 .GET("/ws", (req, resp) -> {
 

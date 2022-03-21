@@ -9,8 +9,12 @@ import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
 import io.netty.handler.codec.http.HttpHeaders;
 import io.netty.handler.codec.http.HttpMessage;
+import io.netty.handler.codec.http.HttpResponseStatus;
 import io.netty.handler.codec.http.HttpVersion;
 
+import java.io.ByteArrayInputStream;
+import java.io.File;
+import java.io.InputStream;
 import java.nio.charset.Charset;
 
 import static io.github.fzdwx.inf.Netty.alloc;
@@ -41,6 +45,14 @@ public interface HttpServerResponse {
      */
     HttpVersion version();
 
+    HttpServerResponse status(HttpResponseStatus status);
+
+    HttpServerResponse contentType(final String contentType);
+
+    HttpServerResponse contentDisposition(final String contentDisposition);
+
+    HttpServerResponse contentDispositionFull(String contentDisposition);
+
     HttpServerResponse registerBodyEnd(Hooks<Void> endH);
 
     /**
@@ -58,31 +70,25 @@ public interface HttpServerResponse {
 
     boolean isChunked();
 
+    /**
+     * writes big data to client.
+     */
+    ChannelFuture writes(InputStream ins, int chunkSize);
+
+    /**
+     * add header.
+     */
     HttpServerResponse header(CharSequence key, CharSequence val);
 
+    /**
+     * add cookie.
+     */
     HttpServerResponse cookie(String key, String val);
 
+    /**
+     * write buf to client.
+     */
     ChannelFuture write(ByteBuf buf);
-
-    ChannelFuture end(ByteBuf buf);
-
-    void close();
-
-    /* output(httpResult, f -> h.call(channel.writeAndFlush(new HttpChunkedInput(new ChunkedStream(stream, Netty.DEFAULT_CHUNK_SIZE))))); */
-
-    default ChannelFuture end() {
-        return end(Unpooled.EMPTY_BUFFER);
-    }
-
-    default ChannelFuture end(String s) {
-        return end(Netty.alloc(s.getBytes()));
-    }
-
-    HttpServerResponse contentType(final String contentType);
-
-    HttpServerResponse contentDisposition(final String contentDisposition);
-
-    HttpServerResponse contentDispositionFull(String contentDisposition);
 
     ChannelFuture reject();
 
@@ -106,16 +112,51 @@ public interface HttpServerResponse {
     ChannelFuture json(final Object obj);
 
     /**
+     * @apiNote auto flush and close
+     */
+    ChannelFuture html(String html);
+
+    ChannelFuture file(File file, long offset, long length);
+
+    default ChannelFuture file(File file, long offset) {
+        return file(file, offset, Long.MAX_VALUE);
+    }
+
+    default ChannelFuture file(File file) {
+        return file(file, 0, Long.MAX_VALUE);
+    }
+
+    default ChannelFuture file(String filePath) {
+        return file(new File(filePath), 0, Long.MAX_VALUE);
+    }
+
+    ChannelFuture end(ByteBuf buf);
+
+    void close();
+
+    default ChannelFuture end(byte[] bytes) {
+        return end(alloc(bytes));
+    }
+
+    default ChannelFuture end() {
+        return end(Unpooled.EMPTY_BUFFER);
+    }
+
+    default ChannelFuture end(String s) {
+        return end(Netty.alloc(s.getBytes()));
+    }
+
+    default HttpServerResponse end(String s, Hooks<ChannelFuture> h) {
+        h.call(end(Netty.alloc(s.getBytes())));
+        return this;
+    }
+
+    /**
      * @since 0.07
      */
     default void json(final Object obj, Hooks<ChannelFuture> h) {
         h.call(json(obj));
     }
-
-    /**
-     * @apiNote auto flush and close
-     */
-    ChannelFuture html(String html);
 
     /**
      * @since 0.07
@@ -156,5 +197,11 @@ public interface HttpServerResponse {
         return this;
     }
 
-    void end(byte[] bytes);
+    default ChannelFuture writes(InputStream ins) {
+        return writes(ins, 8192);
+    }
+
+    default ChannelFuture writes(byte[] bytes) {
+        return writes(new ByteArrayInputStream(bytes));
+    }
 }

@@ -2,9 +2,11 @@ package io.github.fzdwx.inf;
 
 import io.github.fzdwx.inf.http.HttpServ;
 import io.github.fzdwx.inf.route.Router;
+import io.github.fzdwx.lambada.fun.Hooks;
 import io.github.fzdwx.lambada.lang.NvMap;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
+import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelFutureListener;
 import io.netty.handler.codec.http.HttpHeaderNames;
 import io.netty.handler.codec.http.HttpHeaderValues;
@@ -30,6 +32,7 @@ public final class Netty {
     public static final int DEFAULT_CHUNK_SIZE = 1024 * 1024 * 4;
     public static GenericFutureListener<? extends Future<? super Void>> close = ChannelFutureListener.CLOSE;
     public static ByteBuf empty = Unpooled.EMPTY_BUFFER;
+    public static Hooks<ChannelFuture> pass = (f) -> { };
 
     public static String read(ByteBuf buf) {
         final var dest = new byte[buf.readableBytes()];
