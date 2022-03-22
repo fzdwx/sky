@@ -35,7 +35,7 @@ public class Serv extends ServInf<Serv> {
     }
 
     @Override
-    public @NonNull Class<? extends ServerChannel> serverChannelClass() {
+    public @NonNull Class<? extends ServerChannel> channelClassType() {
         return NioServerSocketChannel.class;
     }
 

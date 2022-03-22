@@ -67,6 +67,8 @@ public class HttpServer {
                     });
                 })
                 .GET("/hello", (req, resp) -> {
+                    resp.chunked();
+                    resp.write("hello world\n");
                     resp.json("你好-get");
                 })
                 .POST("/hello", (req, resp) -> resp.json("你好-post"))

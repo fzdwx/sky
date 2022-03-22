@@ -6,14 +6,11 @@ import io.github.fzdwx.inf.http.inter.HttpDevHtml;
 import io.github.fzdwx.inf.route.Router;
 import io.github.fzdwx.lambada.fun.Hooks;
 import io.netty.channel.ChannelOption;
-import io.netty.channel.ServerChannel;
 import io.netty.channel.socket.SocketChannel;
-import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.handler.codec.http.HttpObjectAggregator;
 import io.netty.handler.codec.http.HttpServerCodec;
 import io.netty.handler.codec.http.HttpServerExpectContinueHandler;
 import io.netty.handler.stream.ChunkedWriteHandler;
-import lombok.NonNull;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 
@@ -69,11 +66,6 @@ public class HttpServ extends ServInf<HttpServ> {
                     .addLast(new HttpServerExpectContinueHandler())
                     .addLast(new HttpServerHandler(router, ssl()));
         };
-    }
-
-    @Override
-    public @NonNull Class<? extends ServerChannel> serverChannelClass() {
-        return NioServerSocketChannel.class;
     }
 
     @SneakyThrows

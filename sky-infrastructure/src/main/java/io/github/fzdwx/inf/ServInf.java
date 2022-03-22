@@ -1,23 +1,19 @@
 package io.github.fzdwx.inf;
 
-import io.github.fzdwx.lambada.fun.Hooks;
 import io.github.fzdwx.lambada.internal.PrintUtil;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
-import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelOption;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.ServerChannel;
 import io.netty.channel.nio.NioEventLoopGroup;
-import io.netty.channel.socket.SocketChannel;
-import io.netty.handler.logging.ByteBufFormat;
-import io.netty.handler.logging.LogLevel;
+import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.handler.logging.LoggingHandler;
 import io.netty.handler.ssl.SslHandler;
-import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 
+import java.net.InetSocketAddress;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -29,7 +25,7 @@ import java.util.Map;
  * @since 0.06
  */
 @Slf4j
-public abstract class ServInf<Serv extends ServInf<Serv>> {
+public abstract class ServInf<Serv> extends ServAndClientBase<Serv> {
 
     private final Map<ChannelOption<?>, Object> servOptions = new HashMap();
     private final Map<ChannelOption<?>, Object> childOptions = new HashMap();
@@ -74,16 +70,6 @@ public abstract class ServInf<Serv extends ServInf<Serv>> {
         return me();
     }
 
-    public Serv log(LogLevel level) {
-        logging = new LoggingHandler(level);
-        return me();
-    }
-
-    public Serv log(LogLevel level, ByteBufFormat format) {
-        logging = new LoggingHandler(level, format);
-        return me();
-    }
-
     public Serv name(String name) {
         this.name = name;
         return me();
@@ -111,15 +97,17 @@ public abstract class ServInf<Serv extends ServInf<Serv>> {
         return ssl;
     }
 
-    public void bind(Hooks<ChannelFuture> h) {
-        h.call(bind());
+    @Override
+    public int port() {
+        return port;
     }
 
-    public ChannelFuture bind() {
+    @Override
+    public ChannelFuture bind(final InetSocketAddress address) {
         init();
 
         final var bindFuture = this.serverBootstrap
-                .childHandler(childHandler())
+                .childHandler(channelInitializer())
                 .bind(this.port);
 
         this.channel = bindFuture.channel();
@@ -143,24 +131,6 @@ public abstract class ServInf<Serv extends ServInf<Serv>> {
         }
     }
 
-    @NonNull
-    public final ChannelInitializer<SocketChannel> childHandler() {
-        return new ChannelInitializer<>() {
-            @Override
-            protected void initChannel(final SocketChannel ch) throws Exception {
-                if (logging != null) {
-                    ch.pipeline().addLast(logging);
-                }
-                registerInitChannel().call(ch);
-            }
-        };
-    }
-
-    public abstract Hooks<SocketChannel> registerInitChannel();
-
-    @NonNull
-    public abstract Class<? extends ServerChannel> serverChannelClass();
-
     protected void onStartSuccess() {
         log.info(this.name + " start at port: " + this.port);
         Runtime.getRuntime().addShutdownHook(new Thread(this::stop));
@@ -176,7 +146,7 @@ public abstract class ServInf<Serv extends ServInf<Serv>> {
 
         this.serverBootstrap = new ServerBootstrap()
                 .group(this.bossGroup, this.workerGroup)
-                .channel(this.serverChannelClass());
+                .channel(this.channelClassType());
 
 
         if (logging != null) {
@@ -192,5 +162,7 @@ public abstract class ServInf<Serv extends ServInf<Serv>> {
         }
     }
 
-    protected abstract Serv me();
+    public Class<? extends ServerChannel> channelClassType() {
+        return NioServerSocketChannel.class;
+    }
 }

@@ -1,9 +1,9 @@
 package io.github.fzdwx.helloworld.client;
 
 import io.github.fzdwx.inf.ClientInf;
+import io.github.fzdwx.lambada.fun.Hooks;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.ChannelFuture;
-import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelOption;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
@@ -21,31 +21,33 @@ import java.io.InputStreamReader;
  * @author <a href="mailto:likelovec@gmail.com">韦朕</a>
  * @date 2022/3/17 16:19
  */
-public class Client extends ClientInf {
+public class Client extends ClientInf<Client> {
 
     public Client(final int port) {
         super(port);
     }
 
     @Override
-    public @NonNull ChannelInitializer<SocketChannel> clientHandler() {
-        return new ChannelInitializer<>() {
-            @Override
-            protected void initChannel(final SocketChannel ch) throws Exception {
-                ch.pipeline()
-                        // 以("\n")为结尾分割的 解码器,防止粘包
-                        .addLast(new DelimiterBasedFrameDecoder(8192, Delimiters.lineDelimiter()))
-                        // 解码和编码，应和客户端一致
-                        .addLast(new StringDecoder())
-                        .addLast(new StringEncoder())
-                        .addLast(new ClientHandler());
-            }
+    public Hooks<SocketChannel> registerInitChannel() {
+        return ch -> {
+            ch.pipeline()
+                    // 以("\n")为结尾分割的 解码器,防止粘包
+                    .addLast(new DelimiterBasedFrameDecoder(8192, Delimiters.lineDelimiter()))
+                    // 解码和编码，应和客户端一致
+                    .addLast(new StringDecoder())
+                    .addLast(new StringEncoder())
+                    .addLast(new ClientHandler());
         };
     }
 
     @Override
-    public @NonNull Class<? extends SocketChannel> clientChannelClass() {
+    public @NonNull Class<? extends SocketChannel> channelClassType() {
         return NioSocketChannel.class;
+    }
+
+    @Override
+    protected Client me() {
+        return this;
     }
 
     @Override
@@ -57,7 +59,7 @@ public class Client extends ClientInf {
     public static void main(String[] args) {
         final var client = new Client(8080);
         try {
-            client.start();
+            client.bind();
             final var ch = client.channel();
             ChannelFuture lastWriteFuture = null;
             BufferedReader in = new BufferedReader(new InputStreamReader(System.in));
