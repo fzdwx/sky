@@ -1,6 +1,6 @@
 package io.github.fzdwx.helloworld.client;
 
-import io.github.fzdwx.inf.ClientInf;
+import io.github.fzdwx.inf.core.ClientInf;
 import io.github.fzdwx.lambada.fun.Hooks;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.ChannelFuture;
@@ -28,7 +28,7 @@ public class Client extends ClientInf<Client> {
     }
 
     @Override
-    public Hooks<SocketChannel> registerInitChannel() {
+    public Hooks<SocketChannel> mountInitChannel() {
         return ch -> {
             ch.pipeline()
                     // 以("\n")为结尾分割的 解码器,防止粘包

@@ -1,6 +1,5 @@
 package io.github.fzdwx.inf.msg;
 
-import io.github.fzdwx.inf.Listener;
 import io.github.fzdwx.inf.route.msg.SocketSession;
 import io.github.fzdwx.lambada.lang.PathAnalyzer;
 import io.github.fzdwx.lambada.lang.PathUtil;

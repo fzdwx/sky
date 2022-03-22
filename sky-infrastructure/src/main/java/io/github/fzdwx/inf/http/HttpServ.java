@@ -1,6 +1,6 @@
 package io.github.fzdwx.inf.http;
 
-import io.github.fzdwx.inf.ServInf;
+import io.github.fzdwx.inf.core.ServInf;
 import io.github.fzdwx.inf.http.core.HttpServerHandler;
 import io.github.fzdwx.inf.http.inter.HttpDevHtml;
 import io.github.fzdwx.inf.route.Router;
@@ -57,7 +57,7 @@ public class HttpServ extends ServInf<HttpServ> {
     }
 
     @Override
-    public Hooks<SocketChannel> registerInitChannel() {
+    public Hooks<SocketChannel> mountInitChannel() {
         return ch -> {
             ch.pipeline()
                     .addLast(new HttpServerCodec())
@@ -66,6 +66,11 @@ public class HttpServ extends ServInf<HttpServ> {
                     .addLast(new HttpServerExpectContinueHandler())
                     .addLast(new HttpServerHandler(router, ssl()));
         };
+    }
+
+    @Override
+    protected HttpServ me() {
+        return this;
     }
 
     @SneakyThrows
@@ -86,10 +91,5 @@ public class HttpServ extends ServInf<HttpServ> {
         this.childOptions(ChannelOption.SO_KEEPALIVE, true);
 
         super.init();
-    }
-
-    @Override
-    protected HttpServ me() {
-        return this;
     }
 }

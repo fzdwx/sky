@@ -1,4 +1,4 @@
-package io.github.fzdwx.inf;
+package io.github.fzdwx.inf.core;
 
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.Channel;
@@ -28,9 +28,7 @@ public abstract class ClientInf<Client> extends ServAndClientBase<Client> {
 
     protected final int port;
     protected final String host;
-    protected final EventLoopGroup workerGroup;
     protected final Bootstrap bootstrap;
-
     protected BufferedReader scanner;
     private Channel ch;
 
@@ -54,11 +52,6 @@ public abstract class ClientInf<Client> extends ServAndClientBase<Client> {
     }
 
     @Override
-    public Channel channel() {
-        return this.ch;
-    }
-
-    @Override
     public ChannelFuture bind(final InetSocketAddress address) {
         this.bootstrap.group(this.workerGroup)
                 .channel(this.channelClassType())
@@ -77,14 +70,22 @@ public abstract class ClientInf<Client> extends ServAndClientBase<Client> {
         return bindFuture;
     }
 
-    protected void onStartSuccess() {
-        log.info("client connect success on {}:{} ", this.host, this.port);
-        Runtime.getRuntime().addShutdownHook(new Thread(this::stop));
-    }
-
     @Override
     public ChannelFuture bind() {
         return bind(new InetSocketAddress(host, port));
+    }
+
+    public void stop() {
+        this.workerGroup.shutdownGracefully();
+    }
+
+    @Override
+    public Channel channel() {
+        return this.ch;
+    }
+
+    public Class<? extends SocketChannel> channelClassType() {
+        return NioSocketChannel.class;
     }
 
     @SneakyThrows
@@ -123,13 +124,10 @@ public abstract class ClientInf<Client> extends ServAndClientBase<Client> {
         scanner(System.in);
     }
 
-    public Class<? extends SocketChannel> channelClassType() {
-        return NioSocketChannel.class;
-    }
-
-    public void stop() {
-        this.workerGroup.shutdownGracefully();
-    }
-
     public abstract void addClientOptions(final Bootstrap bootstrap);
+
+    protected void onStartSuccess() {
+        log.info("client connect success on {}:{} ", this.host, this.port);
+        Runtime.getRuntime().addShutdownHook(new Thread(this::stop));
+    }
 }

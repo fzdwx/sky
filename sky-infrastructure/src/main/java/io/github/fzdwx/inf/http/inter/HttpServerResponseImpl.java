@@ -90,7 +90,7 @@ public class HttpServerResponseImpl implements HttpServerResponse {
         this.version = httpRequest.version();
         this.status = HttpResponseStatus.OK;
         this.keepAlive = (version == HttpVersion.HTTP_1_1 && !request.headers().contains(HttpHeaderNames.CONNECTION, HttpHeaderValues.CLOSE, true))
-                || (version == HttpVersion.HTTP_1_0 && request.headers().contains(HttpHeaderNames.CONNECTION, HttpHeaderValues.KEEP_ALIVE, true));
+                         || (version == HttpVersion.HTTP_1_0 && request.headers().contains(HttpHeaderNames.CONNECTION, HttpHeaderValues.KEEP_ALIVE, true));
         this.head = request.methodType() == RequestMethod.HEAD;
     }
 
@@ -287,11 +287,13 @@ public class HttpServerResponseImpl implements HttpServerResponse {
         channel.write(new AssembledHttpResponse(head, version, status, headers));
         final var channelFuture = doSendFile(raf, Math.min(offset, file.length()), contentLength);
 
-        return channelFuture.addListener(f -> {
-            final var cp = channel.newPromise();
+        final var resFuture = channel.newPromise();
 
-            afterEnd(cp, LastHttpContent.EMPTY_LAST_CONTENT);
+        channelFuture.addListener(f -> {
+            afterEnd(resFuture, LastHttpContent.EMPTY_LAST_CONTENT);
         });
+
+        return resFuture;
     }
 
     private ChannelFuture doSendFile(RandomAccessFile raf, long offset, long length) throws IOException {
@@ -366,7 +368,7 @@ public class HttpServerResponseImpl implements HttpServerResponse {
         if (!headWritten && !headers.contains(HttpHeaderNames.TRANSFER_ENCODING) && !headers.contains(HttpHeaderNames.CONTENT_LENGTH)) {
             if (version != HttpVersion.HTTP_1_0) {
                 throw new IllegalStateException("You must set the Content-Length header to be the total size of the message "
-                        + "body BEFORE sending any data if you are not using HTTP chunked encoding.");
+                                                + "body BEFORE sending any data if you are not using HTTP chunked encoding.");
             }
         }
 

@@ -1,13 +1,17 @@
 package io.github.fzdwx.inf;
 
+import io.github.fzdwx.inf.core.Connection;
 import io.github.fzdwx.inf.http.HttpServ;
 import io.github.fzdwx.inf.route.Router;
 import io.github.fzdwx.lambada.fun.Hooks;
 import io.github.fzdwx.lambada.lang.NvMap;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
+import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelFutureListener;
+import io.netty.channel.ChannelPromise;
+import io.netty.channel.DefaultChannelPromise;
 import io.netty.handler.codec.http.HttpHeaderNames;
 import io.netty.handler.codec.http.HttpHeaderValues;
 import io.netty.handler.codec.http.HttpHeaders;
@@ -29,6 +33,8 @@ import java.util.Map;
 public final class Netty {
 
     public static final AttributeKey<String> SubProtocolAttrKey = AttributeKey.valueOf("subProtocol");
+    public static final AttributeKey<Connection> CONNECTION = AttributeKey.valueOf("$CONNECTION");
+    public static final AttributeKey<Boolean> PERSISTENT_CHANNEL = AttributeKey.valueOf("$PERSISTENT_CHANNEL");
     public static final int DEFAULT_CHUNK_SIZE = 1024 * 1024 * 4;
     public static final Hooks<ChannelFuture> pass = (f) -> { };
     public static GenericFutureListener<? extends Future<? super Void>> close = ChannelFutureListener.CLOSE;
@@ -77,5 +83,19 @@ public final class Netty {
             }
         }
         return null;
+    }
+
+    public static ChannelPromise promise(final Channel channel) {
+        return new DefaultChannelPromise(channel);
+    }
+
+    public static ChannelFuture future(final Channel channel) {
+        return new DefaultChannelPromise(channel);
+    }
+
+    public static <T> T requireNonNull(T obj, String message) {
+        if (obj == null)
+            throw new NullPointerException(message);
+        return obj;
     }
 }

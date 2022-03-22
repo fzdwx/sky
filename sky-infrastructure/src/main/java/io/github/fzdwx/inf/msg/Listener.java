@@ -1,4 +1,4 @@
-package io.github.fzdwx.inf;
+package io.github.fzdwx.inf.msg;
 
 import io.github.fzdwx.inf.route.msg.SocketSession;
 import io.netty.buffer.ByteBuf;

@@ -1,6 +1,5 @@
 package io.github.fzdwx.inf.msg;
 
-import io.github.fzdwx.inf.Listener;
 import io.github.fzdwx.inf.http.core.HttpServerRequest;
 import io.github.fzdwx.inf.msg.inter.WebSocketImpl;
 import io.github.fzdwx.inf.route.msg.SocketSession;

@@ -1,6 +1,6 @@
 package io.github.fzdwx.inf.redis;
 
-import io.github.fzdwx.inf.ClientInf;
+import io.github.fzdwx.inf.core.ClientInf;
 import io.github.fzdwx.lambada.fun.Hooks;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.ChannelPipeline;
@@ -29,7 +29,7 @@ public class RedisClient extends ClientInf<RedisClient> {
     }
 
     @Override
-    public Hooks<SocketChannel> registerInitChannel() {
+    public Hooks<SocketChannel> mountInitChannel() {
         return ch -> {
             ChannelPipeline p = ch.pipeline();
             p.addLast(new RedisDecoder());
@@ -52,9 +52,6 @@ public class RedisClient extends ClientInf<RedisClient> {
 
     public static void main(String[] args) throws Exception {
         RedisClient.connect("192.168.1.228", 6380)
-                .bind(h -> {
-
-                })
-                .scanner();
+                .bind(ClientInf::scanner);
     }
 }

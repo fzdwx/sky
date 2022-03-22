@@ -1,4 +1,4 @@
-package io.github.fzdwx.inf;
+package io.github.fzdwx.inf.core;
 
 import io.github.fzdwx.lambada.internal.PrintUtil;
 import io.netty.bootstrap.ServerBootstrap;
@@ -90,17 +90,12 @@ public abstract class ServInf<Serv> extends ServAndClientBase<Serv> {
     }
     /* init options end */
 
-    public Channel channel() {
-        return channel;
-    }
-
     public Boolean ssl() {
         if (this.ssl == null) {
             this.ssl = channel.pipeline().get(SslHandler.class) != null;
         }
         return ssl;
     }
-
 
     @Override
     public ChannelFuture bind(final InetSocketAddress address) {
@@ -114,6 +109,7 @@ public abstract class ServInf<Serv> extends ServAndClientBase<Serv> {
 
         bindFuture.addListener(f -> {
             if (bindFuture.isSuccess()) {
+
                 PrintUtil.printBanner();
 
                 this.onStartSuccess();
@@ -129,6 +125,14 @@ public abstract class ServInf<Serv> extends ServAndClientBase<Serv> {
         if (!this.bossGroup.isShutdown()) {
             this.bossGroup.shutdownGracefully();
         }
+    }
+
+    public Channel channel() {
+        return channel;
+    }
+
+    public Class<? extends ServerChannel> channelClassType() {
+        return NioServerSocketChannel.class;
     }
 
     protected void onStartSuccess() {
@@ -160,9 +164,5 @@ public abstract class ServInf<Serv> extends ServAndClientBase<Serv> {
         for (Map.Entry<ChannelOption<?>, ?> entry : childOptions.entrySet()) {
             this.serverBootstrap = serverBootstrap.childOption((ChannelOption<Object>) entry.getKey(), entry.getValue());
         }
-    }
-
-    public Class<? extends ServerChannel> channelClassType() {
-        return NioServerSocketChannel.class;
     }
 }

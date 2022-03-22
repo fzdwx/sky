@@ -1,6 +1,6 @@
 package io.github.fzdwx.helloworld.serv;
 
-import io.github.fzdwx.inf.ServInf;
+import io.github.fzdwx.inf.core.ServInf;
 import io.github.fzdwx.lambada.fun.Hooks;
 import io.netty.channel.ServerChannel;
 import io.netty.channel.socket.SocketChannel;
@@ -22,7 +22,7 @@ public class Serv extends ServInf<Serv> {
     }
 
     @Override
-    public Hooks<SocketChannel> registerInitChannel() {
+    public Hooks<SocketChannel> mountInitChannel() {
         return ch -> {
             ch.pipeline()
                     // 以("\n")为结尾分割的 解码器,防止粘包
