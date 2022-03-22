@@ -13,6 +13,7 @@ import lombok.SneakyThrows;
 
 /**
  * SENTINEL get-master-addr-by-name + sentinelMasterName
+ *
  * @author <a href="mailto:likelovec@gmail.com">韦朕</a>
  * @date 2022/3/22 16:10
  */
@@ -50,7 +51,7 @@ public class RedisClient extends ClientInf<RedisClient> {
     }
 
     public static void main(String[] args) throws Exception {
-        RedisClient.connect("192.168.1.228", 26379)
+        RedisClient.connect("192.168.1.228", 6380)
                 .bind(h -> {
 
                 })
