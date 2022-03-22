@@ -12,6 +12,7 @@ import io.netty.handler.codec.redis.RedisEncoder;
 import lombok.SneakyThrows;
 
 /**
+ * SENTINEL get-master-addr-by-name + sentinelMasterName
  * @author <a href="mailto:likelovec@gmail.com">韦朕</a>
  * @date 2022/3/22 16:10
  */
@@ -23,9 +24,7 @@ public class RedisClient extends ClientInf<RedisClient> {
 
     @SneakyThrows
     public static RedisClient connect(String host, int port) {
-        final var redisClient = new RedisClient(host, port);
-        redisClient.bind().sync();
-        return redisClient;
+        return new RedisClient(host, port);
     }
 
     @Override
@@ -50,8 +49,11 @@ public class RedisClient extends ClientInf<RedisClient> {
 
     }
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws Exception {
         RedisClient.connect("192.168.1.228", 26379)
+                .bind(h -> {
+
+                })
                 .scanner();
     }
 }

@@ -20,8 +20,9 @@ public abstract class ServAndClientBase<Type> {
 
     protected LoggingHandler logging;
 
-    public void bind(Hooks<ChannelFuture> h) {
+    public Type bind(Hooks<ChannelFuture> h) {
         h.call(bind());
+        return me();
     }
 
     public abstract int port();

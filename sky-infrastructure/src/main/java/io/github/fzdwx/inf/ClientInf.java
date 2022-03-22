@@ -9,6 +9,7 @@ import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
 import io.netty.util.concurrent.GenericFutureListener;
 import lombok.SneakyThrows;
+import lombok.extern.slf4j.Slf4j;
 
 import java.io.BufferedReader;
 import java.io.InputStream;
@@ -22,6 +23,7 @@ import java.net.InetSocketAddress;
  * @date 2022/3/17 14:40
  * @since 0.06
  */
+@Slf4j
 public abstract class ClientInf<Client> extends ServAndClientBase<Client> {
 
     protected final int port;
@@ -62,10 +64,22 @@ public abstract class ClientInf<Client> extends ServAndClientBase<Client> {
                 .channel(this.channelClassType())
                 .handler(channelInitializer());
         this.addClientOptions(this.bootstrap);
-        final var bindFuture = this.bootstrap.connect(this.host, this.port);
+        final var bindFuture =
+                this.bootstrap.connect(this.host, this.port)
+                        .addListener(f -> {
+                            if (f.isSuccess()) {
+                                this.onStartSuccess();
+                            }
+                        });
         this.ch = bindFuture.channel();
 
+
         return bindFuture;
+    }
+
+    protected void onStartSuccess() {
+        log.info("client connect success on {}:{} ", this.host, this.port);
+        Runtime.getRuntime().addShutdownHook(new Thread(this::stop));
     }
 
     @Override
@@ -94,7 +108,7 @@ public abstract class ClientInf<Client> extends ServAndClientBase<Client> {
                 continue;
             }
             // Sends the received line to the server.
-            lastWriteFuture = ch.writeAndFlush(encode(line));
+            lastWriteFuture = ch.writeAndFlush(line);
             lastWriteFuture.addListener((GenericFutureListener<ChannelFuture>) future -> {
                 if (!future.isSuccess()) {
                     System.err.print("write failed: ");
@@ -108,13 +122,6 @@ public abstract class ClientInf<Client> extends ServAndClientBase<Client> {
         }
 
         stop();
-    }
-
-    /**
-     * encode from scanner message {@link #scanner(InputStream)#L88}
-     */
-    public Object encode(String line) {
-        return line;
     }
 
     public void scanner() {
