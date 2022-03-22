@@ -32,7 +32,6 @@ public interface WebSocket extends Listener {
     /**
      * reject connection.
      *
-     * @return
      * @since 0.07
      */
     ChannelFuture reject(String text);
