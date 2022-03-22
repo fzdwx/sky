@@ -1,4 +1,4 @@
-package io.github.fzdwx.redis;
+package io.github.fzdwx.inf.redis;
 
 import io.github.fzdwx.inf.ClientInf;
 import io.github.fzdwx.lambada.fun.Hooks;

@@ -1,4 +1,4 @@
-package io.github.fzdwx.redis;
+package io.github.fzdwx.inf.redis;
 
 /**
  * @author <a href="mailto:likelovec@gmail.com">韦朕</a>

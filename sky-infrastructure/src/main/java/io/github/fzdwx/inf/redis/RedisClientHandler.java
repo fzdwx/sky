@@ -1,4 +1,4 @@
-package io.github.fzdwx.redis;
+package io.github.fzdwx.inf.redis;
 
 import io.netty.buffer.ByteBufUtil;
 import io.netty.channel.ChannelDuplexHandler;
