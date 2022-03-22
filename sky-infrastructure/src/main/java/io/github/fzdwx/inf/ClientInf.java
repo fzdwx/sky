@@ -94,7 +94,7 @@ public abstract class ClientInf<Client> extends ServAndClientBase<Client> {
                 continue;
             }
             // Sends the received line to the server.
-            lastWriteFuture = ch.writeAndFlush(line);
+            lastWriteFuture = ch.writeAndFlush(encode(line));
             lastWriteFuture.addListener((GenericFutureListener<ChannelFuture>) future -> {
                 if (!future.isSuccess()) {
                     System.err.print("write failed: ");
@@ -108,6 +108,13 @@ public abstract class ClientInf<Client> extends ServAndClientBase<Client> {
         }
 
         stop();
+    }
+
+    /**
+     * encode from scanner message {@link #scanner(InputStream)#L88}
+     */
+    public Object encode(String line) {
+        return line;
     }
 
     public void scanner() {
