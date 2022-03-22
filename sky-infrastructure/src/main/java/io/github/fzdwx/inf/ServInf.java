@@ -29,7 +29,6 @@ public abstract class ServInf<Serv> extends ServAndClientBase<Serv> {
 
     private final Map<ChannelOption<?>, Object> servOptions = new HashMap();
     private final Map<ChannelOption<?>, Object> childOptions = new HashMap();
-    protected int port;
     protected String name;
     protected int bossCnt = 0;
     protected EventLoopGroup bossGroup;
@@ -45,8 +44,13 @@ public abstract class ServInf<Serv> extends ServAndClientBase<Serv> {
     }
 
     public ServInf(final String name, final int port) {
+        this(name, port, "127.0.0.1");
+    }
+
+    public ServInf(final String name, final int port, String host) {
         this.name = name;
         this.port = port;
+        this.host = "127.0.0.1";
     }
 
     /* init options start */
@@ -97,10 +101,6 @@ public abstract class ServInf<Serv> extends ServAndClientBase<Serv> {
         return ssl;
     }
 
-    @Override
-    public int port() {
-        return port;
-    }
 
     @Override
     public ChannelFuture bind(final InetSocketAddress address) {

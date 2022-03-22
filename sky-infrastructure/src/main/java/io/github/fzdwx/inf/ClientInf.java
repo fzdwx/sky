@@ -87,11 +87,6 @@ public abstract class ClientInf<Client> extends ServAndClientBase<Client> {
         return bind(new InetSocketAddress(host, port));
     }
 
-    @Override
-    public int port() {
-        return port;
-    }
-
     @SneakyThrows
     public void scanner(InputStream in) {
         System.out.println("Enter your commands (quit to end)");

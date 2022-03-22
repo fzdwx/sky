@@ -19,13 +19,33 @@ import java.net.InetSocketAddress;
 public abstract class ServAndClientBase<Type> {
 
     protected LoggingHandler logging;
+    protected String host;
+    protected int port;
 
     public Type bind(Hooks<ChannelFuture> h) {
         h.call(bind());
         return me();
     }
 
-    public abstract int port();
+    public Type host(String host) {
+        this.host = host;
+
+        return me();
+    }
+
+    public Type port(int port) {
+        this.port = port;
+
+        return this.me();
+    }
+
+    public int port() {
+        return port;
+    }
+
+    public String host() {
+        return this.host;
+    }
 
     public abstract ChannelFuture bind(InetSocketAddress address);
 
