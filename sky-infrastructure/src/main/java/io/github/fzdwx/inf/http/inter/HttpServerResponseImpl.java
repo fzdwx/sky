@@ -12,7 +12,6 @@ import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelPromise;
 import io.netty.channel.DefaultFileRegion;
-import io.netty.channel.FileRegion;
 import io.netty.handler.codec.http.DefaultHttpContent;
 import io.netty.handler.codec.http.DefaultHttpHeaders;
 import io.netty.handler.codec.http.EmptyHttpHeaders;
@@ -91,7 +90,7 @@ public class HttpServerResponseImpl implements HttpServerResponse {
         this.version = httpRequest.version();
         this.status = HttpResponseStatus.OK;
         this.keepAlive = (version == HttpVersion.HTTP_1_1 && !request.headers().contains(HttpHeaderNames.CONNECTION, HttpHeaderValues.CLOSE, true))
-                         || (version == HttpVersion.HTTP_1_0 && request.headers().contains(HttpHeaderNames.CONNECTION, HttpHeaderValues.KEEP_ALIVE, true));
+                || (version == HttpVersion.HTTP_1_0 && request.headers().contains(HttpHeaderNames.CONNECTION, HttpHeaderValues.KEEP_ALIVE, true));
         this.head = request.methodType() == RequestMethod.HEAD;
     }
 
@@ -140,7 +139,7 @@ public class HttpServerResponseImpl implements HttpServerResponse {
     }
 
     @Override
-    public HttpServerResponse registerBodyEnd(final Hooks<Void> endH) {
+    public HttpServerResponse mountBodyEnd(final Hooks<Void> endH) {
         this.bodyEndHooks = endH;
         return this;
     }
@@ -242,7 +241,6 @@ public class HttpServerResponseImpl implements HttpServerResponse {
 
     @Override
     public ChannelFuture file(final File file, final long offset, final long length) {
-        // TODO: 2022/3/21 bug
         return sendFile(file, offset, length);
     }
 
@@ -289,17 +287,10 @@ public class HttpServerResponseImpl implements HttpServerResponse {
         channel.write(new AssembledHttpResponse(head, version, status, headers));
         final var channelFuture = doSendFile(raf, Math.min(offset, file.length()), contentLength);
 
-        endWritten = true;
-
         return channelFuture.addListener(f -> {
-            if (f.isSuccess()) {
-                final var cp = channel.newPromise();
+            final var cp = channel.newPromise();
 
-                channel.write(LastHttpContent.EMPTY_LAST_CONTENT, cp);
-                if (!keepAlive) {
-                    cp.addListener(close);
-                }
-            }
+            afterEnd(cp, LastHttpContent.EMPTY_LAST_CONTENT);
         });
     }
 
@@ -310,8 +301,9 @@ public class HttpServerResponseImpl implements HttpServerResponse {
             channel.writeAndFlush(new HttpChunkedInput(new ChunkedFile(raf, offset, length, 8192)), writeFuture);
         } else {
             // zero-copy
-            sendFileRegion(raf, offset, length, writeFuture);
+            channel.write(new DefaultFileRegion(raf.getChannel(), offset, length), writeFuture);
         }
+
         if (writeFuture != null) {
             writeFuture.addListener(f -> { raf.close(); });
         } else raf.close();
@@ -349,7 +341,7 @@ public class HttpServerResponseImpl implements HttpServerResponse {
             prepareHeaders(bytesWritten);
             msg = new AssembledFullHttpResponse(head, version, status, headers, buf, trailingHeaders);
         } else {
-            msg = new AssembledLastHttpContent(buf, trailingHeaders);
+            msg = new AssembledLastHttpContent(buf, trailingHeaders); // mark it is last content
         }
 
         afterEnd(promise, msg);
@@ -374,7 +366,7 @@ public class HttpServerResponseImpl implements HttpServerResponse {
         if (!headWritten && !headers.contains(HttpHeaderNames.TRANSFER_ENCODING) && !headers.contains(HttpHeaderNames.CONTENT_LENGTH)) {
             if (version != HttpVersion.HTTP_1_0) {
                 throw new IllegalStateException("You must set the Content-Length header to be the total size of the message "
-                                                + "body BEFORE sending any data if you are not using HTTP chunked encoding.");
+                        + "body BEFORE sending any data if you are not using HTTP chunked encoding.");
             }
         }
 
@@ -423,27 +415,5 @@ public class HttpServerResponseImpl implements HttpServerResponse {
         for (final Cookie c : cookie) {
             headers.add(HttpHeaderNames.SET_COOKIE, ServerCookieEncoder.STRICT.encode(c));
         }
-    }
-
-    private void sendFileRegion(RandomAccessFile file, long offset, long length, ChannelPromise writeFuture) {
-        if (length < Netty.DEFAULT_CHUNK_SIZE) {
-            channel.write(new DefaultFileRegion(file.getChannel(), offset, length), writeFuture);
-        } else {
-            ChannelPromise promise = channel.newPromise();
-            FileRegion region = new DefaultFileRegion(file.getChannel(), offset, Netty.DEFAULT_CHUNK_SIZE);
-            // Retain explicitly this file region so the underlying channel is not closed by the NIO channel when it
-            // as been sent as we need it again
-            region.retain();
-            channel.write(region, promise);
-            promise.addListener(future -> {
-                if (future.isSuccess()) {
-                    sendFileRegion(file, offset + Netty.DEFAULT_CHUNK_SIZE, length - Netty.DEFAULT_CHUNK_SIZE, writeFuture);
-                } else {
-                    log.error(future.cause().getMessage(), future.cause());
-                    writeFuture.setFailure(future.cause());
-                }
-            });
-        }
-        System.out.println("1111111111111");
     }
 }

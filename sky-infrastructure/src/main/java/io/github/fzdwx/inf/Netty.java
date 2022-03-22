@@ -30,9 +30,9 @@ public final class Netty {
 
     public static final AttributeKey<String> SubProtocolAttrKey = AttributeKey.valueOf("subProtocol");
     public static final int DEFAULT_CHUNK_SIZE = 1024 * 1024 * 4;
+    public static final Hooks<ChannelFuture> pass = (f) -> { };
     public static GenericFutureListener<? extends Future<? super Void>> close = ChannelFutureListener.CLOSE;
     public static ByteBuf empty = Unpooled.EMPTY_BUFFER;
-    public static Hooks<ChannelFuture> pass = (f) -> { };
 
     public static String read(ByteBuf buf) {
         final var dest = new byte[buf.readableBytes()];

@@ -1,5 +1,6 @@
 package io.github.fzdwx.inf.http.core;
 
+import cn.hutool.core.io.FileUtil;
 import io.github.fzdwx.inf.Netty;
 import io.github.fzdwx.inf.http.inter.HttpServerResponseImpl;
 import io.github.fzdwx.lambada.fun.Hooks;
@@ -53,7 +54,13 @@ public interface HttpServerResponse {
 
     HttpServerResponse contentDispositionFull(String contentDisposition);
 
-    HttpServerResponse registerBodyEnd(Hooks<Void> endH);
+    /**
+     * mount 当消息体发送完毕时会回调.
+     *
+     * @param endH end handler
+     * @return {@link HttpServerResponse }
+     */
+    HttpServerResponse mountBodyEnd(Hooks<Void> endH);
 
     /**
      * 如果chunked为true ，则此响应将使用 HTTP 分块编码，并且每次写入正文的调用都将对应于在线发送的新 HTTP 块。
@@ -127,7 +134,7 @@ public interface HttpServerResponse {
     }
 
     default ChannelFuture file(String filePath) {
-        return file(new File(filePath), 0, Long.MAX_VALUE);
+        return file(FileUtil.file(filePath), 0, Long.MAX_VALUE);
     }
 
     ChannelFuture end(ByteBuf buf);

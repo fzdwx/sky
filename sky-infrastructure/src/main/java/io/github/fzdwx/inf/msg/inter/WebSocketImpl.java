@@ -84,42 +84,42 @@ public class WebSocketImpl implements WebSocket {
         return this;
     }
 
-    public WebSocket registerBeforeHandshake(Hooks<Void> h) {
+    public WebSocket mountBeforeHandshake(Hooks<Void> h) {
         this.beforeHandshakeHooks = h;
         return this;
     }
 
     @Override
-    public WebSocket registerOpen(final Hooks<Void> h) {
+    public WebSocket mountOpen(final Hooks<Void> h) {
         this.openHooks = h;
         return this;
     }
 
     @Override
-    public WebSocket registerEvent(final Hooks<Object> h) {
+    public WebSocket mountEvent(final Hooks<Object> h) {
         this.eventHooks = h;
         return this;
     }
 
-    public WebSocket registerText(Hooks<String> h) {
+    public WebSocket mountText(Hooks<String> h) {
         this.textHooks = h;
         return this;
     }
 
     @Override
-    public WebSocket registerBinary(final Hooks<ByteBuf> h) {
+    public WebSocket mountBinary(final Hooks<ByteBuf> h) {
         this.binaryHooks = h;
         return this;
     }
 
     @Override
-    public WebSocket registerClose(final Hooks<Void> h) {
+    public WebSocket mountClose(final Hooks<Void> h) {
         this.closeHooks = h;
         return this;
     }
 
     @Override
-    public WebSocket registerError(final Hooks<Throwable> h) {
+    public WebSocket mountError(final Hooks<Throwable> h) {
         this.errorHooks = h;
         return this;
     }

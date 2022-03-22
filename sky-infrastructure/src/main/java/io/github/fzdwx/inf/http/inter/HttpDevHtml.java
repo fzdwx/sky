@@ -8,9 +8,7 @@ import io.github.fzdwx.inf.route.Router;
 import lombok.extern.slf4j.Slf4j;
 
 import static cn.hutool.core.io.FileUtil.listFileNames;
-import static cn.hutool.core.io.FileUtil.readString;
 import static cn.hutool.core.text.CharSequenceUtil.padAfter;
-import static io.github.fzdwx.lambada.Lang.CHARSET;
 import static io.github.fzdwx.lambada.Seq.of;
 import static java.util.stream.Collectors.joining;
 
@@ -72,7 +70,11 @@ public class HttpDevHtml implements HttpHandler {
         this.fileList = of(listFileNames(""))
                 .map(h -> {
                     router.GET("/" + h, (req, response) -> {
-                        response.contentType(ContentType.TEXT_PLAIN) .end(readString(h, CHARSET));
+                        response.contentType(ContentType.TEXT_PLAIN)
+                                .mountBodyEnd(f -> {
+                                    System.out.println("body end~");
+                                })
+                                .file(h);
                     });
                     var s = """
                                         <li><div><a href="/%s">%s</a></div></li>

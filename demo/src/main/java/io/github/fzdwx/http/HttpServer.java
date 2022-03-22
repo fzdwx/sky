@@ -35,34 +35,31 @@ public class HttpServer {
                     resp.redirect("/hello");
                 })
                 .GET("/file", (req, resp) -> {
-                    resp.file("C:\\Users\\98065\\Downloads\\VSCodeUserSetup-x64-1.64.2.exe");
+                    resp.contentDisposition("qwe.exe").file("E:\\download\\datagrip-2021.2.4.exe");
                 })
                 .GET("/image", (req, resp) -> {
                     resp.contentType(ContentType.IMAGE_JPEG)
                             .end(faviconIco);
                 })
                 .GET("/stream", (rep, resp) -> {
-                    resp.chunked();
-                    resp.write("hello world");
-                    resp.write("hello world");
-                    resp.write("hello world");
-
-                    resp.end("hello world-end", Netty.pass).close();
-                    // resp.contentDisposition("vscode.exe")
-                    //         .output(new FileInputStream("C:\\Users\\98065\\Downloads\\VSCodeUserSetup-x64-1.64.2.exe"));
+                    resp.chunked()
+                            .write("hello world", Netty.pass)
+                            .write("hello world", Netty.pass)
+                            .write("hello world", Netty.pass)
+                            .end("hello world-end", Netty.pass).close();
                 })
                 .GET("/ws", (req, resp) -> {
 
                     req.upgradeToWebSocket().then(ws -> {
-                        ws.registerClose(h -> {
+                        ws.mountClose(h -> {
                             System.out.println("close!!!!!!!!");
                         });
 
-                        ws.registerOpen(h -> {
+                        ws.mountOpen(h -> {
                             System.out.println("open!!!!!!!!");
                         });
 
-                        ws.registerText(wsg -> {
+                        ws.mountText(wsg -> {
                             System.out.println("text!!!!!!!!");
 
                             ws.reject("拒绝连接");

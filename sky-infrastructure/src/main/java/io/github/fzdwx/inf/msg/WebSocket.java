@@ -32,8 +32,8 @@ public interface WebSocket extends Listener {
     /**
      * reject connection.
      *
-     * @since 0.07
      * @return
+     * @since 0.07
      */
     ChannelFuture reject(String text);
 
@@ -61,39 +61,39 @@ public interface WebSocket extends Listener {
     /**
      * before handshake.
      */
-    WebSocket registerBeforeHandshake(Hooks<Void> h);
+    WebSocket mountBeforeHandshake(Hooks<Void> h);
 
     /**
      * on client connect server success.
      */
-    WebSocket registerOpen(Hooks<Void> h);
+    WebSocket mountOpen(Hooks<Void> h);
 
     /**
      * @see io.netty.channel.ChannelInboundHandler#userEventTriggered
      */
-    WebSocket registerEvent(Hooks<Object> h);
+    WebSocket mountEvent(Hooks<Object> h);
 
     /**
      * on client send text message while call this method.
      */
-    WebSocket registerText(Hooks<String> h);
+    WebSocket mountText(Hooks<String> h);
 
     /**
      * on client send binary message while call this method.
      */
-    WebSocket registerBinary(Hooks<ByteBuf> h);
+    WebSocket mountBinary(Hooks<ByteBuf> h);
 
     /**
      * on client or server close connection while call this method.
      *
      * @apiNote can not send message to client.
      */
-    WebSocket registerClose(Hooks<Void> h);
+    WebSocket mountClose(Hooks<Void> h);
 
     /**
      * on error while call this method.
      */
-    WebSocket registerError(Hooks<Throwable> h);
+    WebSocket mountError(Hooks<Throwable> h);
 
     /**
      * @deprecated
