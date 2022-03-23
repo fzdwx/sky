@@ -8,6 +8,7 @@ import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufAllocator;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
+import io.netty.channel.ChannelPromise;
 import io.netty.channel.DefaultFileRegion;
 import io.netty.handler.stream.ChunkedNioFile;
 
@@ -37,7 +38,7 @@ public interface NettyOutbound {
      */
     NettyOutbound send(ByteBuf data, boolean flush);
 
-    NettyOutbound sendChunk(InputStream in,int chunkSize);
+    NettyOutbound sendChunk(InputStream in, int chunkSize);
 
     /**
      * Binds a send to a starting/cleanup lifecycle
@@ -53,7 +54,7 @@ public interface NettyOutbound {
                                 BiFunction<? super Connection, ? super S, ?> mappedInput,
                                 Consumer<? super S> sourceCleanup);
 
-    default  NettyOutbound send(ByteBuf data) {
+    default NettyOutbound send(ByteBuf data) {
         return send(data, false);
     }
 
@@ -82,8 +83,16 @@ public interface NettyOutbound {
     }
 
     default NettyOutbound then(Hooks<Void> h) {
-        h.call(null);
-        return this;
+        ChannelPromise cp = channel().newPromise();
+        then().addListener(f -> {
+            try {
+                h.call(null);
+                cp.setSuccess();
+            } catch (Exception e) {
+                cp.setFailure(e);
+            }
+        });
+        return then(cp);
     }
 
     NettyOutbound withConnection(Consumer<? super Connection> withConnection);
@@ -103,7 +112,7 @@ public interface NettyOutbound {
                     if (Netty.mustChunkFileTransfer(c, file)) {
                         Netty.addChunkedWriter(c);
                         try {
-                            return new ChunkedNioFile(fc, position, count, 1024);
+                            return new ChunkedNioFile(fc, position, count, 8192);
                         } catch (Exception ioe) {
                             throw Exceptions.propagate(ioe);
                         }

@@ -1,6 +1,5 @@
 package io.github.fzdwx.inf.http.core;
 
-import cn.hutool.core.io.FileUtil;
 import io.github.fzdwx.inf.Netty;
 import io.github.fzdwx.inf.core.NettyOutbound;
 import io.github.fzdwx.inf.http.inter.HttpServerResponseImpl;
@@ -13,9 +12,9 @@ import io.netty.handler.codec.http.HttpHeaders;
 import io.netty.handler.codec.http.HttpMessage;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import io.netty.handler.codec.http.HttpVersion;
+import lombok.val;
 
 import java.io.ByteArrayInputStream;
-import java.io.File;
 import java.io.InputStream;
 import java.nio.charset.Charset;
 
@@ -80,6 +79,11 @@ public interface HttpServerResponse extends NettyOutbound {
 
     boolean isChunked();
 
+    default ChannelFuture sendNotFound() {
+        return this.status(HttpResponseStatus.NOT_FOUND)
+                .end();
+    }
+
     /**
      * writes big data to client.
      */
@@ -125,20 +129,6 @@ public interface HttpServerResponse extends NettyOutbound {
      * @apiNote auto flush and close
      */
     ChannelFuture html(String html);
-
-    ChannelFuture file(File file, long offset, long length);
-
-    default ChannelFuture file(File file, long offset) {
-        return file(file, offset, Long.MAX_VALUE);
-    }
-
-    default ChannelFuture file(File file) {
-        return file(file, 0, Long.MAX_VALUE);
-    }
-
-    default ChannelFuture file(String filePath) {
-        return file(FileUtil.file(filePath), 0, Long.MAX_VALUE);
-    }
 
     ChannelFuture end(ByteBuf buf);
 

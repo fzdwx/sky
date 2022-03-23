@@ -39,14 +39,54 @@ public interface Connection extends DisposableChannel {
         return null;
     }
 
+    default Connection addHandler(ChannelHandler handler) {
+        return addHandler(handler.getClass().getSimpleName(), handler);
+    }
+
     /**
      * add handler to channel pipeline
      */
-    default Connection addHandler(ChannelHandler handler) {
+    default Connection addHandler(String name, ChannelHandler handler) {
         if (handler instanceof ChannelOutboundHandler) {
-            addHandlerFirst(handler);
+            addHandlerFirst(name, handler);
         } else {
-            addHandlerLast(handler);
+            addHandlerLast(name, handler);
+        }
+        return this;
+    }
+
+    /**
+     * Return false if it will force a close on terminal protocol events thus defeating
+     * any pooling strategy
+     * Return true (default) if it will release on terminal protocol events thus
+     * keeping alive the channel if possible.
+     *
+     * @return whether or not the underlying {@link Connection} will be disposed on
+     * terminal handler event
+     */
+    default boolean isPersistent() {
+        return !channel().hasAttr(Netty.PERSISTENT_CHANNEL) ||
+               channel().attr(Netty.PERSISTENT_CHANNEL).get();
+    }
+
+
+    /**
+     * Mark the underlying channel as persistent or not.
+     * If false, it will force a close on terminal protocol events thus defeating
+     * any pooling strategy
+     * if true (default), it will release on terminal protocol events thus
+     * keeping alive the channel if possible.
+     *
+     * @param persist the boolean flag to mark the {@link Channel} as fully disposable
+     *                or reusable when a user handler has terminated
+     * @return this Connection
+     */
+    default Connection markPersistent(boolean persist) {
+        if (persist && !channel().hasAttr(Netty.PERSISTENT_CHANNEL)) {
+            return this;
+        } else {
+            channel().attr(Netty.PERSISTENT_CHANNEL)
+                    .set(persist);
         }
         return this;
     }
@@ -98,39 +138,8 @@ public interface Connection extends DisposableChannel {
         return this;
     }
 
-    /**
-     * Return false if it will force a close on terminal protocol events thus defeating
-     * any pooling strategy
-     * Return true (default) if it will release on terminal protocol events thus
-     * keeping alive the channel if possible.
-     *
-     * @return whether or not the underlying {@link Connection} will be disposed on
-     * terminal handler event
-     */
-    default boolean isPersistent() {
-        return !channel().hasAttr(Netty.PERSISTENT_CHANNEL) ||
-                channel().attr(Netty.PERSISTENT_CHANNEL).get();
-    }
-
-    /**
-     * Mark the underlying channel as persistent or not.
-     * If false, it will force a close on terminal protocol events thus defeating
-     * any pooling strategy
-     * if true (default), it will release on terminal protocol events thus
-     * keeping alive the channel if possible.
-     *
-     * @param persist the boolean flag to mark the {@link Channel} as fully disposable
-     *                or reusable when a user handler has terminated
-     * @return this Connection
-     */
-    default Connection markPersistent(boolean persist) {
-        if (persist && !channel().hasAttr(Netty.PERSISTENT_CHANNEL)) {
-            return this;
-        } else {
-            channel().attr(Netty.PERSISTENT_CHANNEL)
-                    .set(persist);
-        }
-        return this;
+    default ChannelFuture onTerminate() {
+        return onDispose();
     }
 
     @Override

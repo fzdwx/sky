@@ -6,6 +6,8 @@ import io.github.fzdwx.inf.route.Router;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 
+import java.nio.file.Paths;
+
 import static io.github.fzdwx.inf.Netty.HTTP;
 
 /**
@@ -28,6 +30,10 @@ public class HttpServer {
                               """
                     );
                 })
+                .GET("/sendfile", (req, resp) -> {
+                    resp.sendFile(Paths.get("C:\\Users\\98065\\Downloads\\VSCodeUserSetup-x64-1.64.2.exe"));
+
+                })
                 .GET("/to", (req, resp) -> {
                     resp.redirect("https://www.baidu.com/s?wd=http%20%E9%87%8D%E5%AE%9A%E5%90%91&rsv_spt=1&rsv_iqid=0xe4c6f4ba0004188b&issp=1&f=8&rsv_bp=1&rsv_idx=2&ie=utf-8&tn=baiduhome_pg&rsv_enter=1&rsv_dl=tb&rsv_sug3=18&rsv_sug1=1&rsv_sug7=100&rsv_sug2=0&rsv_btype=i&inputT=4755&rsv_sug4=5267");
                 })
@@ -35,7 +41,7 @@ public class HttpServer {
                     resp.redirect("/hello");
                 })
                 .GET("/file", (req, resp) -> {
-                    resp.contentDisposition("qwe.exe").file("E:\\download\\datagrip-2021.2.4.exe");
+                    resp.contentDisposition("qwe.exe").sendFile(Paths.get("C:\\Users\\98065\\Downloads\\VSCodeUserSetup-x64-1.64.2.exe"));
                 })
                 .GET("/image", (req, resp) -> {
                     resp.contentType(ContentType.IMAGE_JPEG)
@@ -69,7 +75,7 @@ public class HttpServer {
                 .GET("/hello", (req, resp) -> {
                     resp.chunked();
                     resp.send("123123".getBytes()).then()
-                            .addListener(f->{
+                            .addListener(f -> {
                                 System.out.println(f.cause());
                             });
                     resp.write("hello world\n");
@@ -78,7 +84,7 @@ public class HttpServer {
                 .POST("/hello", (req, resp) -> resp.json("你好-post"))
                 .faviconIco(faviconIco);
 
-        HTTP(8888, router).name("我的http 服务器 !")
+        HTTP(8889, router).name("我的http 服务器 !")
                 // .log(LogLevel.INFO, ByteBufFormat.HEX_DUMP)
                 // .workerCnt(10)
                 .dev()

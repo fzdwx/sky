@@ -9,15 +9,17 @@ import io.github.fzdwx.inf.http.core.HttpServerResponse;
 import io.github.fzdwx.inf.route.inter.RequestMethod;
 import io.github.fzdwx.inf.ser.Json;
 import io.github.fzdwx.lambada.fun.Hooks;
-import io.github.fzdwx.lambada.lang.MimeMapping;
 import io.netty.buffer.ByteBuf;
+import io.netty.buffer.ByteBufHolder;
+import io.netty.buffer.Unpooled;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
+import io.netty.channel.ChannelInboundHandler;
 import io.netty.channel.ChannelPromise;
-import io.netty.channel.DefaultFileRegion;
 import io.netty.handler.codec.http.DefaultHttpContent;
 import io.netty.handler.codec.http.DefaultHttpHeaders;
 import io.netty.handler.codec.http.EmptyHttpHeaders;
+import io.netty.handler.codec.http.FullHttpMessage;
 import io.netty.handler.codec.http.HttpChunkedInput;
 import io.netty.handler.codec.http.HttpContent;
 import io.netty.handler.codec.http.HttpHeaderNames;
@@ -32,20 +34,24 @@ import io.netty.handler.codec.http.LastHttpContent;
 import io.netty.handler.codec.http.cookie.Cookie;
 import io.netty.handler.codec.http.cookie.DefaultCookie;
 import io.netty.handler.codec.http.cookie.ServerCookieEncoder;
-import io.netty.handler.stream.ChunkedFile;
 import io.netty.handler.stream.ChunkedInput;
 import io.netty.handler.stream.ChunkedStream;
+import io.netty.util.concurrent.Future;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.RandomAccessFile;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
+import java.util.concurrent.atomic.AtomicIntegerFieldUpdater;
 
 import static io.github.fzdwx.inf.Netty.close;
+import static io.github.fzdwx.inf.Netty.empty;
+import static io.github.fzdwx.inf.Netty.format;
 import static io.github.fzdwx.inf.http.core.ContentType.JSON;
 import static io.github.fzdwx.inf.http.core.ContentType.TEXT_HTML;
 
@@ -56,10 +62,33 @@ import static io.github.fzdwx.inf.http.core.ContentType.TEXT_HTML;
 @Slf4j
 public class HttpServerResponseImpl extends ChannelOutBound implements HttpServerResponse {
 
+    final static AtomicIntegerFieldUpdater<HttpServerResponseImpl> HEAD_STATE =
+            AtomicIntegerFieldUpdater.newUpdater(HttpServerResponseImpl.class,
+                    "headWritten");
+    final static AtomicIntegerFieldUpdater<HttpServerResponseImpl> END_STATE =
+            AtomicIntegerFieldUpdater.newUpdater(HttpServerResponseImpl.class,
+                    "endWritten");
     private static final String RESPONSE_WRITTEN = "Response has already been written";
     private static final String HEAD_NOT_WRITTEN = "Head response has not been written";
     private static final String HEAD_ALREADY_WRITTEN = "Head already written";
-
+    private final static ChannelInboundHandler HTTP_EXTRACTOR = Netty.inboundHandler(
+            (ctx, msg) -> {
+                if (msg instanceof ByteBufHolder) {
+                    if (msg instanceof FullHttpMessage) {
+                        // TODO convert into 2 messages if FullHttpMessage
+                        ctx.fireChannelRead(msg);
+                    } else {
+                        ByteBuf bb = ((ByteBufHolder) msg).content();
+                        ctx.fireChannelRead(bb);
+                        if (msg instanceof LastHttpContent) {
+                            ctx.fireChannelRead(LastHttpContent.EMPTY_LAST_CONTENT);
+                        }
+                    }
+                } else {
+                    ctx.fireChannelRead(msg);
+                }
+            }
+    );
     private final Channel channel;
     private final HttpServerRequest request;
     private final HttpHeaders headers;
@@ -70,17 +99,15 @@ public class HttpServerResponseImpl extends ChannelOutBound implements HttpServe
     private HttpResponseStatus status;
     private List<Cookie> cookie;
     private String contentDisposition;
-
     private Hooks<Void> bodyEndHooks;
-
     /**
      * 标识是否已经写入了头响应
      */
-    private boolean headWritten;
+    private volatile int headWritten;
     /**
      * 标记是否已经写入结束了
      */
-    private boolean endWritten;
+    private volatile int endWritten;
     /**
      * 标识已经写入了多少字节
      */
@@ -95,13 +122,116 @@ public class HttpServerResponseImpl extends ChannelOutBound implements HttpServe
         this.version = httpRequest.version();
         this.status = HttpResponseStatus.OK;
         this.keepAlive = (version == HttpVersion.HTTP_1_1 && !request.headers().contains(HttpHeaderNames.CONNECTION, HttpHeaderValues.CLOSE, true))
-                || (version == HttpVersion.HTTP_1_0 && request.headers().contains(HttpHeaderNames.CONNECTION, HttpHeaderValues.KEEP_ALIVE, true));
+                         || (version == HttpVersion.HTTP_1_0 && request.headers().contains(HttpHeaderNames.CONNECTION, HttpHeaderValues.KEEP_ALIVE, true));
         this.head = request.methodType() == RequestMethod.HEAD;
     }
 
     @Override
     public Channel channel() {
         return channel;
+    }
+
+    @Override
+    public NettyOutbound send(final ByteBuf data, final boolean flush) {
+        if (!channel().isActive()) {
+            return then(ChannelException.beforeSend());
+        }
+
+        // preCheck
+        if (!headWritten() && !headers.contains(HttpHeaderNames.TRANSFER_ENCODING) && !headers.contains(HttpHeaderNames.CONTENT_LENGTH)) {
+            if (version != HttpVersion.HTTP_1_0) {
+                then(new IllegalStateException("You must set the Content-Length header to be the total size of the message "
+                                               + "body BEFORE sending any data if you are not using HTTP chunked encoding."));
+            }
+        }
+
+        return super.send(data, flush);
+    }
+
+    @Override
+    public NettyOutbound sendChunk(final InputStream in, final int chunkSize) {
+        return super.sendChunk(in, chunkSize);
+    }
+
+    @Override
+    public Object wrapData(final ByteBuf data) {
+
+        bytesWritten += data.readableBytes();
+        HttpObject response;
+        if (!headWritten()) { // don't have written head response(e.g. contentType,http status,content length...)
+            prepareHeaders(-1);
+            response = new AssembledHttpResponse(head, version, status, headers, data);
+        } else {
+            response = new DefaultHttpContent(data);
+        }
+
+        return response;
+    }
+
+    @Override
+    protected void onOutboundComplete(final Future<? super Void> f) {
+        System.out.println("do onOutboundComplete");
+        final ChannelFuture ff;
+        if (!headWritten()) {
+            prepareHeaders(-1);
+            ff = channel.writeAndFlush(new AssembledHttpResponse(head, version, status, headers, Unpooled.EMPTY_BUFFER));
+        } else if (!endWritten()) {
+            ff = end(empty);
+        } else return;
+
+        ff.addListener(s -> {
+            // close();
+            if (!s.isSuccess() && log.isDebugEnabled()) {
+                log.debug(format(channel(), "Failed flushing last frame"), s.cause());
+            }
+        });
+
+    }
+
+    @Override
+    public NettyOutbound sendFile(final Path file) {
+        try {
+            return sendFile(file, 0, Files.size(file));
+        } catch (IOException e) {
+            return then(sendNotFound());
+        }
+    }
+
+    @Override
+    public ChannelFuture then() {
+        if (!channel.isActive()) {
+            return channel.newFailedFuture(ChannelException.beforeSend());
+        }
+
+        if (headWritten()) {
+            return channel.newSucceededFuture();
+        }
+
+        return super.then().addListener(this::onOutboundComplete);
+    }
+
+    @Override
+    public NettyOutbound sendFile(final Path file, final long position, final long count) {
+        Objects.requireNonNull(file, "filepath");
+
+        if (endWritten()) { // 已经调用过end了
+            return then(new IllegalStateException(RESPONSE_WRITTEN));
+        }
+        if (headWritten()) {
+            return then(new IllegalStateException(HEAD_ALREADY_WRITTEN));
+        }
+
+        if (!Netty.isTransferEncodingChunked(headers) && !Netty.isContentLengthSet(
+                headers) && count < Integer.MAX_VALUE) {
+            headers.setInt(HttpHeaderNames.CONTENT_LENGTH, (int) count);
+        } else if (!Netty.isContentLengthSet(headers)) {
+            headers
+                    .remove(HttpHeaderNames.CONTENT_LENGTH)
+                    .remove(HttpHeaderNames.TRANSFER_ENCODING);
+            Netty.setTransferEncodingChunked(headers, true);
+        }
+
+        return super.sendFile(file, position, count);
     }
 
     @Override
@@ -176,37 +306,6 @@ public class HttpServerResponseImpl extends ChannelOutBound implements HttpServe
         return headers.contains(HttpHeaderNames.TRANSFER_ENCODING, HttpHeaderValues.CHUNKED, true);
     }
 
-    @Override
-    public NettyOutbound send(final ByteBuf data, final boolean flush) {
-        if (!channel().isActive()) {
-            return then(ChannelException.beforeSend());
-        }
-
-        // preCheck
-        if (!headWritten && !headers.contains(HttpHeaderNames.TRANSFER_ENCODING) && !headers.contains(HttpHeaderNames.CONTENT_LENGTH)) {
-            if (version != HttpVersion.HTTP_1_0) {
-                then(new IllegalStateException("You must set the Content-Length header to be the total size of the message "
-                        + "body BEFORE sending any data if you are not using HTTP chunked encoding."));
-            }
-        }
-
-        bytesWritten += data.readableBytes();
-        HttpObject response;
-        if (!headWritten) { // don't have written head response(e.g. contentType,http status,content length...)
-            prepareHeaders(-1);
-            response = new AssembledHttpResponse(head, version, status, headers, data);
-        } else {
-            response = new DefaultHttpContent(data);
-        }
-
-        final var channelPromise = channel.newPromise();
-
-        // written response to client
-        channel.write(response, channelPromise);
-
-        return then(channelPromise);
-    }
-
     @SneakyThrows
     @Override
     public ChannelFuture writes(final InputStream ins, int chunkSize) {
@@ -278,11 +377,6 @@ public class HttpServerResponseImpl extends ChannelOutBound implements HttpServe
     }
 
     @Override
-    public ChannelFuture file(final File file, final long offset, final long length) {
-        return sendFile(file, offset, length);
-    }
-
-    @Override
     public ChannelFuture end(final ByteBuf buf) {
         final var promise = channel.newPromise();
         end(buf, promise);
@@ -292,7 +386,7 @@ public class HttpServerResponseImpl extends ChannelOutBound implements HttpServe
     @Override
     public void close() {
         if (!closed) {
-            if (headWritten) {
+            if (headWritten()) {
                 channel.writeAndFlush(Netty.empty).addListener(close);
             } else {
                 channel.close();
@@ -301,65 +395,23 @@ public class HttpServerResponseImpl extends ChannelOutBound implements HttpServe
         }
     }
 
-    @SneakyThrows
-    private ChannelFuture sendFile(final File file, final long offset, final long length) {
-        if (endWritten) { // 已经调用过end了
-            throw new IllegalStateException(RESPONSE_WRITTEN);
-        }
-        if (headWritten) {
-            throw new IllegalStateException(HEAD_ALREADY_WRITTEN);
-        }
-
-        long contentLength = Math.min(length, file.length() - offset);
-        bytesWritten = contentLength;
-        if (!headers.contains(HttpHeaderNames.CONTENT_TYPE)) {
-            String contentType = MimeMapping.getMimeTypeForFilename(file.getName());
-            if (contentType != null) {
-                headers.set(HttpHeaderNames.CONTENT_TYPE, contentType);
-            }
-        }
-
-        prepareHeaders(bytesWritten);
-
-        RandomAccessFile raf = new RandomAccessFile(file, "r");
-        channel.write(new AssembledHttpResponse(head, version, status, headers));
-        final var channelFuture = doSendFile(raf, Math.min(offset, file.length()), contentLength);
-
-        final var resFuture = channel.newPromise();
-
-        channelFuture.addListener(f -> {
-            afterEnd(resFuture, LastHttpContent.EMPTY_LAST_CONTENT);
-        });
-
-        return resFuture;
+    boolean headWritten() {
+        return headWritten > 0;
     }
 
-    private ChannelFuture doSendFile(RandomAccessFile raf, long offset, long length) throws IOException {
-        final var writeFuture = channel.newPromise();
-        if (request.ssl()) {
-            // normal
-            channel.writeAndFlush(new HttpChunkedInput(new ChunkedFile(raf, offset, length, 8192)), writeFuture);
-        } else {
-            // zero-copy
-            channel.write(new DefaultFileRegion(raf.getChannel(), offset, length), writeFuture);
-        }
-
-        if (writeFuture != null) {
-            writeFuture.addListener(f -> { raf.close(); });
-        } else raf.close();
-
-        return writeFuture;
+    boolean endWritten() {
+        return endWritten > 0;
     }
 
     @SneakyThrows
     private ChannelFuture endChunks(final InputStream ins, int chunkSize, final ChannelPromise promise) {
-        if (endWritten) { // 已经调用过end了
+        if (endWritten()) { // 已经调用过end了
             throw new IllegalStateException(RESPONSE_WRITTEN);
         }
 
         bytesWritten += ins.available();
         ChunkedInput<HttpContent> msg;
-        if (!headWritten) {
+        if (!headWritten()) {
             throw new IllegalStateException(HEAD_NOT_WRITTEN);
         } else {
             msg = new HttpChunkedInput(new ChunkedStream(ins, chunkSize));
@@ -371,13 +423,13 @@ public class HttpServerResponseImpl extends ChannelOutBound implements HttpServe
     }
 
     private void end(final ByteBuf buf, final ChannelPromise promise) {
-        if (endWritten) { // 已经调用过end了
+        if (endWritten()) { // 已经调用过end了
             throw new IllegalStateException(RESPONSE_WRITTEN);
         }
 
         bytesWritten += buf.readableBytes();
         HttpObject msg;
-        if (!headWritten) { // 如果 response head 没有写入,则一起写
+        if (!headWritten()) { // 如果 response head 没有写入,则一起写
             prepareHeaders(bytesWritten);
             msg = new AssembledFullHttpResponse(head, version, status, headers, buf, trailingHeaders);
         } else {
@@ -388,7 +440,10 @@ public class HttpServerResponseImpl extends ChannelOutBound implements HttpServe
     }
 
     private void afterEnd(final ChannelPromise promise, final Object msg) {
-        endWritten = true;
+        if (!END_STATE.compareAndSet(this, 0, 1)) {
+            return;
+        }
+
         if (bodyEndHooks != null) {
             bodyEndHooks.call(null);
         }
@@ -402,6 +457,10 @@ public class HttpServerResponseImpl extends ChannelOutBound implements HttpServe
     }
 
     private void prepareHeaders(final long contentLength) {
+        if (!HEAD_STATE.compareAndSet(this, 0, 1)) {
+            throw new IllegalStateException(HEAD_ALREADY_WRITTEN);
+        }
+
         if (version == HttpVersion.HTTP_1_0 && keepAlive) {
             headers.set(HttpHeaderNames.CONNECTION, HttpHeaderNames.KEEP_ALIVE);
         } else if (version == HttpVersion.HTTP_1_1 && !keepAlive) {
@@ -423,8 +482,6 @@ public class HttpServerResponseImpl extends ChannelOutBound implements HttpServe
         if (cookie != null) {
             setCookies();
         }
-
-        headWritten = true;
     }
 
     private void setCookies() {

@@ -7,6 +7,8 @@ import io.github.fzdwx.inf.http.core.HttpServerResponse;
 import io.github.fzdwx.inf.route.Router;
 import lombok.extern.slf4j.Slf4j;
 
+import java.nio.file.Paths;
+
 import static cn.hutool.core.io.FileUtil.listFileNames;
 import static cn.hutool.core.text.CharSequenceUtil.padAfter;
 import static io.github.fzdwx.lambada.Seq.of;
@@ -22,10 +24,10 @@ import static java.util.stream.Collectors.joining;
 @Slf4j
 public class HttpDevHtml implements HttpHandler {
 
+    public static final String PAGE_PATH = "/dev";
     private final String name;
     private String apiList;
     private String fileList;
-    public static final String PAGE_PATH = "/dev";
 
     public HttpDevHtml(final String name, final Router router) {
         this.name = name;
@@ -74,7 +76,7 @@ public class HttpDevHtml implements HttpHandler {
                                 .mountBodyEnd(f -> {
                                     System.out.println("body end~");
                                 })
-                                .file(h);
+                                .sendFile(Paths.get(h));
                     });
                     var s = """
                                         <li><div><a href="/%s">%s</a></div></li>

@@ -1,5 +1,6 @@
 package io.github.fzdwx.inf;
 
+import io.github.fzdwx.inf.core.ChannelOperationsId;
 import io.github.fzdwx.inf.core.Connection;
 import io.github.fzdwx.inf.core.ConnectionObserver;
 import io.github.fzdwx.inf.core.SingleChunkedInput;
@@ -15,6 +16,8 @@ import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelHandlerContext;
+import io.netty.channel.ChannelInboundHandler;
+import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.channel.ChannelPipeline;
 import io.netty.channel.ChannelPromise;
 import io.netty.channel.DefaultChannelPromise;
@@ -36,9 +39,12 @@ import lombok.extern.slf4j.Slf4j;
 
 import java.nio.channels.FileChannel;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.TimeUnit;
+import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 
@@ -100,7 +106,6 @@ public final class Netty {
     public static final Predicate<ByteBuf> PREDICATE_BB_FLUSH = b -> false;
     public static final Hooks<ChannelFuture> pass = (f) -> { };
     public static final ConnectionObserver NOOP_LISTENER = (connection, newState) -> { };
-    public static GenericFutureListener<? extends Future<? super Void>> close = ChannelFutureListener.CLOSE;
     public static final Consumer<? super FileChannel> fileCloser = fc -> {
         try {
             fc.close();
@@ -110,6 +115,15 @@ public final class Netty {
             }
         }
     };
+    static final char CHANNEL_ID_PREFIX = '[';
+    static final String CHANNEL_ID_SUFFIX_1 = "] ";
+    static final char CHANNEL_ID_SUFFIX_2 = ' ';
+    static final String ORIGINAL_CHANNEL_ID_PREFIX = "[id: 0x";
+    static final int ORIGINAL_CHANNEL_ID_PREFIX_LENGTH = ORIGINAL_CHANNEL_ID_PREFIX.length();
+    static final char TRACE_ID_PREFIX = '(';
+    static final boolean LOG_CHANNEL_INFO =
+            Boolean.parseBoolean(System.getProperty("reactor.netty.logChannelInfo", "true"));
+    public static GenericFutureListener<? extends Future<? super Void>> close = ChannelFutureListener.CLOSE;
 
     public static String read(ByteBuf buf) {
         final var dest = new byte[buf.readableBytes()];
@@ -146,9 +160,35 @@ public final class Netty {
         System.out.println(Coll.disjunction(l1, l2));
     }
 
-
     public static boolean isWebSocket(HttpHeaders headers) {
         return headers.contains(HttpHeaderNames.UPGRADE, HttpHeaderValues.WEBSOCKET, true);
+    }
+
+    public static boolean isTransferEncodingChunked(HttpHeaders headers) {
+        return headers.containsValue(HttpHeaderNames.TRANSFER_ENCODING, HttpHeaderValues.CHUNKED, true);
+    }
+
+    public static boolean isContentLengthSet(HttpHeaders headers) {
+        return headers.contains(HttpHeaderNames.CONTENT_LENGTH);
+    }
+
+    public static void setTransferEncodingChunked(HttpHeaders headers, boolean chunked) {
+        if (chunked) {
+            headers.set(HttpHeaderNames.TRANSFER_ENCODING, HttpHeaderValues.CHUNKED);
+            headers.remove(HttpHeaderNames.CONTENT_LENGTH);
+        } else {
+            List<String> encodings = headers.getAll(HttpHeaderNames.TRANSFER_ENCODING);
+            if (encodings.isEmpty()) {
+                return;
+            }
+            List<CharSequence> values = new ArrayList<CharSequence>(encodings);
+            values.removeIf(HttpHeaderValues.CHUNKED::contentEqualsIgnoreCase);
+            if (values.isEmpty()) {
+                headers.remove(HttpHeaderNames.TRANSFER_ENCODING);
+            } else {
+                headers.set(HttpHeaderNames.TRANSFER_ENCODING, values);
+            }
+        }
     }
 
     /**
@@ -192,7 +232,7 @@ public final class Netty {
 
     public static void removeHandler(final Channel channel, final String handlerName) {
         if (channel.isActive() && channel.pipeline()
-                .context(handlerName) != null) {
+                                          .context(handlerName) != null) {
             channel.pipeline()
                     .remove(handlerName);
         }
@@ -200,7 +240,7 @@ public final class Netty {
 
     public static void replaceHandler(Channel channel, String handlerName, ChannelHandler handler) {
         if (channel.isActive() && channel.pipeline()
-                .context(handlerName) != null) {
+                                          .context(handlerName) != null) {
             channel.pipeline()
                     .replace(handlerName, handlerName, handler);
 
@@ -218,9 +258,9 @@ public final class Netty {
 
         ChannelPipeline p = c.channel().pipeline();
         return p.get(SslHandler.class) != null ||
-                p.get(Netty.compressionHandlerName) != null ||
-                (!(c.channel().eventLoop() instanceof NioEventLoop) &&
-                        !"file".equals(file.toUri().getScheme()));
+               p.get(Netty.compressionHandlerName) != null ||
+               (!(c.channel().eventLoop() instanceof NioEventLoop) &&
+                !"file".equals(file.toUri().getScheme()));
     }
 
     /**
@@ -228,8 +268,8 @@ public final class Netty {
      */
     public static void addChunkedWriter(final Connection c) {
         if (c.channel()
-                .pipeline()
-                .get(ChunkedWriteHandler.class) == null) {
+                    .pipeline()
+                    .get(ChunkedWriteHandler.class) == null) {
             c.addHandlerLast(Netty.chunkedWriter, new ChunkedWriteHandler());
         }
     }
@@ -288,6 +328,62 @@ public final class Netty {
         return new CompositeConnectionObserver(newObservers);
     }
 
+    /**
+     * Create a new {@link ChannelInboundHandler} that will invoke
+     * {@link BiConsumer#accept} on
+     * {@link ChannelInboundHandler#channelRead(ChannelHandlerContext, Object)}.
+     *
+     * @param handler the channel-read callback
+     * @return a marking event used when a netty connector handler terminates
+     */
+    public static ChannelInboundHandler inboundHandler(BiConsumer<? super ChannelHandlerContext, Object> handler) {
+        return new Netty.ExtractorHandler(handler);
+    }
+
+    public static String format(Channel channel, String msg) {
+        Objects.requireNonNull(channel, "channel");
+        Objects.requireNonNull(msg, "msg");
+        if (LOG_CHANNEL_INFO) {
+            String channelStr;
+            StringBuilder result;
+            Connection connection = Connection.from(channel);
+            if (connection instanceof ChannelOperationsId) {
+                channelStr = ((ChannelOperationsId) connection).asLongText();
+                if (channelStr.charAt(0) != TRACE_ID_PREFIX) {
+                    result = new StringBuilder(1 + channelStr.length() + 2 + msg.length())
+                            .append(CHANNEL_ID_PREFIX)
+                            .append(channelStr)
+                            .append(CHANNEL_ID_SUFFIX_1);
+                } else {
+                    result = new StringBuilder(channelStr.length() + 1 + msg.length())
+                            .append(channelStr)
+                            .append(CHANNEL_ID_SUFFIX_2);
+                }
+                return result.append(msg)
+                        .toString();
+            } else {
+                channelStr = channel.toString();
+                if (channelStr.charAt(0) == CHANNEL_ID_PREFIX) {
+                    channelStr = channelStr.substring(ORIGINAL_CHANNEL_ID_PREFIX_LENGTH);
+                    result = new StringBuilder(1 + channelStr.length() + 1 + msg.length())
+                            .append(CHANNEL_ID_PREFIX)
+                            .append(channelStr);
+                } else {
+                    int ind = channelStr.indexOf(ORIGINAL_CHANNEL_ID_PREFIX);
+                    result = new StringBuilder(1 + (channelStr.length() - ORIGINAL_CHANNEL_ID_PREFIX_LENGTH) + 1 + msg.length())
+                            .append(channelStr.substring(0, ind))
+                            .append(CHANNEL_ID_PREFIX)
+                            .append(channelStr.substring(ind + ORIGINAL_CHANNEL_ID_PREFIX_LENGTH));
+                }
+                return result.append(CHANNEL_ID_SUFFIX_2)
+                        .append(msg)
+                        .toString();
+            }
+        } else {
+            return msg;
+        }
+    }
+
     public static final class CompositeConnectionObserver implements ConnectionObserver {
 
         final ConnectionObserver[] observers;
@@ -335,7 +431,6 @@ public final class Netty {
         }
     }
 
-
     public final static class OutboundIdleStateHandler extends IdleStateHandler {
 
         final Runnable onWriteIdle;
@@ -354,4 +449,22 @@ public final class Netty {
             super.channelIdle(ctx, evt);
         }
     }
+
+    @ChannelHandler.Sharable
+    public static final class ExtractorHandler extends ChannelInboundHandlerAdapter {
+
+
+        final BiConsumer<? super ChannelHandlerContext, Object> extractor;
+
+        public ExtractorHandler(BiConsumer<? super ChannelHandlerContext, Object> extractor) {
+            this.extractor = Objects.requireNonNull(extractor, "extractor");
+        }
+
+        @Override
+        public void channelRead(ChannelHandlerContext ctx, Object msg) {
+            extractor.accept(ctx, msg);
+        }
+
+    }
+
 }
