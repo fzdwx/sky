@@ -1,6 +1,9 @@
 package io.github.fzdwx.inf.http.inter;
 
 import io.github.fzdwx.inf.Netty;
+import io.github.fzdwx.inf.core.ChannelOutBound;
+import io.github.fzdwx.inf.core.NettyOutbound;
+import io.github.fzdwx.inf.core.exception.ChannelException;
 import io.github.fzdwx.inf.http.core.HttpServerRequest;
 import io.github.fzdwx.inf.http.core.HttpServerResponse;
 import io.github.fzdwx.inf.route.inter.RequestMethod;
@@ -23,6 +26,7 @@ import io.netty.handler.codec.http.HttpHeaders;
 import io.netty.handler.codec.http.HttpMessage;
 import io.netty.handler.codec.http.HttpObject;
 import io.netty.handler.codec.http.HttpResponseStatus;
+import io.netty.handler.codec.http.HttpUtil;
 import io.netty.handler.codec.http.HttpVersion;
 import io.netty.handler.codec.http.LastHttpContent;
 import io.netty.handler.codec.http.cookie.Cookie;
@@ -50,7 +54,7 @@ import static io.github.fzdwx.inf.http.core.ContentType.TEXT_HTML;
  * @date 2022/3/18 15:27
  */
 @Slf4j
-public class HttpServerResponseImpl implements HttpServerResponse {
+public class HttpServerResponseImpl extends ChannelOutBound implements HttpServerResponse {
 
     private static final String RESPONSE_WRITTEN = "Response has already been written";
     private static final String HEAD_NOT_WRITTEN = "Head response has not been written";
@@ -84,13 +88,14 @@ public class HttpServerResponseImpl implements HttpServerResponse {
     private boolean closed;
 
     public HttpServerResponseImpl(final Channel channel, final HttpServerRequest httpRequest) {
+        super(channel);
         this.channel = channel;
         this.request = httpRequest;
         this.headers = new DefaultHttpHeaders();
         this.version = httpRequest.version();
         this.status = HttpResponseStatus.OK;
         this.keepAlive = (version == HttpVersion.HTTP_1_1 && !request.headers().contains(HttpHeaderNames.CONNECTION, HttpHeaderValues.CLOSE, true))
-                         || (version == HttpVersion.HTTP_1_0 && request.headers().contains(HttpHeaderNames.CONNECTION, HttpHeaderValues.KEEP_ALIVE, true));
+                || (version == HttpVersion.HTTP_1_0 && request.headers().contains(HttpHeaderNames.CONNECTION, HttpHeaderValues.KEEP_ALIVE, true));
         this.head = request.methodType() == RequestMethod.HEAD;
     }
 
@@ -112,6 +117,12 @@ public class HttpServerResponseImpl implements HttpServerResponse {
     @Override
     public HttpServerResponse status(final HttpResponseStatus status) {
         this.status = status;
+        return this;
+    }
+
+    @Override
+    public HttpServerResponse keepAlive(final boolean keepAlive) {
+        HttpUtil.setKeepAlive(headers, version, keepAlive);
         return this;
     }
 
@@ -165,6 +176,37 @@ public class HttpServerResponseImpl implements HttpServerResponse {
         return headers.contains(HttpHeaderNames.TRANSFER_ENCODING, HttpHeaderValues.CHUNKED, true);
     }
 
+    @Override
+    public NettyOutbound send(final ByteBuf data, final boolean flush) {
+        if (!channel().isActive()) {
+            return then(ChannelException.beforeSend());
+        }
+
+        // preCheck
+        if (!headWritten && !headers.contains(HttpHeaderNames.TRANSFER_ENCODING) && !headers.contains(HttpHeaderNames.CONTENT_LENGTH)) {
+            if (version != HttpVersion.HTTP_1_0) {
+                then(new IllegalStateException("You must set the Content-Length header to be the total size of the message "
+                        + "body BEFORE sending any data if you are not using HTTP chunked encoding."));
+            }
+        }
+
+        bytesWritten += data.readableBytes();
+        HttpObject response;
+        if (!headWritten) { // don't have written head response(e.g. contentType,http status,content length...)
+            prepareHeaders(-1);
+            response = new AssembledHttpResponse(head, version, status, headers, data);
+        } else {
+            response = new DefaultHttpContent(data);
+        }
+
+        final var channelPromise = channel.newPromise();
+
+        // written response to client
+        channel.write(response, channelPromise);
+
+        return then(channelPromise);
+    }
+
     @SneakyThrows
     @Override
     public ChannelFuture writes(final InputStream ins, int chunkSize) {
@@ -193,11 +235,7 @@ public class HttpServerResponseImpl implements HttpServerResponse {
 
     @Override
     public ChannelFuture write(final ByteBuf buf) {
-        final var promise = channel.newPromise();
-
-        write(buf, promise);
-
-        return promise;
+        return send(buf, false).then();
     }
 
     @Override
@@ -361,30 +399,6 @@ public class HttpServerResponseImpl implements HttpServerResponse {
         } else {
             this.channel.write(msg, promise);
         }
-    }
-
-    private HttpServerResponse write(ByteBuf buf, ChannelPromise promise) {
-        // preCheck
-        if (!headWritten && !headers.contains(HttpHeaderNames.TRANSFER_ENCODING) && !headers.contains(HttpHeaderNames.CONTENT_LENGTH)) {
-            if (version != HttpVersion.HTTP_1_0) {
-                throw new IllegalStateException("You must set the Content-Length header to be the total size of the message "
-                                                + "body BEFORE sending any data if you are not using HTTP chunked encoding.");
-            }
-        }
-
-        bytesWritten += buf.readableBytes();
-        HttpObject response;
-        if (!headWritten) { // don't have written head response(e.g. contentType,http status,content length...)
-            prepareHeaders(-1);
-            response = new AssembledHttpResponse(head, version, status, headers, buf);
-        } else {
-            response = new DefaultHttpContent(buf);
-        }
-
-        // written response to client
-        channel.write(response, promise);
-
-        return this;
     }
 
     private void prepareHeaders(final long contentLength) {

@@ -17,7 +17,7 @@ import java.net.InetSocketAddress;
  * @author <a href="mailto:likelovec@gmail.com">韦朕</a>
  * @date 2022/3/22 15:55
  */
-public abstract class ServAndClientBase<Type> {
+public abstract class ServAndClientBase<Type> implements Connection{
 
     protected EventLoopGroup workerGroup;
     protected LoggingHandler logging;
@@ -59,8 +59,6 @@ public abstract class ServAndClientBase<Type> {
     }
 
     public abstract void stop();
-
-    public abstract Channel channel();
 
     @NonNull
     public final ChannelInitializer<SocketChannel> channelInitializer() {

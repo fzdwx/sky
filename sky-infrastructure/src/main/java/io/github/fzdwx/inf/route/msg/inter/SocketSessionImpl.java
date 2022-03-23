@@ -6,7 +6,7 @@ import io.netty.channel.ChannelFuture;
 import io.netty.handler.codec.http.websocketx.BinaryWebSocketFrame;
 import io.netty.handler.codec.http.websocketx.TextWebSocketFrame;
 
-import static io.github.fzdwx.inf.Netty.alloc;
+import static io.github.fzdwx.inf.Netty.wrap;
 
 /**
  * @author <a href="mailto:likelovec@gmail.com">fzdwx</a>
@@ -42,11 +42,11 @@ public class SocketSessionImpl implements SocketSession {
 
     @Override
     public ChannelFuture send(final byte[] text) {
-        return this.channel.writeAndFlush(new TextWebSocketFrame(alloc(text)));
+        return this.channel.writeAndFlush(new TextWebSocketFrame(wrap(text)));
     }
 
     @Override
     public ChannelFuture sendBinary(final byte[] binary) {
-        return this.channel.writeAndFlush(new BinaryWebSocketFrame(alloc(binary)));
+        return this.channel.writeAndFlush(new BinaryWebSocketFrame(wrap(binary)));
     }
 }

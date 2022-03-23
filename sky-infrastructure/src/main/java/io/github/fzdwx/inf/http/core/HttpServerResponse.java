@@ -2,6 +2,7 @@ package io.github.fzdwx.inf.http.core;
 
 import cn.hutool.core.io.FileUtil;
 import io.github.fzdwx.inf.Netty;
+import io.github.fzdwx.inf.core.NettyOutbound;
 import io.github.fzdwx.inf.http.inter.HttpServerResponseImpl;
 import io.github.fzdwx.lambada.fun.Hooks;
 import io.netty.buffer.ByteBuf;
@@ -18,7 +19,7 @@ import java.io.File;
 import java.io.InputStream;
 import java.nio.charset.Charset;
 
-import static io.github.fzdwx.inf.Netty.alloc;
+import static io.github.fzdwx.inf.Netty.wrap;
 import static io.github.fzdwx.lambada.Lang.CHARSET;
 
 /**
@@ -28,7 +29,7 @@ import static io.github.fzdwx.lambada.Lang.CHARSET;
  * @date 2022/3/18 15:23
  * @since 0.06
  */
-public interface HttpServerResponse {
+public interface HttpServerResponse extends NettyOutbound {
 
     static HttpServerResponse create(Channel channel, final HttpServerRequest httpRequest) {
         return new HttpServerResponseImpl(channel, httpRequest);
@@ -47,6 +48,8 @@ public interface HttpServerResponse {
     HttpVersion version();
 
     HttpServerResponse status(HttpResponseStatus status);
+
+    HttpServerResponse keepAlive(boolean keepAlive);
 
     HttpServerResponse contentType(final String contentType);
 
@@ -142,7 +145,7 @@ public interface HttpServerResponse {
     void close();
 
     default ChannelFuture end(byte[] bytes) {
-        return end(alloc(bytes));
+        return end(wrap(bytes));
     }
 
     default ChannelFuture end() {
@@ -150,11 +153,11 @@ public interface HttpServerResponse {
     }
 
     default ChannelFuture end(String s) {
-        return end(Netty.alloc(s.getBytes()));
+        return end(Netty.wrap(s.getBytes()));
     }
 
     default HttpServerResponse end(String s, Hooks<ChannelFuture> h) {
-        h.call(end(Netty.alloc(s.getBytes())));
+        h.call(end(Netty.wrap(s.getBytes())));
         return this;
     }
 
@@ -178,7 +181,7 @@ public interface HttpServerResponse {
     }
 
     default ChannelFuture write(byte[] bytes) {
-        return write(alloc(bytes));
+        return write(wrap(bytes));
     }
 
     default HttpServerResponse write(byte[] bytes, Hooks<ChannelFuture> h) {

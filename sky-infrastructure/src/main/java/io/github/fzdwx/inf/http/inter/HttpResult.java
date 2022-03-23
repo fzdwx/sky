@@ -36,7 +36,7 @@ public class HttpResult extends DefaultFullHttpResponse {
     private static final byte[] CONTENT_ERROR_404 = "{\"code\":404,\"message\":\"REQUEST PATH NOT FOUND\"}".getBytes(StandardCharsets.UTF_8);
     private static final byte[] CONTENT_ERROR_405 = "{\"code\":405,\"message\":\"METHOD NOT ALLOWED\"}".getBytes(StandardCharsets.UTF_8);
     private static final String CONTENT_ERROR_500 = "{\"code\":500,\"message\":\"%s\"}";
-    public static HttpResult NOT_FOUND = new HttpResult(HttpResponseStatus.NOT_FOUND, Netty.alloc(CONTENT_ERROR_404));
+    public static HttpResult NOT_FOUND = new HttpResult(HttpResponseStatus.NOT_FOUND, Netty.wrap(CONTENT_ERROR_404));
     private byte[] body;
 
     private HttpResult(final HttpResponseStatus status, final ByteBuf buffer) {

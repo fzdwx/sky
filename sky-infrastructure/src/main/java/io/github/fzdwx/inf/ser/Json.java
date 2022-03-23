@@ -12,6 +12,6 @@ public interface Json extends Serializer {
     Json codec = FasJsonSerializer.instance;
 
     default ByteBuf encodeToBuf(final Object obj) {
-        return Netty.alloc(serialize(obj));
+        return Netty.wrap(serialize(obj));
     }
 }

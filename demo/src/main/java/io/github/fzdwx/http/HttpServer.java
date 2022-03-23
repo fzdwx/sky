@@ -68,6 +68,10 @@ public class HttpServer {
                 })
                 .GET("/hello", (req, resp) -> {
                     resp.chunked();
+                    resp.send("123123".getBytes()).then()
+                            .addListener(f->{
+                                System.out.println(f.cause());
+                            });
                     resp.write("hello world\n");
                     resp.json("你好-get");
                 })
@@ -78,6 +82,11 @@ public class HttpServer {
                 // .log(LogLevel.INFO, ByteBufFormat.HEX_DUMP)
                 // .workerCnt(10)
                 .dev()
-                .bind();
+                .bind()
+                .addListener(f -> {
+                    if (!f.isSuccess()) {
+                        System.out.println(f.cause());
+                    }
+                });
     }
 }

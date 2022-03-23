@@ -20,8 +20,8 @@ import io.netty.handler.codec.http.HttpVersion;
  */
 public interface HttpServerRequest {
 
-    static HttpServerRequest create(ChannelHandlerContext ctx, final boolean ssl, FullHttpRequest request) {
-        return new HttpServerRequestImpl(ctx, ssl, request);
+    static HttpServerRequest create( final ChannelHandlerContext ctx, final boolean ssl, FullHttpRequest request) {
+        return new HttpServerRequestImpl(ctx,ssl, request);
     }
 
     HttpVersion version();

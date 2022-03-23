@@ -2,10 +2,14 @@ package io.github.fzdwx.inf.core;
 
 import io.github.fzdwx.inf.Netty;
 import io.netty.channel.Channel;
+import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelOutboundHandler;
 
-import java.util.concurrent.atomic.AtomicLong;
+import java.net.InetSocketAddress;
+
+import static io.github.fzdwx.inf.Netty.readIdleHandlerName;
+import static io.github.fzdwx.inf.Netty.writeIdleHandlerName;
 
 /**
  * @author <a href="mailto:likelovec@gmail.com">fzdwx</a>
@@ -21,7 +25,7 @@ public interface Connection extends DisposableChannel {
                     .get();
         }
 
-        return new ConnectionImpl(channel);
+        return null;
     }
 
     /**
@@ -29,10 +33,10 @@ public interface Connection extends DisposableChannel {
      *
      * @see Connection#from(Channel)
      */
-    default Connection bind() {
+    default ChannelFuture bind(InetSocketAddress address) {
         channel().attr(Netty.CONNECTION)
                 .set(this);
-        return this;
+        return null;
     }
 
     /**
@@ -47,10 +51,26 @@ public interface Connection extends DisposableChannel {
         return this;
     }
 
-    default NettyInbound inbound() {
-        return NettyInbound.unavailableInbound(this);
+    /**
+     * Assign a {@link Runnable} to be invoked when reads have become idle for the given
+     * timeout. This replaces any previously set idle callback.
+     */
+    default Connection onReadIdle(long idleTimeout, Runnable onReadIdle) {
+        return removeHandler(readIdleHandlerName)
+                .addHandlerFirst(readIdleHandlerName,
+                        new Netty.InboundIdleStateHandler(idleTimeout, onReadIdle));
     }
 
+
+    /**
+     * Assign a {@link Runnable} to be invoked when writes have become idle for the given
+     * timeout. This replaces any previously set idle callback.
+     */
+    default Connection onWriteIdle(long idleTimeout, Runnable onWriteIdle) {
+        return removeHandler(writeIdleHandlerName)
+                .addHandlerFirst(writeIdleHandlerName,
+                        new Netty.OutboundIdleStateHandler(idleTimeout, onWriteIdle));
+    }
 
     /**
      * add handler to channel pipeline first
@@ -60,11 +80,21 @@ public interface Connection extends DisposableChannel {
         return this;
     }
 
+    default Connection addHandlerFirst(String handlerName, ChannelHandler handler) {
+        channel().pipeline().addFirst(handlerName, handler);
+        return this;
+    }
+
     /**
      * add handler to channel pipeline last
      */
     default Connection addHandlerLast(ChannelHandler handler) {
         channel().pipeline().addLast(handler);
+        return this;
+    }
+
+    default Connection addHandlerLast(String handlerName, ChannelHandler handler) {
+        channel().pipeline().addLast(handlerName, handler);
         return this;
     }
 
@@ -79,7 +109,7 @@ public interface Connection extends DisposableChannel {
      */
     default boolean isPersistent() {
         return !channel().hasAttr(Netty.PERSISTENT_CHANNEL) ||
-               channel().attr(Netty.PERSISTENT_CHANNEL).get();
+                channel().attr(Netty.PERSISTENT_CHANNEL).get();
     }
 
     /**
@@ -90,37 +120,47 @@ public interface Connection extends DisposableChannel {
      * keeping alive the channel if possible.
      *
      * @param persist the boolean flag to mark the {@link Channel} as fully disposable
-     * or reusable when a user handler has terminated
-     *
+     *                or reusable when a user handler has terminated
      * @return this Connection
      */
     default Connection markPersistent(boolean persist) {
         if (persist && !channel().hasAttr(Netty.PERSISTENT_CHANNEL)) {
             return this;
-        }
-        else {
+        } else {
             channel().attr(Netty.PERSISTENT_CHANNEL)
                     .set(persist);
         }
         return this;
     }
 
-    static final class ConnectionImpl extends AtomicLong implements Connection {
+    @Override
+    default Connection onDispose(Disposable onDispose) {
+        DisposableChannel.super.onDispose(onDispose);
+        return this;
+    }
 
-        private final Channel channel;
+    /**
+     * Remove a named handler if present and return this context
+     *
+     * @return this Connection
+     */
+    default Connection removeHandler(String handlerName) {
+        Netty.removeHandler(channel(), handlerName);
+        return this;
+    }
 
-        public ConnectionImpl(final Channel channel) {
-            this.channel = channel;
-        }
-
-        @Override
-        public Channel channel() {
-            return channel;
-        }
-
-        @Override
-        public String toString() {
-            return "simple connection {" + "channel=" + channel + '}';
-        }
+    /**
+     * Replace a named handler if present and return this context.
+     * If handler wasn't present, an {@link RuntimeException} will be thrown.
+     * <p>
+     * Note: if the new handler is of different type, dependent handling like
+     * the "extractor" introduced via HTTP-based {@link #addHandler} might not
+     * expect/support the new messages type.
+     *
+     * @return this Connection
+     */
+    default Connection replaceHandler(String handlerName, ChannelHandler handler) {
+        Netty.replaceHandler(channel(), handlerName, handler);
+        return this;
     }
 }

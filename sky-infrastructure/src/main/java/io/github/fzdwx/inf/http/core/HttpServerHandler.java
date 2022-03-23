@@ -22,7 +22,7 @@ public class HttpServerHandler extends ChannelInboundHandlerAdapter {
     private final Router router;
     private final boolean ssl;
 
-    public HttpServerHandler(final Router router, final Boolean ssl) {
+    public HttpServerHandler( final Router router, final Boolean ssl) {
         this.router = router;
         this.ssl = ssl;
     }
