@@ -1,13 +1,12 @@
 package io.github.fzdwx.inf.http.inter;
 
+import cn.hutool.core.io.FileUtil;
 import io.github.fzdwx.inf.http.core.ContentType;
 import io.github.fzdwx.inf.http.core.HttpHandler;
 import io.github.fzdwx.inf.http.core.HttpServerRequest;
 import io.github.fzdwx.inf.http.core.HttpServerResponse;
 import io.github.fzdwx.inf.route.Router;
 import lombok.extern.slf4j.Slf4j;
-
-import java.nio.file.Paths;
 
 import static cn.hutool.core.io.FileUtil.listFileNames;
 import static cn.hutool.core.text.CharSequenceUtil.padAfter;
@@ -73,10 +72,7 @@ public class HttpDevHtml implements HttpHandler {
                 .map(h -> {
                     router.GET("/" + h, (req, response) -> {
                         response.contentType(ContentType.TEXT_PLAIN)
-                                .mountBodyEnd(f -> {
-                                    System.out.println("body end~");
-                                })
-                                .sendFile(Paths.get(h));
+                                .sendFile(FileUtil.file(h).toPath());
                     });
                     var s = """
                                         <li><div><a href="/%s">%s</a></div></li>
