@@ -7,7 +7,7 @@
     <groupId>io.github.fzdwx</groupId>
     <artifactId>netty</artifactId>
     <packaging>pom</packaging>
-    <version>0.06</version>
+    <version>0.08</version>
     <modules>
         <module>demo</module>
         <module>sky-infrastructure</module>
@@ -16,9 +16,10 @@
     <properties>
         <maven.compiler.source>17</maven.compiler.source>
         <maven.compiler.target>17</maven.compiler.target>
-        <fzdwx.netty.version>0.06</fzdwx.netty.version>
 
-        <lambda.version>0.06</lambda.version>
+        <lambda.version>0.08</lambda.version>
+        <sky-infrastructure.version>0.08</sky-infrastructure.version>
+
         <netty.version>4.1.75.Final</netty.version>
         <lombok.version>1.18.22</lombok.version>
         <fastjson.version>1.2.79</fastjson.version>
@@ -34,7 +35,7 @@
             <dependency>
                 <groupId>io.github.fzdwx</groupId>
                 <artifactId>sky-infrastructure</artifactId>
-                <version>${fzdwx.netty.version}</version>
+                <version>${sky-infrastructure.version}</version>
             </dependency>
             <dependency>
                 <groupId>ch.qos.logback</groupId>
