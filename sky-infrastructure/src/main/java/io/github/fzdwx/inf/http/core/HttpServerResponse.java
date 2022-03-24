@@ -12,10 +12,7 @@ import io.netty.handler.codec.http.HttpHeaders;
 import io.netty.handler.codec.http.HttpMessage;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import io.netty.handler.codec.http.HttpVersion;
-import lombok.val;
 
-import java.io.ByteArrayInputStream;
-import java.io.InputStream;
 import java.nio.charset.Charset;
 
 import static io.github.fzdwx.inf.Netty.wrap;
@@ -83,11 +80,6 @@ public interface HttpServerResponse extends NettyOutbound {
         return this.status(HttpResponseStatus.NOT_FOUND)
                 .end();
     }
-
-    /**
-     * writes big data to client.
-     */
-    ChannelFuture writes(InputStream ins, int chunkSize);
 
     /**
      * add header.
@@ -195,13 +187,5 @@ public interface HttpServerResponse extends NettyOutbound {
     default HttpServerResponse write(String s, Hooks<ChannelFuture> h) {
         h.call(write(s));
         return this;
-    }
-
-    default ChannelFuture writes(InputStream ins) {
-        return writes(ins, 8192);
-    }
-
-    default ChannelFuture writes(byte[] bytes) {
-        return writes(new ByteArrayInputStream(bytes));
     }
 }

@@ -97,6 +97,10 @@ public interface NettyOutbound {
 
     NettyOutbound withConnection(Consumer<? super Connection> withConnection);
 
+    default NettyOutbound sendChunk(InputStream in) {
+        return sendChunk(in, Netty.DEFAULT_CHUNK_SIZE);
+    }
+
     /**
      * send file to peer. if not use SSL/TLS,will use zero copy.
      *

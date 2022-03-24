@@ -94,9 +94,7 @@ public class ChannelOutBound implements NettyOutbound, Connection, ChannelOperat
             source = sourceInput.call();
             return then(h -> {
                 try {
-                    this.ch.writeAndFlush(mappedInput.apply(this, sourceInput.call())).addListener(f -> {
-                        onOutboundComplete(f);
-                    });
+                    this.ch.writeAndFlush(mappedInput.apply(this, sourceInput.call())).addListener(this::onOutboundComplete);
                 } catch (Exception e) {
                     throw Exceptions.propagate(e);
                 }
@@ -130,7 +128,7 @@ public class ChannelOutBound implements NettyOutbound, Connection, ChannelOperat
      *
      * @see #sendChunk(InputStream, int)
      */
-    public ChunkedInput<ByteBuf> wrapChunkData(final InputStream in, final int chunkSize) {
+    public ChunkedInput<?> wrapChunkData(final InputStream in, final int chunkSize) {
         if (in instanceof ReadableByteChannel ins) {
             return new ChunkedNioStream(ins, chunkSize);
         }

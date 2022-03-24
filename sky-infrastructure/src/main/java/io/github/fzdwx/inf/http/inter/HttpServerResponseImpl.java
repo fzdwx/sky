@@ -11,7 +11,6 @@ import io.github.fzdwx.inf.ser.Json;
 import io.github.fzdwx.lambada.fun.Hooks;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufHolder;
-import io.netty.buffer.Unpooled;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelInboundHandler;
@@ -21,7 +20,6 @@ import io.netty.handler.codec.http.DefaultHttpHeaders;
 import io.netty.handler.codec.http.EmptyHttpHeaders;
 import io.netty.handler.codec.http.FullHttpMessage;
 import io.netty.handler.codec.http.HttpChunkedInput;
-import io.netty.handler.codec.http.HttpContent;
 import io.netty.handler.codec.http.HttpHeaderNames;
 import io.netty.handler.codec.http.HttpHeaderValues;
 import io.netty.handler.codec.http.HttpHeaders;
@@ -35,13 +33,14 @@ import io.netty.handler.codec.http.cookie.Cookie;
 import io.netty.handler.codec.http.cookie.DefaultCookie;
 import io.netty.handler.codec.http.cookie.ServerCookieEncoder;
 import io.netty.handler.stream.ChunkedInput;
+import io.netty.handler.stream.ChunkedNioStream;
 import io.netty.handler.stream.ChunkedStream;
 import io.netty.util.concurrent.Future;
-import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.channels.ReadableByteChannel;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -51,7 +50,6 @@ import java.util.concurrent.atomic.AtomicIntegerFieldUpdater;
 
 import static io.github.fzdwx.inf.Netty.close;
 import static io.github.fzdwx.inf.Netty.empty;
-import static io.github.fzdwx.inf.Netty.format;
 import static io.github.fzdwx.inf.http.core.ContentType.JSON;
 import static io.github.fzdwx.inf.http.core.ContentType.TEXT_HTML;
 
@@ -122,7 +120,7 @@ public class HttpServerResponseImpl extends ChannelOutBound implements HttpServe
         this.version = httpRequest.version();
         this.status = HttpResponseStatus.OK;
         this.keepAlive = (version == HttpVersion.HTTP_1_1 && !request.headers().contains(HttpHeaderNames.CONNECTION, HttpHeaderValues.CLOSE, true))
-                         || (version == HttpVersion.HTTP_1_0 && request.headers().contains(HttpHeaderNames.CONNECTION, HttpHeaderValues.KEEP_ALIVE, true));
+                || (version == HttpVersion.HTTP_1_0 && request.headers().contains(HttpHeaderNames.CONNECTION, HttpHeaderValues.KEEP_ALIVE, true));
         this.head = request.methodType() == RequestMethod.HEAD;
     }
 
@@ -141,7 +139,7 @@ public class HttpServerResponseImpl extends ChannelOutBound implements HttpServe
         if (!headWritten() && !headers.contains(HttpHeaderNames.TRANSFER_ENCODING) && !headers.contains(HttpHeaderNames.CONTENT_LENGTH)) {
             if (version != HttpVersion.HTTP_1_0) {
                 then(new IllegalStateException("You must set the Content-Length header to be the total size of the message "
-                                               + "body BEFORE sending any data if you are not using HTTP chunked encoding."));
+                        + "body BEFORE sending any data if you are not using HTTP chunked encoding."));
             }
         }
 
@@ -150,7 +148,10 @@ public class HttpServerResponseImpl extends ChannelOutBound implements HttpServe
 
     @Override
     public NettyOutbound sendChunk(final InputStream in, final int chunkSize) {
-        return super.sendChunk(in, chunkSize);
+        chunked();
+        return send(empty, true)
+                .then(h -> super.sendChunk(in, chunkSize))
+                .then(end(empty));
     }
 
     @Override
@@ -169,23 +170,16 @@ public class HttpServerResponseImpl extends ChannelOutBound implements HttpServe
     }
 
     @Override
+    public ChunkedInput<?> wrapChunkData(final InputStream in, final int chunkSize) {
+        if (in instanceof ReadableByteChannel ins) {
+            return new HttpChunkedInput(new ChunkedNioStream(ins, chunkSize));
+        }
+        return new HttpChunkedInput(new ChunkedStream(in, chunkSize));
+    }
+
+    @Override
     protected void onOutboundComplete(final Future<? super Void> f) {
-        System.out.println("do onOutboundComplete");
-        final ChannelFuture ff;
-        if (!headWritten()) {
-            prepareHeaders(-1);
-            ff = channel.writeAndFlush(new AssembledHttpResponse(head, version, status, headers, Unpooled.EMPTY_BUFFER));
-        } else if (!endWritten()) {
-            ff = end(empty);
-        } else return;
-
-        ff.addListener(s -> {
-            // close();
-            if (!s.isSuccess() && log.isDebugEnabled()) {
-                log.debug(format(channel(), "Failed flushing last frame"), s.cause());
-            }
-        });
-
+        end(empty);
     }
 
     @Override
@@ -203,11 +197,16 @@ public class HttpServerResponseImpl extends ChannelOutBound implements HttpServe
             return channel.newFailedFuture(ChannelException.beforeSend());
         }
 
-        if (headWritten()) {
-            return channel.newSucceededFuture();
-        }
+        final ChannelFuture ff;
+        if (!headWritten()) {
+            prepareHeaders(-1);
+            ff = channel.writeAndFlush(new AssembledHttpResponse(head, version, status, headers, empty));
+        } else if (!endWritten()) {
+            System.out.println("write end");
+            ff = end(empty);
+        } else return channel.newSucceededFuture();
 
-        return super.then().addListener(this::onOutboundComplete);
+        return ff;
     }
 
     @Override
@@ -306,18 +305,6 @@ public class HttpServerResponseImpl extends ChannelOutBound implements HttpServe
         return headers.contains(HttpHeaderNames.TRANSFER_ENCODING, HttpHeaderValues.CHUNKED, true);
     }
 
-    @SneakyThrows
-    @Override
-    public ChannelFuture writes(final InputStream ins, int chunkSize) {
-        if (ins == null) return channel.newFailedFuture(new NullPointerException("input stream is null"));
-
-        this.headers.set(HttpHeaderNames.CONTENT_LENGTH, ins.available());
-        write(Netty.empty);
-
-        final var promise = channel.newPromise();
-        return endChunks(ins, chunkSize, promise);
-    }
-
     @Override
     public HttpServerResponse header(final CharSequence key, final CharSequence val) {
         headers.set(key, val);
@@ -401,25 +388,6 @@ public class HttpServerResponseImpl extends ChannelOutBound implements HttpServe
 
     boolean endWritten() {
         return endWritten > 0;
-    }
-
-    @SneakyThrows
-    private ChannelFuture endChunks(final InputStream ins, int chunkSize, final ChannelPromise promise) {
-        if (endWritten()) { // 已经调用过end了
-            throw new IllegalStateException(RESPONSE_WRITTEN);
-        }
-
-        bytesWritten += ins.available();
-        ChunkedInput<HttpContent> msg;
-        if (!headWritten()) {
-            throw new IllegalStateException(HEAD_NOT_WRITTEN);
-        } else {
-            msg = new HttpChunkedInput(new ChunkedStream(ins, chunkSize));
-        }
-
-        afterEnd(promise, msg);
-
-        return promise;
     }
 
     private void end(final ByteBuf buf, final ChannelPromise promise) {
