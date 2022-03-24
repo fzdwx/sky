@@ -6,9 +6,10 @@ import io.github.fzdwx.inf.http.core.HttpHandler;
 import io.github.fzdwx.inf.http.core.HttpServerRequest;
 import io.github.fzdwx.inf.http.core.HttpServerResponse;
 import io.github.fzdwx.inf.route.Router;
+import io.github.fzdwx.lambada.Lang;
+import io.github.fzdwx.lambada.lang.MimeMapping;
 import lombok.extern.slf4j.Slf4j;
 
-import static cn.hutool.core.io.FileUtil.listFileNames;
 import static cn.hutool.core.text.CharSequenceUtil.padAfter;
 import static io.github.fzdwx.lambada.Seq.of;
 import static java.util.stream.Collectors.joining;
@@ -25,11 +26,19 @@ public class HttpDevHtml implements HttpHandler {
 
     public static final String PAGE_PATH = "/dev";
     private final String name;
+    private final String staticPath;
     private String apiList;
     private String fileList;
 
+    public HttpDevHtml(final String name, final Router router, final String staticPath) {
+        this.name = name;
+        this.staticPath = staticPath;
+        init(router);
+    }
+
     public HttpDevHtml(final String name, final Router router) {
         this.name = name;
+        this.staticPath = "";
         init(router);
     }
 
@@ -68,16 +77,19 @@ public class HttpDevHtml implements HttpHandler {
                 .collect(joining(""));
 
         // mount file path to router.
-        this.fileList = of(listFileNames(""))
-                .map(h -> {
-                    router.GET("/" + h, (req, response) -> {
-                        response.contentType(ContentType.TEXT_PLAIN)
-                                .sendFile(FileUtil.file(h).toPath());
+        final var files = FileUtil.loopFiles(staticPath);
+        this.fileList = of(files)
+                .map(file -> {
+                    final var split = Lang.split(file.getPath(), this.staticPath);
+                    System.out.println(split);
+                    router.GET("/" + file.getName(), (req, response) -> {
+                        response.contentType(Lang.defVal(MimeMapping.getMimeTypeForExtension(file.getName()), ContentType.TEXT_PLAIN))
+                                .sendFile(file.toPath());
                     });
                     var s = """
                                         <li><div><a href="/%s">%s</a></div></li>
                             """;
-                    return s.formatted(h, h);
+                    return s.formatted(file.getName(), file.getName());
                 })
                 .collect(joining(""));
     }

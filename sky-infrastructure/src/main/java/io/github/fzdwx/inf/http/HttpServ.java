@@ -65,12 +65,26 @@ public class HttpServ extends ServInf<HttpServ> {
 
     /**
      * open dev mode
+     *
+     * @param staticPath static file path; e.g. static/
+     */
+    public HttpServ dev(final String staticPath) {
+        this.dev = true;
+
+        // Add dev html page
+        router.GET(HttpDevHtml.PAGE_PATH, new HttpDevHtml(this.name, router, staticPath));
+
+        return this;
+    }
+
+    /**
+     * open dev mode
      */
     public HttpServ dev() {
         this.dev = true;
 
         // Add dev html page
-        router.GET(HttpDevHtml.PAGE_PATH, new HttpDevHtml(this.name, router));
+        router.GET(HttpDevHtml.PAGE_PATH, new HttpDevHtml(this.name, router, ""));
 
         return this;
     }

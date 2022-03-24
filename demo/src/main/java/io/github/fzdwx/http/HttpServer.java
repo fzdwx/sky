@@ -98,7 +98,7 @@ public class HttpServer {
         HTTP(8889, router).name("我的http 服务器 !")
                 // .log(LogLevel.INFO, ByteBufFormat.HEX_DUMP)
                 // .workerCnt(10)
-                .dev()
+                .dev("./")
                 .bind()
                 .addListener(f -> {
                     if (!f.isSuccess()) {
