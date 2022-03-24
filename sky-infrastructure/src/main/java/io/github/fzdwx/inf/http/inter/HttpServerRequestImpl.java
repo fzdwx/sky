@@ -6,6 +6,7 @@ import io.github.fzdwx.inf.msg.WebSocket;
 import io.github.fzdwx.inf.msg.WebSocketHandler;
 import io.github.fzdwx.inf.route.inter.RequestMethod;
 import io.github.fzdwx.inf.route.msg.SocketSession;
+import io.github.fzdwx.lambada.Seq;
 import io.github.fzdwx.lambada.fun.Hooks;
 import io.github.fzdwx.lambada.fun.Result;
 import io.github.fzdwx.lambada.lang.NvMap;
@@ -16,6 +17,9 @@ import io.netty.handler.codec.http.HttpHeaderNames;
 import io.netty.handler.codec.http.HttpHeaders;
 import io.netty.handler.codec.http.HttpRequest;
 import io.netty.handler.codec.http.HttpVersion;
+import io.netty.handler.codec.http.multipart.FileUpload;
+import io.netty.handler.codec.http.multipart.HttpDataFactory;
+import io.netty.handler.codec.http.multipart.HttpPostMultipartRequestDecoder;
 import io.netty.handler.codec.http.websocketx.CloseWebSocketFrame;
 import io.netty.handler.codec.http.websocketx.WebSocketServerHandshakerFactory;
 
@@ -38,10 +42,13 @@ public class HttpServerRequestImpl implements HttpServerRequest {
     private final HttpVersion version;
     private final HttpHeaders headers;
     private final boolean ssl;
-
+    private boolean readFile;
+    private final HttpDataFactory httpDataFactory;
+    private HttpPostMultipartRequestDecoder fileDecoder;
     private NvMap params;
 
-    public HttpServerRequestImpl(final ChannelHandlerContext ctx, final boolean ssl, final HttpRequest request) {
+    public HttpServerRequestImpl(final ChannelHandlerContext ctx, final boolean ssl, final HttpRequest request,
+                                 final HttpDataFactory httpDataFactory) {
         this.ctx = ctx;
         this.channel = ctx.channel();
         this.request = request;
@@ -49,6 +56,7 @@ public class HttpServerRequestImpl implements HttpServerRequest {
         this.version = request.protocolVersion();
         this.headers = request.headers();
         this.ssl = ssl;
+        this.httpDataFactory = httpDataFactory;
     }
 
     @Override
@@ -59,6 +67,13 @@ public class HttpServerRequestImpl implements HttpServerRequest {
     @Override
     public HttpHeaders headers() {
         return headers;
+    }
+
+    @Override
+    public void release() {
+        if (this.fileDecoder != null) {
+            fileDecoder.destroy();
+        }
     }
 
     @Override
@@ -73,6 +88,22 @@ public class HttpServerRequestImpl implements HttpServerRequest {
     @Override
     public boolean ssl() {
         return this.ssl;
+    }
+
+    @Override
+    public FileUpload readFile() {
+        fileDecoder = new HttpPostMultipartRequestDecoder(httpDataFactory, request);
+
+        readFile = true;
+        return (FileUpload) fileDecoder.getBodyHttpDatas().get(0);
+    }
+
+    @Override
+    public Seq<FileUpload> readFiles() {
+        fileDecoder = new HttpPostMultipartRequestDecoder(httpDataFactory, request);
+
+        readFile = true;
+        return Seq.of(fileDecoder.getBodyHttpDatas()).typeOf(FileUpload.class);
     }
 
     @Override

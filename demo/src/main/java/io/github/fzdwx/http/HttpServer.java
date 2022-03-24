@@ -83,7 +83,13 @@ public class HttpServer {
                     resp.write("hello world\n");
                     resp.json("你好-get");
                 })
-                .POST("/hello", (req, resp) -> resp.json("你好-post"))
+                .POST("/hello", (req, resp) -> {
+                    final var fileUploadSeq = req.readFiles().toList();
+
+                    System.out.println(fileUploadSeq.get(0).getFile());
+
+                    resp.json("你好-post");
+                })
                 .faviconIco(faviconIco);
 
         HTTP(8889, router).name("我的http 服务器 !")

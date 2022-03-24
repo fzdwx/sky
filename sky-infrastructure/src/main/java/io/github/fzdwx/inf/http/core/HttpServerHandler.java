@@ -7,8 +7,11 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.handler.codec.http.FullHttpRequest;
 import io.netty.handler.codec.http.HttpResponseStatus;
+import io.netty.handler.codec.http.multipart.DefaultHttpDataFactory;
+import io.netty.handler.codec.http.multipart.HttpDataFactory;
 import io.netty.util.ReferenceCountUtil;
 import lombok.SneakyThrows;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * http server handler.
@@ -17,14 +20,17 @@ import lombok.SneakyThrows;
  * @date 2022/3/17 17:45
  * @since 0.06
  */
+@Slf4j
 public class HttpServerHandler extends ChannelInboundHandlerAdapter {
 
     private final Router router;
     private final boolean ssl;
+    private final HttpDataFactory httpDataFactory;
 
-    public HttpServerHandler( final Router router, final Boolean ssl) {
+    public HttpServerHandler(final Router router, final Boolean ssl, final HttpDataFactory httpDataFactory) {
         this.router = router;
         this.ssl = ssl;
+        this.httpDataFactory = httpDataFactory == null ? new DefaultHttpDataFactory(DefaultHttpDataFactory.MINSIZE) : httpDataFactory;
     }
 
     @Override
@@ -60,7 +66,7 @@ public class HttpServerHandler extends ChannelInboundHandlerAdapter {
     @SneakyThrows
     public void handleRequest(final ChannelHandlerContext ctx, final FullHttpRequest request) {
         // find the handler for the request path and method
-        final var httpRequest = HttpServerRequest.create(ctx, ssl, request);
+        final var httpRequest = HttpServerRequest.create(ctx, ssl, request, httpDataFactory);
 
         final var handler = router.matchOne(httpRequest);
 
@@ -75,6 +81,8 @@ public class HttpServerHandler extends ChannelInboundHandlerAdapter {
         } catch (Exception e) {
             ctx.writeAndFlush(HttpResult.fail(e)).addListener(Netty.close);
             throw e;
+        } finally {
+            httpRequest.release();
         }
     }
 }

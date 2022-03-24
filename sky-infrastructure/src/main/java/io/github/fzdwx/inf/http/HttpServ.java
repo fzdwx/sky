@@ -9,7 +9,8 @@ import io.netty.channel.ChannelOption;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.handler.codec.http.HttpObjectAggregator;
 import io.netty.handler.codec.http.HttpServerCodec;
-import io.netty.handler.codec.http.HttpServerExpectContinueHandler;
+import io.netty.handler.codec.http.multipart.DefaultHttpDataFactory;
+import io.netty.handler.codec.http.multipart.HttpDataFactory;
 import io.netty.handler.stream.ChunkedWriteHandler;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
@@ -29,6 +30,8 @@ public class HttpServ extends ServInf<HttpServ> {
     private final Router router;
     private boolean dev;
 
+    private HttpDataFactory httpDataFactory;
+
     /**
      * http server
      *
@@ -42,6 +45,22 @@ public class HttpServ extends ServInf<HttpServ> {
 
     public String scheme() {
         return ssl() ? "https" : "http";
+    }
+
+    /**
+     * mount http data factory.
+     *
+     * @apiNote default is <pre> {@code
+     *  new DefaultHttpDataFactory(DefaultHttpDataFactory.MINSIZE)
+     * }
+     * </pre>
+     * @see DefaultHttpDataFactory#MINSIZE
+     * @see io.netty.handler.codec.http.multipart.DefaultHttpDataFactory
+     */
+    public HttpServ mountHttpDataFactory(HttpDataFactory factory) {
+        this.httpDataFactory = factory;
+
+        return this;
     }
 
     /**
@@ -63,8 +82,8 @@ public class HttpServ extends ServInf<HttpServ> {
                     .addLast(new HttpServerCodec())
                     .addLast(new HttpObjectAggregator(1024 * 1024))
                     .addLast(new ChunkedWriteHandler())
-                    .addLast(new HttpServerExpectContinueHandler())
-                    .addLast(new HttpServerHandler(router, ssl()));
+                    // .addLast(new HttpServerExpectContinueHandler())
+                    .addLast(new HttpServerHandler(router, ssl(), httpDataFactory));
         };
     }
 
