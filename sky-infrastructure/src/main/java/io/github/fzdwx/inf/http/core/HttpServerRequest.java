@@ -1,5 +1,6 @@
 package io.github.fzdwx.inf.http.core;
 
+import io.github.fzdwx.inf.Netty;
 import io.github.fzdwx.inf.http.inter.HttpServerRequestImpl;
 import io.github.fzdwx.inf.msg.WebSocket;
 import io.github.fzdwx.inf.route.inter.RequestMethod;
@@ -7,10 +8,12 @@ import io.github.fzdwx.lambada.Seq;
 import io.github.fzdwx.lambada.fun.Hooks;
 import io.github.fzdwx.lambada.fun.Result;
 import io.github.fzdwx.lambada.lang.NvMap;
+import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.http.FullHttpRequest;
 import io.netty.handler.codec.http.HttpHeaders;
 import io.netty.handler.codec.http.HttpVersion;
+import io.netty.handler.codec.http.multipart.Attribute;
 import io.netty.handler.codec.http.multipart.FileUpload;
 import io.netty.handler.codec.http.multipart.HttpDataFactory;
 
@@ -38,8 +41,8 @@ public interface HttpServerRequest {
 
     boolean ssl();
 
-    default HttpServerRequest readFile(Hooks<FileUpload> hooks) {
-        hooks.call(readFile());
+    default HttpServerRequest readFile(Hooks<FileUpload> hooks, String key) {
+        hooks.call(readFile(key));
         return this;
     }
 
@@ -49,7 +52,15 @@ public interface HttpServerRequest {
         return this;
     }
 
-    FileUpload readFile();
+    ByteBuf readJson();
+
+    default String readJsonString() {
+        return Netty.read(readJson());
+    }
+
+    Attribute readBody(String key);
+
+    FileUpload readFile(String key);
 
     Seq<FileUpload> readFiles();
 

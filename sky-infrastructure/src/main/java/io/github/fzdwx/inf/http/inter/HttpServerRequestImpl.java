@@ -10,16 +10,20 @@ import io.github.fzdwx.lambada.Seq;
 import io.github.fzdwx.lambada.fun.Hooks;
 import io.github.fzdwx.lambada.fun.Result;
 import io.github.fzdwx.lambada.lang.NvMap;
+import io.netty.buffer.ByteBuf;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelPipeline;
+import io.netty.handler.codec.http.FullHttpRequest;
 import io.netty.handler.codec.http.HttpHeaderNames;
 import io.netty.handler.codec.http.HttpHeaders;
 import io.netty.handler.codec.http.HttpRequest;
 import io.netty.handler.codec.http.HttpVersion;
+import io.netty.handler.codec.http.multipart.Attribute;
 import io.netty.handler.codec.http.multipart.FileUpload;
 import io.netty.handler.codec.http.multipart.HttpDataFactory;
 import io.netty.handler.codec.http.multipart.HttpPostMultipartRequestDecoder;
+import io.netty.handler.codec.http.multipart.InterfaceHttpData;
 import io.netty.handler.codec.http.websocketx.CloseWebSocketFrame;
 import io.netty.handler.codec.http.websocketx.WebSocketServerHandshakerFactory;
 
@@ -42,9 +46,9 @@ public class HttpServerRequestImpl implements HttpServerRequest {
     private final HttpVersion version;
     private final HttpHeaders headers;
     private final boolean ssl;
-    private boolean readFile;
     private final HttpDataFactory httpDataFactory;
-    private HttpPostMultipartRequestDecoder fileDecoder;
+    private HttpPostMultipartRequestDecoder bodyDecoder;
+    private boolean readBody;
     private NvMap params;
 
     public HttpServerRequestImpl(final ChannelHandlerContext ctx, final boolean ssl, final HttpRequest request,
@@ -71,8 +75,8 @@ public class HttpServerRequestImpl implements HttpServerRequest {
 
     @Override
     public void release() {
-        if (this.fileDecoder != null) {
-            fileDecoder.destroy();
+        if (readBody) {
+            bodyDecoder.destroy();
         }
     }
 
@@ -91,19 +95,31 @@ public class HttpServerRequestImpl implements HttpServerRequest {
     }
 
     @Override
-    public FileUpload readFile() {
-        fileDecoder = new HttpPostMultipartRequestDecoder(httpDataFactory, request);
+    public ByteBuf readJson() {
+        return ((FullHttpRequest) this.request).content();
+    }
 
-        readFile = true;
-        return (FileUpload) fileDecoder.getBodyHttpDatas().get(0);
+    @Override
+    public Attribute readBody(final String key) {
+        initBody();
+
+        return (Attribute) bodyDecoder.getBodyHttpData(key);
+    }
+
+    @Override
+    public FileUpload readFile(String key) {
+        initBody();
+
+        return (FileUpload) bodyDecoder.getBodyHttpData(key);
     }
 
     @Override
     public Seq<FileUpload> readFiles() {
-        fileDecoder = new HttpPostMultipartRequestDecoder(httpDataFactory, request);
+        initBody();
 
-        readFile = true;
-        return Seq.of(fileDecoder.getBodyHttpDatas()).typeOf(FileUpload.class);
+        return Seq.of(bodyDecoder.getBodyHttpDatas())
+                .filter(d -> d.getHttpDataType().equals(InterfaceHttpData.HttpDataType.FileUpload))
+                .typeOf(FileUpload.class);
     }
 
     @Override
@@ -173,5 +189,12 @@ public class HttpServerRequestImpl implements HttpServerRequest {
         String scheme = ssl ? "wss" : "ws";
 
         return scheme + "://" + req.headers().get(HttpHeaderNames.HOST) + req.uri();
+    }
+
+    private void initBody() {
+        if (!readBody) {
+            bodyDecoder = new HttpPostMultipartRequestDecoder(httpDataFactory, request);
+            readBody = true;
+        }
     }
 }

@@ -78,6 +78,9 @@ public class HttpServer {
                     });
                 })
                 .GET("/hello", (req, resp) -> {
+                    System.out.println(req.readJsonString());
+                    // final var qwe = req.readBody("qwe");
+                    // final var aaa = req.readBody("aaa");
                     resp.chunked();
                     resp.send("123123".getBytes()).then();
                     resp.write("hello world\n");
