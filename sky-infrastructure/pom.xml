@@ -35,9 +35,9 @@
         <maven.compiler.target>17</maven.compiler.target>
     </properties>
 
-    <description>A simple word matching program.</description>
-    <url>https://github.com/fzdwx/words-match</url>
-    <name>words-match</name>
+    <description>a netty based toolkit.</description>
+    <url>https://github.com/fzdwx/sky</url>
+    <name>sky</name>
 
     <licenses>
         <license>
@@ -59,9 +59,9 @@
     </developers>
 
     <scm>
-        <url>https://github.com/fzdwx/words-match</url>
-        <connection>scm:git:https://github.com/fzdwx/words-match.git</connection>
-        <developerConnection>scm:git:https://github.com/fzdwx/words-match.git</developerConnection>
+        <url>https://github.com/fzdwx/sky</url>
+        <connection>scm:git:https://github.com/fzdwx/sky.git</connection>
+        <developerConnection>scm:git:https://github.com/fzdwx/sky.git</developerConnection>
     </scm>
 
     <build>
