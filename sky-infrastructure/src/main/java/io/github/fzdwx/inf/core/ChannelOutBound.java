@@ -70,11 +70,13 @@ public class ChannelOutBound implements NettyOutbound, Connection, ChannelOperat
             return then(ChannelException.beforeSend());
         }
 
+        final var msg = wrapData(data);
+
         if (flush) {
-            return then(this.ch.writeAndFlush(wrapData(data)));
+            return then(this.ch.writeAndFlush(msg));
         }
 
-        return this.then(this.ch.write(wrapData(data)));
+        return this.then(this.ch.write(msg));
     }
 
     @Override

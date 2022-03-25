@@ -3,10 +3,13 @@ package io.github.fzdwx.http;
 import io.github.fzdwx.inf.Netty;
 import io.github.fzdwx.inf.http.core.ContentType;
 import io.github.fzdwx.inf.route.Router;
+import io.netty.handler.logging.ByteBufFormat;
+import io.netty.handler.logging.LogLevel;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.FileInputStream;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Paths;
 
 import static io.github.fzdwx.inf.Netty.HTTP;
@@ -86,6 +89,9 @@ public class HttpServer {
                     resp.write("hello world\n");
                     resp.json("你好-get");
                 })
+                .GET("/qweqwe", (req, resp) -> {
+                    resp.send("hello world".getBytes(StandardCharsets.UTF_8));
+                })
                 .POST("/hello", (req, resp) -> {
                     final var fileUploadSeq = req.readFiles().toList();
 
@@ -96,7 +102,7 @@ public class HttpServer {
                 .faviconIco(faviconIco);
 
         HTTP(8889, router).name("我的http 服务器 !")
-                // .log(LogLevel.INFO, ByteBufFormat.HEX_DUMP)
+                .log(LogLevel.DEBUG, ByteBufFormat.HEX_DUMP)
                 // .workerCnt(10)
                 .dev("./")
                 .bind()

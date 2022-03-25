@@ -160,7 +160,7 @@ public class HttpServerResponseImpl extends ChannelOutBound implements HttpServe
         bytesWritten += data.readableBytes();
         HttpObject response;
         if (!headWritten()) { // don't have written head response(e.g. contentType,http status,content length...)
-            prepareHeaders(-1);
+            prepareHeaders(bytesWritten);
             response = new AssembledHttpResponse(head, version, status, headers, data);
         } else {
             response = new DefaultHttpContent(data);
