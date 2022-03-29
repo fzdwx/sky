@@ -67,7 +67,6 @@ public class HttpDevHtml implements HttpHandler {
 
     private void init(final Router router) {
         this.apiList = of(router.handlers())
-                .skip(1)
                 .map(h -> {
                     var s = """
                                         <li><div>%s<a href="%s">%s</a></div></li>
@@ -80,8 +79,6 @@ public class HttpDevHtml implements HttpHandler {
         final var files = FileUtil.loopFiles(staticPath);
         this.fileList = of(files)
                 .map(file -> {
-                    final var split = Lang.split(file.getPath(), this.staticPath);
-                    System.out.println(split);
                     router.GET("/" + file.getName(), (req, response) -> {
                         response.contentType(Lang.defVal(MimeMapping.getMimeTypeForExtension(file.getName()), ContentType.TEXT_PLAIN))
                                 .sendFile(file.toPath());
