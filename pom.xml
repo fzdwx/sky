@@ -11,6 +11,7 @@
     <modules>
         <module>demo</module>
         <module>sky-infrastructure</module>
+        <module>sky-http-spring-boot-starter</module>
     </modules>
 
     <properties>
@@ -18,7 +19,7 @@
         <maven.compiler.target>17</maven.compiler.target>
 
         <lambda.version>0.08</lambda.version>
-        <sky-infrastructure.version>0.08</sky-infrastructure.version>
+        <sky.version>0.08</sky.version>
 
         <netty.version>4.1.75.Final</netty.version>
         <lombok.version>1.18.22</lombok.version>
@@ -35,22 +36,27 @@
             <dependency>
                 <groupId>io.github.fzdwx</groupId>
                 <artifactId>sky-infrastructure</artifactId>
-                <version>${sky-infrastructure.version}</version>
+                <version>${sky.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.github.fzdwx</groupId>
+                <artifactId>sky-http-spring-boot-starter</artifactId>
+                <version>${sky.version}</version>
             </dependency>
             <dependency>
                 <groupId>ch.qos.logback</groupId>
                 <artifactId>logback-core</artifactId>
-                <version>1.3.0-alpha12</version>
+                <version>1.2.11</version>
             </dependency>
             <dependency>
                 <groupId>ch.qos.logback</groupId>
                 <artifactId>logback-classic</artifactId>
-                <version>1.3.0-alpha12</version>
+                <version>1.2.11</version>
             </dependency>
             <dependency>
                 <groupId>org.slf4j</groupId>
                 <artifactId>slf4j-api</artifactId>
-                <version>2.0.0-alpha4</version>
+                <version>1.7.36</version>
             </dependency>
             <dependency>
                 <groupId>io.github.fzdwx</groupId>
