@@ -20,3 +20,6 @@ public class HelloController implements RequestMounter {
     }
 }
 ```
+
+## Todo
+- [ ] support more config.
