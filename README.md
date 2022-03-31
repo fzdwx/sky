@@ -2,14 +2,12 @@
 
 使用Netty写的一些小demo
 
-question: 好像发送了多个包
-dev 有问题
-
 
 ## features
 
 - [x] Http Server
 - [x] Websocket Server
+- [x] [Spring boot starter](https://github.com/fzdwx/sky/blob/main/sky-http-spring-boot-starter/README.md).
 - [ ] 大文件发送 继续优化 
 - [ ] todo... need your idea !
 
@@ -44,12 +42,3 @@ final var router = Router.router()
 
 new HttpServ(8888, router).start();
 ```
-
-## Dev page
-```java
-  new HttpServ(8888, router)
-        .name("我的http 服务器 !")
-        .dev() /* open dev mode */
-        .start();;
-```
-![img.png](assert/img.png)
