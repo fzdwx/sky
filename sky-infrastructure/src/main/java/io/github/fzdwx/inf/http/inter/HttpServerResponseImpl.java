@@ -239,6 +239,11 @@ public class HttpServerResponseImpl extends ChannelOutBound implements HttpServe
     }
 
     @Override
+    public boolean isEnd() {
+        return END_STATE.get(this) != 0;
+    }
+
+    @Override
     public HttpVersion version() {
         return this.version;
     }

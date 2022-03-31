@@ -213,7 +213,7 @@ public final class Netty {
                 params.add(entry.getKey(), entry.getValue());
             }
         }
-        return null;
+        return params;
     }
 
     public static ChannelPromise promise(final Channel channel) {

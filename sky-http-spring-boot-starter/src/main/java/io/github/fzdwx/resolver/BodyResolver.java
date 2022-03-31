@@ -1,27 +1,27 @@
 package io.github.fzdwx.resolver;
 
+import com.alibaba.fastjson.JSON;
+import io.github.fzdwx.inf.Netty;
 import io.github.fzdwx.inf.http.core.HttpServerRequest;
 import io.github.fzdwx.inf.http.core.HttpServerResponse;
-import org.springframework.core.annotation.AnnotationUtils;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RequestBody;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Parameter;
 
 /**
  * @author <a href="mailto:likelovec@gmail.com">韦朕</a>
- * @date 2022/3/29 16:43
+ * @date 2022/3/31 14:13
  */
-public class ParamResolver implements Resolver {
+public class BodyResolver implements Resolver {
 
     @Override
     public Object resolve(final HttpServerRequest request, final HttpServerResponse response, final Parameter parameter) {
-        final var key = AnnotationUtils.getValue(AnnotationUtils.getAnnotation(parameter, RequestParam.class));
-        return request.params().get(key);
+        return JSON.parseObject(Netty.read(request.readJson()), parameter.getType());
     }
 
     @Override
     public Class<? extends Annotation> getType() {
-        return RequestParam.class;
+        return RequestBody.class;
     }
 }

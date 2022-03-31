@@ -103,7 +103,7 @@ public class HttpServer {
 
         HTTP(8889, router).name("我的http 服务器 !")
                 .log(LogLevel.DEBUG, ByteBufFormat.HEX_DUMP)
-                // .workerCnt(10)
+                .workerCnt(10)
                 .dev("./")
                 .bind()
                 .addListener(f -> {

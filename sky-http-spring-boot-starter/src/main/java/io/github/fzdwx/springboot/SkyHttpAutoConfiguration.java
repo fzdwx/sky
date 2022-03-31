@@ -30,8 +30,8 @@ public class SkyHttpAutoConfiguration {
 
     @Bean
     @Order(Integer.MAX_VALUE - 10)
-    public RequestHandleInject requestHandleInject(@Autowired Router router) {
-        return new RequestHandleInject(router);
+    public RequestHandleInject requestHandleInject(@Autowired Router router, @Autowired ResolverInject.ResolverMapping resolverMapping) {
+        return new RequestHandleInject(router, resolverMapping);
     }
 
     @Bean
@@ -41,6 +41,7 @@ public class SkyHttpAutoConfiguration {
             @Autowired Router router
     ) throws InterruptedException {
         final HttpServ dev = Netty.HTTP(port, router)
+                .workerCnt(Runtime.getRuntime().availableProcessors() * 2)
                 .dev();
         dev.bind().sync();
         return dev;

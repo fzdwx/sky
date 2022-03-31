@@ -50,6 +50,8 @@ public class HttpServerRequestImpl implements HttpServerRequest {
     private HttpPostMultipartRequestDecoder bodyDecoder;
     private boolean readBody;
     private NvMap params;
+    private final String uri;
+    private final String fullUri;
 
     public HttpServerRequestImpl(final ChannelHandlerContext ctx, final boolean ssl, final HttpRequest request,
                                  final HttpDataFactory httpDataFactory) {
@@ -60,6 +62,8 @@ public class HttpServerRequestImpl implements HttpServerRequest {
         this.version = request.protocolVersion();
         this.headers = request.headers();
         this.ssl = ssl;
+        this.uri = request.uri().split("\\?")[0];
+        this.fullUri = request.uri();
         this.httpDataFactory = httpDataFactory;
     }
 
@@ -83,7 +87,7 @@ public class HttpServerRequestImpl implements HttpServerRequest {
     @Override
     public NvMap params() {
         if (params == null) {
-            params = Netty.params(uri());
+            params = Netty.params(fullUri);
         }
 
         return params;
@@ -124,7 +128,7 @@ public class HttpServerRequestImpl implements HttpServerRequest {
 
     @Override
     public String uri() {
-        return request.uri();
+        return uri;
     }
 
     @Override

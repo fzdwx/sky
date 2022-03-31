@@ -39,6 +39,11 @@ public interface HttpServerResponse extends NettyOutbound {
     HttpHeaders headers();
 
     /**
+     * is end of response.
+     */
+    boolean isEnd();
+
+    /**
      * http version
      */
     HttpVersion version();
