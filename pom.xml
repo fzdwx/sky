@@ -18,7 +18,7 @@
         <maven.compiler.source>17</maven.compiler.source>
         <maven.compiler.target>17</maven.compiler.target>
 
-        <lambda.version>0.08</lambda.version>
+        <lambda.version>0.09</lambda.version>
         <sky.version>0.08</sky.version>
 
         <netty.version>4.1.75.Final</netty.version>
