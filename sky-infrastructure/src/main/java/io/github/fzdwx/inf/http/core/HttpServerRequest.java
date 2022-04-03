@@ -39,6 +39,8 @@ public interface HttpServerRequest {
 
     NvMap params();
 
+    NvMap pathVar();
+
     boolean ssl();
 
     default HttpServerRequest readFile(Hooks<FileUpload> hooks, String key) {
@@ -84,4 +86,6 @@ public interface HttpServerRequest {
     void upgradeToWebSocket(Hooks<WebSocket> h);
 
     Result<WebSocket> upgradeToWebSocket();
+
+    void sourcePath(String path);
 }

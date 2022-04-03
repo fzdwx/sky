@@ -68,16 +68,18 @@ public class HttpServerHandler extends ChannelInboundHandlerAdapter {
         // find the handler for the request path and method
         final var httpRequest = HttpServerRequest.create(ctx, ssl, request, httpDataFactory);
 
-        final var handler = router.matchOne(httpRequest);
+        final var routing = router.matchOne(httpRequest);
 
-        if (handler == null) { // handler not found
+        if (routing == null) { // handler not found
             ctx.writeAndFlush(HttpResult.make(HttpResponseStatus.NOT_FOUND)).addListener(Netty.close);
             return;
         }
 
         try {
             // handle the request
-            handler.handle(httpRequest, HttpServerResponse.create(ctx.channel(), httpRequest));
+            httpRequest.sourcePath(routing.path());
+
+            routing.target().handle(httpRequest, HttpServerResponse.create(ctx.channel(), httpRequest));
         } catch (Exception e) {
             ctx.writeAndFlush(HttpResult.fail(e)).addListener(Netty.close);
             throw e;

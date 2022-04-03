@@ -10,6 +10,7 @@ import io.github.fzdwx.lambada.Seq;
 import io.github.fzdwx.lambada.fun.Hooks;
 import io.github.fzdwx.lambada.fun.Result;
 import io.github.fzdwx.lambada.lang.NvMap;
+import io.github.fzdwx.lambada.lang.PathUtil;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
@@ -49,7 +50,9 @@ public class HttpServerRequestImpl implements HttpServerRequest {
     private final HttpDataFactory httpDataFactory;
     private HttpPostMultipartRequestDecoder bodyDecoder;
     private boolean readBody;
+    private String path;
     private NvMap params;
+    private NvMap pathVar;
     private final String uri;
     private final String fullUri;
 
@@ -91,6 +94,15 @@ public class HttpServerRequestImpl implements HttpServerRequest {
         }
 
         return params;
+    }
+
+    @Override
+    public NvMap pathVar() {
+        if (pathVar == null) {
+            pathVar = PathUtil.pathVarMap(fullUri, path);
+        }
+
+        return pathVar;
     }
 
     @Override
@@ -187,6 +199,11 @@ public class HttpServerRequestImpl implements HttpServerRequest {
                 sendUnsupportedVersionResponse(session.channel());
             }
         };
+    }
+
+    @Override
+    public void sourcePath(final String path) {
+        this.path = path;
     }
 
     private static String getWebSocketLocation(final boolean ssl, final HttpRequest req) {

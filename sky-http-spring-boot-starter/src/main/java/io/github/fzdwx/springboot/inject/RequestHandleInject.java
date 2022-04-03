@@ -14,6 +14,7 @@ import org.springframework.beans.factory.config.BeanFactoryPostProcessor;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
+import org.springframework.core.ParameterNameDiscoverer;
 import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.stereotype.Controller;
 import org.springframework.util.ReflectionUtils;
@@ -37,6 +38,7 @@ public class RequestHandleInject implements BeanFactoryPostProcessor, Applicatio
 
     private final Router router;
     private final ResolverInject.ResolverMapping resolverMapping;
+    private final ParameterNameDiscoverer parameterNameDiscoverer;
 
     @Override
     public void postProcessBeanFactory(final ConfigurableListableBeanFactory beanFactory) throws BeansException {
@@ -71,9 +73,12 @@ public class RequestHandleInject implements BeanFactoryPostProcessor, Applicatio
                             || m.isAnnotationPresent(PutMapping.class)
                             || m.isAnnotationPresent(PatchMapping.class)
                     )
-                    .map(m -> {
-                        return RequestMappingWrap.create(v, m, jsonResponse, parentPath, parentMethod, resolverMapping);
-                    })
+                    .map(m ->
+                            RequestMappingWrap.create(
+                                    v, m, jsonResponse, parentPath, parentMethod,
+                                    resolverMapping,parameterNameDiscoverer
+                            )
+                    )
                     .forEach(w -> {
                         router.route(w.path(), w.requestMethod(), w.handler());
                     });

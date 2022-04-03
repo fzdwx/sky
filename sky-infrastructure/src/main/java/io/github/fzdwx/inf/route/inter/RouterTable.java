@@ -15,10 +15,10 @@ public class RouterTable<T> extends ArrayList<Routing<T>> {
     /**
      * @since 0.06
      */
-    public T matchOne(String path, RequestMethod method) {
+    public Routing<T> matchOne(String path, RequestMethod method) {
         for (Routing<T> l : this) {
             if (l.matches(method, path)) {
-                return l.target();
+                return l;
             }
         }
 

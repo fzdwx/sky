@@ -68,17 +68,22 @@ public class RoutingImpl<Target> implements Routing<Target> {
     }
 
     private boolean matches0(String path2) {
-        //1.如果当前为**，任何路径都可命中
+        // 1.如果当前为**，任何路径都可命中
         if ("**".equals(path) || "/**".equals(path)) {
             return true;
         }
 
-        //2.如果与当前路径相关
+        // 2.如果与当前路径相关
         if (path.equals(path2)) {
             return true;
         }
 
-        //3.正则检测
+        // 3.ues rule check
+        if (this.rule.matches(path2)) {
+            return true;
+        }
+
+        // 4.正则检测
         return rule.matches(path2);
     }
 }
