@@ -2,8 +2,7 @@ package io.github.fzdwx.resolver;
 
 import io.github.fzdwx.inf.http.core.HttpServerRequest;
 import io.github.fzdwx.inf.http.core.HttpServerResponse;
-
-import java.lang.reflect.Parameter;
+import io.github.fzdwx.springboot.wrap.ParameterWrap;
 
 /**
  * @author <a href="mailto:likelovec@gmail.com">韦朕</a>
@@ -11,7 +10,7 @@ import java.lang.reflect.Parameter;
  */
 public interface Resolver {
 
-    Object resolve(HttpServerRequest request, final HttpServerResponse response, final Parameter parameter);
+    Object resolve(HttpServerRequest request, final HttpServerResponse response, final ParameterWrap parameter);
 
     Class<?> getType();
 }

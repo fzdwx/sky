@@ -92,7 +92,7 @@ public interface Router {
      * @since 0.06
      */
     @Nullable
-    HttpHandler matchOne(HttpServerRequest request);
+    Routing<HttpHandler> matchOne(HttpServerRequest request);
 
     /**
      * get all request handlers.
@@ -132,7 +132,7 @@ public interface Router {
         }
 
         @Override
-        public HttpHandler matchOne(HttpServerRequest request) {
+        public Routing<HttpHandler> matchOne(HttpServerRequest request) {
             return httpHandlers.matchOne(request.uri(), request.methodType());
         }
 

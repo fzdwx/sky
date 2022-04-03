@@ -1,22 +1,27 @@
 package io.github.fzdwx.resolver;
 
+import cn.hutool.core.convert.Convert;
 import io.github.fzdwx.inf.http.core.HttpServerRequest;
 import io.github.fzdwx.inf.http.core.HttpServerResponse;
 import io.github.fzdwx.springboot.wrap.ParameterWrap;
+import org.springframework.web.bind.annotation.PathVariable;
 
 /**
+ * resolver for path variable
+ *
  * @author <a href="mailto:likelovec@gmail.com">韦朕</a>
- * @date 2022/3/31 15:31
+ * @date 2022/4/3 11:42
+ * @see PathVariable
  */
-public class HttpResponseResolver implements Resolver {
+public class PathVariableResolver implements Resolver {
 
     @Override
     public Object resolve(final HttpServerRequest request, final HttpServerResponse response, final ParameterWrap parameter) {
-        return response;
+        return Convert.convert(parameter.getType(), request.pathVar().get(parameter.getArgName()));
     }
 
     @Override
     public Class<?> getType() {
-        return HttpServerResponse.class;
+        return PathVariable.class;
     }
 }

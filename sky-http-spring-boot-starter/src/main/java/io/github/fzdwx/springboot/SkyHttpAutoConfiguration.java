@@ -10,6 +10,8 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
+import org.springframework.core.DefaultParameterNameDiscoverer;
+import org.springframework.core.ParameterNameDiscoverer;
 import org.springframework.core.annotation.Order;
 
 /**
@@ -30,8 +32,16 @@ public class SkyHttpAutoConfiguration {
 
     @Bean
     @Order(Integer.MAX_VALUE - 10)
-    public RequestHandleInject requestHandleInject(@Autowired Router router, @Autowired ResolverInject.ResolverMapping resolverMapping) {
-        return new RequestHandleInject(router, resolverMapping);
+    public RequestHandleInject requestHandleInject(@Autowired Router router,
+                                                   @Autowired ResolverInject.ResolverMapping resolverMapping,
+                                                   @Autowired ParameterNameDiscoverer parameterNameDiscoverer
+    ) {
+        return new RequestHandleInject(router, resolverMapping, parameterNameDiscoverer);
+    }
+
+    @Bean
+    public ParameterNameDiscoverer defaultParameterNameDiscoverer() {
+        return new DefaultParameterNameDiscoverer();
     }
 
     @Bean

@@ -5,6 +5,7 @@ import io.github.fzdwx.resolver.BodyResolver;
 import io.github.fzdwx.resolver.HttpRequestResolver;
 import io.github.fzdwx.resolver.HttpResponseResolver;
 import io.github.fzdwx.resolver.ParamResolver;
+import io.github.fzdwx.resolver.PathVariableResolver;
 import io.github.fzdwx.resolver.Resolver;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
@@ -28,6 +29,11 @@ public class ResolverInject {
     @Bean
     public BodyResolver bodyResolver() {
         return new BodyResolver();
+    }
+
+    @Bean
+    public PathVariableResolver pathVariableResolver() {
+        return new PathVariableResolver();
     }
 
     @Bean
