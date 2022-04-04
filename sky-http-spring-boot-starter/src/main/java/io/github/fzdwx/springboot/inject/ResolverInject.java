@@ -7,7 +7,7 @@ import io.github.fzdwx.resolver.HttpResponseResolver;
 import io.github.fzdwx.resolver.ParamResolver;
 import io.github.fzdwx.resolver.PathVariableResolver;
 import io.github.fzdwx.resolver.Resolver;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.NoArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -21,39 +21,41 @@ import java.util.Map;
 @Configuration
 public class ResolverInject {
 
-    @Bean
     public ParamResolver paramResolver() {
         return new ParamResolver();
     }
 
-    @Bean
     public BodyResolver bodyResolver() {
         return new BodyResolver();
     }
 
-    @Bean
     public PathVariableResolver pathVariableResolver() {
         return new PathVariableResolver();
     }
 
-    @Bean
     public HttpRequestResolver httpRequestResolver() {
         return new HttpRequestResolver();
     }
 
-    @Bean
     public HttpResponseResolver httpResponseResolver() {
         return new HttpResponseResolver();
     }
 
     @Bean
-    public ResolverMapping resolverMapping(@Autowired List<Resolver> resolvers) {
-        return new ResolverMapping(resolvers);
+    public ResolverMapping resolverMapping() {
+        return new ResolverMapping(List.of(
+                paramResolver(),
+                bodyResolver(),
+                pathVariableResolver(),
+                httpRequestResolver(),
+                httpResponseResolver()
+        ));
     }
 
+    @NoArgsConstructor
     public static class ResolverMapping {
 
-        private final Map<? extends Class<?>, Resolver> resolverMap;
+        private Map<? extends Class<?>, Resolver> resolverMap;
 
         public ResolverMapping(final List<Resolver> resolvers) {
             resolverMap = Seq.of(resolvers).toMap(Resolver::getType);

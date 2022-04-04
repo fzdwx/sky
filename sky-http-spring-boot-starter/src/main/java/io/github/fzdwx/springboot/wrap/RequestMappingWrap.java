@@ -77,6 +77,14 @@ public class RequestMappingWrap {
         };
     }
 
+    public String path() {
+        return this.path;
+    }
+
+    public RequestMethod requestMethod() {
+        return this.requestMethod;
+    }
+
     private Object[] parseArgs(final HttpServerRequest req, HttpServerResponse response) {
         final var objects = new Object[this.resolvers.size()];
 
@@ -91,14 +99,6 @@ public class RequestMappingWrap {
         return objects;
     }
 
-    public String path() {
-        return this.path;
-    }
-
-    public RequestMethod requestMethod() {
-        return this.requestMethod;
-    }
-
     private Map<ParameterWrap, Resolver> initResolver(final ResolverInject.ResolverMapping resolverMapping) {
         Map<ParameterWrap, Resolver> map = new LinkedHashMap<>();
         final var parameters = this.method.getParameters();
@@ -106,7 +106,7 @@ public class RequestMappingWrap {
             final var p = parameters[i];
 
             final var annotations = p.getAnnotations();
-            final var parameterWrap = new ParameterWrap(i,p, method);
+            final var parameterWrap = new ParameterWrap(i, p, method);
 
             if (annotations == null || annotations.length == 0) {
                 Resolver resolver = resolverMapping.get(p.getType());
@@ -158,7 +158,7 @@ public class RequestMappingWrap {
                             if (parentPath.endsWith("/")) {
                                 if (rawPath.startsWith("/")) {
                                     this.path = parentPath + rawPath.substring(1);
-                                }
+                                } else this.path = parentPath + rawPath;
                             } else {
                                 if (!rawPath.startsWith("/")) {
                                     this.path = parentPath + "/" + rawPath;
