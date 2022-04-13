@@ -173,4 +173,11 @@ public class WebSocketImpl implements WebSocket {
             errorHooks.call(cause);
         }
     }
+
+    @Override
+    public void close() {
+        if (session.channel().isActive() || session.channel().isOpen()) {
+            session.channel().close();
+        }
+    }
 }

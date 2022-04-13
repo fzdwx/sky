@@ -134,4 +134,6 @@ public interface WebSocket extends Listener {
      */
     @Override
     void onError(final SocketSession session, final Throwable cause);
+
+    void close();
 }
