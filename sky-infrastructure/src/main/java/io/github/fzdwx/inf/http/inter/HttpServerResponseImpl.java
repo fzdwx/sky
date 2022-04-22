@@ -210,6 +210,11 @@ public class HttpServerResponseImpl extends ChannelOutBound implements HttpServe
     }
 
     @Override
+    public int chunkSize() {
+        return 0;
+    }
+
+    @Override
     public NettyOutbound sendFile(final Path file, final long position, final long count) {
         Objects.requireNonNull(file, "filepath");
 

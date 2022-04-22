@@ -1,5 +1,6 @@
 package io.github.fzdwx.inf.core;
 
+import io.github.fzdwx.inf.Netty;
 import io.github.fzdwx.lambada.fun.Hooks;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
@@ -17,12 +18,13 @@ import java.net.InetSocketAddress;
  * @author <a href="mailto:likelovec@gmail.com">韦朕</a>
  * @date 2022/3/22 15:55
  */
-public abstract class ServAndClientBase<Type> implements Connection{
+public abstract class ServAndClientBase<Type> implements Connection {
 
     protected EventLoopGroup workerGroup;
     protected LoggingHandler logging;
     protected String host;
     protected int port;
+    protected int chunkSize = Netty.DEFAULT_CHUNK_SIZE;
 
     public Type host(String host) {
         this.host = host;
@@ -32,6 +34,12 @@ public abstract class ServAndClientBase<Type> implements Connection{
 
     public Type port(int port) {
         this.port = port;
+
+        return this.me();
+    }
+
+    public Type chunkSize(int chunkSize) {
+        this.chunkSize = chunkSize;
 
         return this.me();
     }

@@ -98,7 +98,7 @@ public class HttpServ extends ServInf<HttpServ> {
                     .addLast(new HttpObjectAggregator(1024 * 1024))
                     .addLast(new ChunkedWriteHandler())
                     // .addLast(new HttpServerExpectContinueHandler())
-                    .addLast(new HttpServerHandler(router, ssl(), httpDataFactory));
+                    .addLast(new HttpServerHandler(router, ssl(), httpDataFactory, this.chunkSize));
         };
     }
 

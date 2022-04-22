@@ -24,7 +24,7 @@ import java.util.function.Consumer;
  * @date 2022/03/23 14:26:54
  */
 @Slf4j
-public class ChannelOutBound implements NettyOutbound, Connection, ChannelOperationsId {
+public abstract class ChannelOutBound implements NettyOutbound, Connection, ChannelOperationsId {
 
     private final Channel ch;
     private final String shortId;

@@ -27,10 +27,13 @@ public class HttpServerHandler extends ChannelInboundHandlerAdapter {
     private final boolean ssl;
     private final HttpDataFactory httpDataFactory;
 
-    public HttpServerHandler(final Router router, final Boolean ssl, final HttpDataFactory httpDataFactory) {
+    private final int chunkSize;
+
+    public HttpServerHandler(final Router router, final Boolean ssl, final HttpDataFactory httpDataFactory, int chunkSize) {
         this.router = router;
         this.ssl = ssl;
         this.httpDataFactory = httpDataFactory == null ? new DefaultHttpDataFactory(DefaultHttpDataFactory.MINSIZE) : httpDataFactory;
+        this.chunkSize = chunkSize;
     }
 
     @Override

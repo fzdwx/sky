@@ -97,8 +97,10 @@ public interface NettyOutbound {
 
     NettyOutbound withConnection(Consumer<? super Connection> withConnection);
 
+    int chunkSize();
+
     default NettyOutbound sendChunk(InputStream in) {
-        return sendChunk(in, Netty.DEFAULT_CHUNK_SIZE);
+        return sendChunk(in, chunkSize());
     }
 
     /**
