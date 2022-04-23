@@ -12,7 +12,7 @@ import java.util.concurrent.Callable;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
 
-public class CopyNettyOutbound implements NettyOutbound {
+public  class CopyNettyOutbound implements NettyOutbound {
 
     protected final NettyOutbound source;
 
@@ -49,6 +49,11 @@ public class CopyNettyOutbound implements NettyOutbound {
     @Override
     public NettyOutbound withConnection(final Consumer<? super Connection> withConnection) {
         return source.withConnection(withConnection);
+    }
+
+    @Override
+    public int chunkSize() {
+        throw new UnsupportedOperationException();
     }
 
     public static class NormalOutBoundThen extends CopyNettyOutbound {
