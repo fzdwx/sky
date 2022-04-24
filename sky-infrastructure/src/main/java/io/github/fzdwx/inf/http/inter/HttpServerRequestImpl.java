@@ -162,6 +162,7 @@ public class HttpServerRequestImpl implements HttpServerRequest {
             final var webSocket = WebSocket.create(session, this);
             //endregion
 
+            // mount hooks
             h.call(webSocket);
 
             // handshake
