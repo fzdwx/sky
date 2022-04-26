@@ -7,7 +7,7 @@
     <groupId>io.github.fzdwx</groupId>
     <artifactId>netty</artifactId>
     <packaging>pom</packaging>
-    <version>0.09</version>
+    <version>0.091</version>
     <modules>
         <module>demo</module>
         <module>sky-infrastructure</module>
