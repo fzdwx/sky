@@ -1,2 +1,2 @@
 org.springframework.boot.autoconfigure.EnableAutoConfiguration=\
-   io.github.fzdwx.springboot.SkyHttpAutoConfiguration
+   atomicode.fzdwx.springboot.SkyHttpAutoConfiguration
