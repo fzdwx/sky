@@ -5,7 +5,7 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 
 /**
- * @author <a href="mailto:likelovec@gmail.com">韦朕</a>
+ * @author <a href="mailto:likelovec@gmail.com">fzdwx</a>
  * @date 2022/3/17 16:21
  */
 @ChannelHandler.Sharable

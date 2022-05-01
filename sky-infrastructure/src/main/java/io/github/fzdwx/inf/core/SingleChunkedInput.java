@@ -10,7 +10,7 @@ import io.netty.handler.stream.ChunkedStream;
 import java.io.ByteArrayInputStream;
 
 /**
- * @author <a href="mailto:likelovec@gmail.com">韦朕</a>
+ * @author <a href="mailto:likelovec@gmail.com">fzdwx</a>
  * @date 2022/3/23 14:49
  */
 public class SingleChunkedInput implements ChunkedInput<ByteBuf> {

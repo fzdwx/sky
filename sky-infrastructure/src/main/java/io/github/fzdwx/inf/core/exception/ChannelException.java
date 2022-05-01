@@ -1,7 +1,7 @@
 package io.github.fzdwx.inf.core.exception;
 
 /**
- * @author <a href="mailto:likelovec@gmail.com">韦朕</a>
+ * @author <a href="mailto:likelovec@gmail.com">fzdwx</a>
  * @date 2022/3/23 14:41
  */
 public class ChannelException extends RuntimeException {

@@ -5,7 +5,7 @@ import io.netty.handler.codec.http.HttpHeaderValues;
 /**
  * HTTP Content-Type.
  *
- * @author <a href="mailto:likelovec@gmail.com">韦朕</a>
+ * @author <a href="mailto:likelovec@gmail.com">fzdwx</a>
  * @date 2022/3/18 16:46
  * @see HttpHeaderValues
  */

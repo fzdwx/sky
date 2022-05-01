@@ -24,7 +24,7 @@ import java.util.function.BiFunction;
 import java.util.function.Consumer;
 
 /**
- * @author <a href="mailto:likelovec@gmail.com">韦朕</a>
+ * @author <a href="mailto:likelovec@gmail.com">fzdwx</a>
  * @date 2022/3/23 10:11
  */
 public interface NettyOutbound {

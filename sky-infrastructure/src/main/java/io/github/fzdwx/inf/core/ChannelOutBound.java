@@ -20,7 +20,7 @@ import java.util.function.BiFunction;
 import java.util.function.Consumer;
 
 /**
- * @author <a href="mailto:likelovec@gmail.com">韦朕</a>
+ * @author <a href="mailto:likelovec@gmail.com">fzdwx</a>
  * @date 2022/03/23 14:26:54
  */
 @Slf4j

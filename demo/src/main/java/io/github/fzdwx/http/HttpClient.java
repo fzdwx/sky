@@ -4,7 +4,7 @@ import cn.hutool.core.date.LocalDateTimeUtil;
 import io.github.fzdwx.lambada.lang.UnixTime;
 
 /**
- * @author <a href="mailto:likelovec@gmail.com">韦朕</a>
+ * @author <a href="mailto:likelovec@gmail.com">fzdwx</a>
  * @date 2022/3/25 11:11
  */
 public class HttpClient {

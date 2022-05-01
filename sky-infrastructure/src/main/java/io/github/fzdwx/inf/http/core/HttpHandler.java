@@ -3,7 +3,7 @@ package io.github.fzdwx.inf.http.core;
 /**
  * handle
  *
- * @author <a href="mailto:likelovec@gmail.com">韦朕</a>
+ * @author <a href="mailto:likelovec@gmail.com">fzdwx</a>
  * @date 2022/3/18 12:26
  * @since 0.06
  */

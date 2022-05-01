@@ -20,7 +20,7 @@ import static java.net.InetAddress.getLocalHost;
 /**
  * http serv.
  *
- * @author <a href="mailto:likelovec@gmail.com">韦朕</a>
+ * @author <a href="mailto:likelovec@gmail.com">fzdwx</a>
  * @date 2022/3/18 11:25
  * @see HttpServerHandler
  * @since 0.06

@@ -18,7 +18,7 @@ import java.io.BufferedReader;
 import java.io.InputStreamReader;
 
 /**
- * @author <a href="mailto:likelovec@gmail.com">韦朕</a>
+ * @author <a href="mailto:likelovec@gmail.com">fzdwx</a>
  * @date 2022/3/17 16:19
  */
 public class Client extends ClientInf<Client> {

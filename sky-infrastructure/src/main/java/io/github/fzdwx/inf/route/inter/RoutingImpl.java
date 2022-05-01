@@ -3,7 +3,7 @@ package io.github.fzdwx.inf.route.inter;
 import io.github.fzdwx.lambada.lang.PathAnalyzer;
 
 /**
- * @author <a href="mailto:likelovec@gmail.com">韦朕</a>
+ * @author <a href="mailto:likelovec@gmail.com">fzdwx</a>
  * @date 2022/3/18 12:04
  */
 public class RoutingImpl<Target> implements Routing<Target> {

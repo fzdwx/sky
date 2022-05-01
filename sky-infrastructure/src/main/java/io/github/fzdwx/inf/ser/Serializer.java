@@ -3,7 +3,7 @@ package io.github.fzdwx.inf.ser;
 /**
  * serializer.
  *
- * @author <a href="mailto:likelovec@gmail.com">韦朕</a>
+ * @author <a href="mailto:likelovec@gmail.com">fzdwx</a>
  * @date 2022/3/17 17:27
  * @since 0.06
  */

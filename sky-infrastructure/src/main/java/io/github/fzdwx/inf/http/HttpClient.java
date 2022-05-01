@@ -8,7 +8,7 @@ import io.netty.channel.socket.SocketChannel;
 /**
  * todo
  *
- * @author <a href="mailto:likelovec@gmail.com">韦朕</a>
+ * @author <a href="mailto:likelovec@gmail.com">fzdwx</a>
  * @date 2022/3/25 11:19
  */
 public class HttpClient extends ClientInf<HttpClient> {

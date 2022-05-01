@@ -15,7 +15,7 @@ import java.nio.file.Paths;
 import static io.github.fzdwx.inf.Netty.HTTP;
 
 /**
- * @author <a href="mailto:likelovec@gmail.com">韦朕</a>
+ * @author <a href="mailto:likelovec@gmail.com">fzdwx</a>
  * @date 2022/3/17 17:45
  */
 @Slf4j

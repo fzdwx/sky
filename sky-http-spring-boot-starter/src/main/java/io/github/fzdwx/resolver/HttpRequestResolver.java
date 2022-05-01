@@ -5,7 +5,7 @@ import io.github.fzdwx.inf.http.core.HttpServerResponse;
 import io.github.fzdwx.springboot.wrap.ParameterWrap;
 
 /**
- * @author <a href="mailto:likelovec@gmail.com">韦朕</a>
+ * @author <a href="mailto:likelovec@gmail.com">fzdwx</a>
  * @date 2022/3/31 15:30
  */
 public class HttpRequestResolver implements Resolver {

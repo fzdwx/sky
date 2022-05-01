@@ -12,7 +12,7 @@ import lombok.Getter;
 /**
  * default impl websocket.
  *
- * @author <a href="mailto:likelovec@gmail.com">韦朕</a>
+ * @author <a href="mailto:likelovec@gmail.com">fzdwx</a>
  * @date 2022/3/19 16:16
  * @see WebSocket
  * @since 0.06

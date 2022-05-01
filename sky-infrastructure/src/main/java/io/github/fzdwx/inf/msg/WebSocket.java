@@ -9,7 +9,7 @@ import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
 
 /**
- * @author <a href="mailto:likelovec@gmail.com">韦朕</a>
+ * @author <a href="mailto:likelovec@gmail.com">fzdwx</a>
  * @date 2022/3/19 16:07
  * @since 0.06
  */

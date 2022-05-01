@@ -23,7 +23,7 @@ import static io.netty.handler.codec.http.HttpVersion.HTTP_1_1;
 /**
  * http result.
  *
- * @author <a href="mailto:likelovec@gmail.com">韦朕</a>
+ * @author <a href="mailto:likelovec@gmail.com">fzdwx</a>
  * @apiNote 一个完整的http响应
  * @date 2022/03/18 14:25:07
  */

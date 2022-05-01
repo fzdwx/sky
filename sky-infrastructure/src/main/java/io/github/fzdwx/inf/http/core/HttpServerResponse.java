@@ -19,7 +19,7 @@ import java.nio.charset.Charset;
 /**
  * http response.
  *
- * @author <a href="mailto:likelovec@gmail.com">韦朕</a>
+ * @author <a href="mailto:likelovec@gmail.com">fzdwx</a>
  * @date 2022/3/18 15:23
  * @since 0.06
  */

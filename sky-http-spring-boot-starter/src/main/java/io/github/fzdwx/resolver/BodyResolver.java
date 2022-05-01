@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import java.lang.annotation.Annotation;
 
 /**
- * @author <a href="mailto:likelovec@gmail.com">韦朕</a>
+ * @author <a href="mailto:likelovec@gmail.com">fzdwx</a>
  * @date 2022/3/31 14:13
  */
 public class BodyResolver implements Resolver {
