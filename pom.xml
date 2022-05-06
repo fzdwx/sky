@@ -39,11 +39,6 @@
                 <version>${sky.version}</version>
             </dependency>
             <dependency>
-                <groupId>io.github.fzdwx</groupId>
-                <artifactId>sky-http-spring-boot-starter</artifactId>
-                <version>${sky.version}</version>
-            </dependency>
-            <dependency>
                 <groupId>ch.qos.logback</groupId>
                 <artifactId>logback-core</artifactId>
                 <version>1.2.11</version>
