@@ -22,14 +22,14 @@
 
         <netty.version>4.1.75.Final</netty.version>
         <lombok.version>1.18.22</lombok.version>
-        <fastjson.version>1.2.79</fastjson.version>
+        <fastjson.version>2.0.2</fastjson.version>
     </properties>
 
     <dependencyManagement>
         <dependencies>
             <dependency>
-                <groupId>com.alibaba</groupId>
-                <artifactId>fastjson</artifactId>
+                <groupId>com.alibaba.fastjson2</groupId>
+                <artifactId>fastjson2</artifactId>
                 <version>${fastjson.version}</version>
             </dependency>
             <dependency>

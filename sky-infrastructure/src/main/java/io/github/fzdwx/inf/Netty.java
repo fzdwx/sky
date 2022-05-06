@@ -6,7 +6,6 @@ import io.github.fzdwx.inf.core.ConnectionObserver;
 import io.github.fzdwx.inf.core.SingleChunkedInput;
 import io.github.fzdwx.inf.http.HttpServ;
 import io.github.fzdwx.inf.route.Router;
-import io.github.fzdwx.lambada.Coll;
 import io.github.fzdwx.lambada.fun.Hooks;
 import io.github.fzdwx.lambada.lang.NvMap;
 import io.netty.buffer.ByteBuf;
@@ -150,14 +149,6 @@ public final class Netty {
 
     public static ChunkedInput<ByteBuf> chunked(byte[] data, int chunkSize) {
         return SingleChunkedInput.of(data, chunkSize);
-    }
-
-    public static void main(String[] args) {
-        List<Integer> l1 = Coll.list(1, 2, 3, 4, 5);
-
-        List<Integer> l2 = Coll.list(1, 2, 3, 4, 5, 666, 777);
-
-        System.out.println(Coll.disjunction(l1, l2));
     }
 
     public static boolean isWebSocket(HttpHeaders headers) {
