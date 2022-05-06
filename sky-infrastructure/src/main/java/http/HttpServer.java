@@ -1,10 +1,8 @@
 package http;
 
 import core.Server;
-import io.github.fzdwx.lambada.fun.Hooks;
 import io.netty.channel.ChannelOption;
 import io.netty.channel.EventLoopGroup;
-import io.netty.channel.socket.SocketChannel;
 import io.netty.handler.codec.http.HttpObjectAggregator;
 import io.netty.handler.codec.http.HttpServerCodec;
 import io.netty.handler.codec.http.HttpServerExpectContinueHandler;
@@ -56,11 +54,6 @@ public class HttpServer {
     public HttpServer withSsl(final SslHandler sslHandler) {
         server.withSsl(sslHandler);
         this.sslFlag = true;
-        return this;
-    }
-
-    public HttpServer withInitChannel(final Hooks<SocketChannel> hooks) {
-        server.withInitChannel(hooks);
         return this;
     }
 
