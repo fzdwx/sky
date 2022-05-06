@@ -71,16 +71,15 @@ public class HttpServerHandler extends ChannelInboundHandlerAdapter {
         final var t2 = router.match(httpMethod, request.uri().split("\\?")[0]);
         final var httpRequest = HttpServerRequest.create(ctx, ssl, httpMethod, t2.v2, request, httpDataFactory);
 
-        final HttpHandler httpHandler = t2.v1;
 
-        if (httpHandler == null) { // handler not found
+        if (t2.v1 == null) { // handler not found
             ctx.writeAndFlush(HttpResult.make(HttpResponseStatus.NOT_FOUND)).addListener(Netty.close);
             return;
         }
 
         try {
             // handle the request
-            httpHandler.handle(httpRequest, HttpServerResponse.create(ctx.channel(), httpRequest));
+            t2.v1.handle(httpRequest, HttpServerResponse.create(ctx.channel(), httpRequest));
         } catch (Exception e) {
             ctx.writeAndFlush(HttpResult.fail(e)).addListener(Netty.close);
             throw e;
