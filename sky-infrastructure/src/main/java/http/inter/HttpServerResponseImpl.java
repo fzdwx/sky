@@ -132,6 +132,8 @@ public class HttpServerResponseImpl extends ChannelOutBound implements HttpServe
                 then(new IllegalStateException("You must set the Content-Length header to be the total size of the message "
                         + "body BEFORE sending any data if you are not using HTTP chunked encoding."));
             }
+
+            Netty.setTransferEncodingChunked(headers, true);
         }
 
         return super.send(data, flush);

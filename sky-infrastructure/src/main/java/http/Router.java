@@ -1,6 +1,7 @@
 package http;
 
 import io.github.fzdwx.lambada.internal.Tuple2;
+import io.github.fzdwx.lambada.lang.HttpMethod;
 import io.github.fzdwx.lambada.lang.NvMap;
 
 import java.util.Map;
@@ -41,6 +42,16 @@ public class Router {
 
     public Router GET(final String path, final HttpHandler handler) {
         router.GET(path, handler);
+        return this;
+    }
+
+    public Router POST(final String path, final HttpHandler handler) {
+        router.POST(path, handler);
+        return this;
+    }
+
+    public Router add(final HttpMethod method, String path, final HttpHandler handler) {
+        router.addRoute(method, path, handler);
         return this;
     }
 

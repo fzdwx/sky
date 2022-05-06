@@ -34,6 +34,10 @@ public interface NettyOutbound {
         return send(Netty.wrap(data));
     }
 
+    default NettyOutbound sendAndFlush(byte[] data) {
+        return send(Netty.wrap(data), true);
+    }
+
     default NettyOutbound then(Throwable t) {
         return new CopyNettyOutbound.ErrorOutBoundThen(this, t);
     }
