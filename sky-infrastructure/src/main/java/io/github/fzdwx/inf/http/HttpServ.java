@@ -2,7 +2,6 @@ package io.github.fzdwx.inf.http;
 
 import io.github.fzdwx.inf.core.ServInf;
 import io.github.fzdwx.inf.http.core.HttpServerHandler;
-import io.github.fzdwx.inf.http.inter.HttpDevHtml;
 import io.github.fzdwx.inf.route.Router;
 import io.github.fzdwx.lambada.fun.Hooks;
 import io.netty.channel.ChannelOption;
@@ -29,8 +28,6 @@ import static java.net.InetAddress.getLocalHost;
 public class HttpServ extends ServInf<HttpServ> {
 
     private final Router router;
-    private boolean dev;
-
     private HttpDataFactory httpDataFactory;
 
     /**
@@ -64,32 +61,6 @@ public class HttpServ extends ServInf<HttpServ> {
         return this;
     }
 
-    /**
-     * open dev mode
-     *
-     * @param staticPath static file path; e.g. static/
-     */
-    public HttpServ dev(final String staticPath) {
-        this.dev = true;
-
-        // Add dev html page
-        router.GET(HttpDevHtml.PAGE_PATH, new HttpDevHtml(this.name, router, staticPath));
-
-        return this;
-    }
-
-    /**
-     * open dev mode
-     */
-    public HttpServ dev() {
-        this.dev = true;
-
-        // Add dev html page
-        router.GET(HttpDevHtml.PAGE_PATH, new HttpDevHtml(this.name, router, ""));
-
-        return this;
-    }
-
     @Override
     public Hooks<SocketChannel> mountInitChannel() {
         return ch -> {
@@ -98,7 +69,7 @@ public class HttpServ extends ServInf<HttpServ> {
                     .addLast(new HttpObjectAggregator(1024 * 1024))
                     .addLast(new ChunkedWriteHandler())
                     // .addLast(new HttpServerExpectContinueHandler())
-                    .addLast(new HttpServerHandler(router, ssl(), httpDataFactory, this.chunkSize));
+                    .addLast(new HttpServerHandler(router, ssl(), httpDataFactory));
         };
     }
 
@@ -112,10 +83,6 @@ public class HttpServ extends ServInf<HttpServ> {
     protected void onStartSuccess() {
         final var address = scheme() + "://" + getLocalHost().getHostAddress() + ":" + this.port;
         log.info("Server start Listening on:" + address);
-
-        if (dev) {
-            log.info("DEV mode open : " + address + HttpDevHtml.PAGE_PATH);
-        }
     }
 
     @Override

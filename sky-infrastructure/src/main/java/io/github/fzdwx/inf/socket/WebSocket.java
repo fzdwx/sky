@@ -1,8 +1,7 @@
-package io.github.fzdwx.inf.msg;
+package io.github.fzdwx.inf.socket;
 
 import io.github.fzdwx.inf.http.core.HttpServerRequest;
-import io.github.fzdwx.inf.msg.inter.WebSocketImpl;
-import io.github.fzdwx.inf.route.msg.SocketSession;
+import io.github.fzdwx.inf.socket.inter.WebSocketImpl;
 import io.github.fzdwx.lambada.fun.Hooks;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.Channel;

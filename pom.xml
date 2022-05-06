@@ -9,9 +9,7 @@
     <packaging>pom</packaging>
     <version>0.10</version>
     <modules>
-        <module>demo</module>
         <module>sky-infrastructure</module>
-        <module>sky-http-spring-boot-starter</module>
     </modules>
 
     <properties>

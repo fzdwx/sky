@@ -2,11 +2,11 @@ package io.github.fzdwx.inf.http.core;
 
 import io.github.fzdwx.inf.Netty;
 import io.github.fzdwx.inf.http.inter.HttpServerRequestImpl;
-import io.github.fzdwx.inf.msg.WebSocket;
-import io.github.fzdwx.inf.route.inter.RequestMethod;
+import io.github.fzdwx.inf.socket.WebSocket;
 import io.github.fzdwx.lambada.Seq;
 import io.github.fzdwx.lambada.fun.Hooks;
 import io.github.fzdwx.lambada.fun.Result;
+import io.github.fzdwx.lambada.lang.HttpMethod;
 import io.github.fzdwx.lambada.lang.NvMap;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
@@ -26,9 +26,10 @@ import io.netty.handler.codec.http.multipart.HttpDataFactory;
  */
 public interface HttpServerRequest {
 
-    static HttpServerRequest create(final ChannelHandlerContext ctx, final boolean ssl, FullHttpRequest request,
+    static HttpServerRequest create(final ChannelHandlerContext ctx, final boolean ssl, final HttpMethod httpMethod, final NvMap pathParams,
+                                    FullHttpRequest request,
                                     final HttpDataFactory httpDataFactory) {
-        return new HttpServerRequestImpl(ctx, ssl, request, httpDataFactory);
+        return new HttpServerRequestImpl(ctx, ssl, httpMethod,pathParams,request, httpDataFactory);
     }
 
     HttpVersion version();
@@ -39,7 +40,7 @@ public interface HttpServerRequest {
 
     NvMap params();
 
-    NvMap pathVar();
+    NvMap pathParams();
 
     boolean ssl();
 
@@ -76,9 +77,9 @@ public interface HttpServerRequest {
     /**
      * request type
      *
-     * @return {@link RequestMethod }
+     * @return {@link HttpMethod }
      */
-    RequestMethod methodType();
+    HttpMethod methodType();
 
     /**
      * accept websocket.
@@ -86,6 +87,4 @@ public interface HttpServerRequest {
     void upgradeToWebSocket(Hooks<WebSocket> h);
 
     Result<WebSocket> upgradeToWebSocket();
-
-    void sourcePath(String path);
 }

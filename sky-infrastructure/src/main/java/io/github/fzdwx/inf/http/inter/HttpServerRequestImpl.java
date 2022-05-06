@@ -2,15 +2,14 @@ package io.github.fzdwx.inf.http.inter;
 
 import io.github.fzdwx.inf.Netty;
 import io.github.fzdwx.inf.http.core.HttpServerRequest;
-import io.github.fzdwx.inf.msg.WebSocket;
-import io.github.fzdwx.inf.msg.WebSocketHandler;
-import io.github.fzdwx.inf.route.inter.RequestMethod;
-import io.github.fzdwx.inf.route.msg.SocketSession;
+import io.github.fzdwx.inf.socket.SocketSession;
+import io.github.fzdwx.inf.socket.WebSocket;
+import io.github.fzdwx.inf.socket.WebSocketHandler;
 import io.github.fzdwx.lambada.Seq;
 import io.github.fzdwx.lambada.fun.Hooks;
 import io.github.fzdwx.lambada.fun.Result;
+import io.github.fzdwx.lambada.lang.HttpMethod;
 import io.github.fzdwx.lambada.lang.NvMap;
-import io.github.fzdwx.lambada.lang.PathUtil;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
@@ -42,30 +41,30 @@ public class HttpServerRequestImpl implements HttpServerRequest {
     private final ChannelHandlerContext ctx;
     private final Channel channel;
     private final HttpRequest request;
-    private final RequestMethod methodType;
+    private final HttpMethod methodType;
     private final HttpVersion version;
     private final HttpHeaders headers;
     private final boolean ssl;
     private final HttpDataFactory httpDataFactory;
     private HttpPostMultipartRequestDecoder bodyDecoder;
     private boolean readBody;
-    private String path;
     private NvMap params;
-    private NvMap pathVar;
-    private final String uri;
-    private final String fullUri;
 
-    public HttpServerRequestImpl(final ChannelHandlerContext ctx, final boolean ssl, final HttpRequest request,
+    private NvMap pathParams;
+    private final String uri;
+
+    public HttpServerRequestImpl(final ChannelHandlerContext ctx, final boolean ssl, final HttpMethod httpMethod,
+                                 final NvMap pathParams, final HttpRequest request,
                                  final HttpDataFactory httpDataFactory) {
         this.ctx = ctx;
         this.channel = ctx.channel();
         this.request = request;
-        this.methodType = RequestMethod.of(request);
+        this.methodType = httpMethod;
         this.version = request.protocolVersion();
         this.headers = request.headers();
         this.ssl = ssl;
-        this.uri = request.uri().split("\\?")[0];
-        this.fullUri = request.uri();
+        this.uri = request.uri();
+        this.pathParams = pathParams;
         this.httpDataFactory = httpDataFactory;
     }
 
@@ -89,19 +88,15 @@ public class HttpServerRequestImpl implements HttpServerRequest {
     @Override
     public NvMap params() {
         if (params == null) {
-            params = Netty.params(fullUri);
+            params = Netty.params(uri);
         }
 
         return params;
     }
 
     @Override
-    public NvMap pathVar() {
-        if (pathVar == null) {
-            pathVar = PathUtil.pathVarMap(fullUri, path);
-        }
-
-        return pathVar;
+    public NvMap pathParams() {
+        return pathParams;
     }
 
     @Override
@@ -143,7 +138,7 @@ public class HttpServerRequestImpl implements HttpServerRequest {
     }
 
     @Override
-    public RequestMethod methodType() {
+    public HttpMethod methodType() {
         return this.methodType;
     }
 
@@ -199,11 +194,6 @@ public class HttpServerRequestImpl implements HttpServerRequest {
                 sendUnsupportedVersionResponse(session.channel());
             }
         };
-    }
-
-    @Override
-    public void sourcePath(final String path) {
-        this.path = path;
     }
 
     private static String getWebSocketLocation(final boolean ssl, final HttpRequest req) {

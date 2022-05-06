@@ -3,6 +3,7 @@ package io.github.fzdwx.inf.http.core;
 import io.github.fzdwx.inf.Netty;
 import io.github.fzdwx.inf.http.inter.HttpResult;
 import io.github.fzdwx.inf.route.Router;
+import io.github.fzdwx.lambada.lang.HttpMethod;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.handler.codec.http.FullHttpRequest;
@@ -27,13 +28,10 @@ public class HttpServerHandler extends ChannelInboundHandlerAdapter {
     private final boolean ssl;
     private final HttpDataFactory httpDataFactory;
 
-    private final int chunkSize;
-
-    public HttpServerHandler(final Router router, final Boolean ssl, final HttpDataFactory httpDataFactory, int chunkSize) {
+    public HttpServerHandler(final Router router, final Boolean ssl, final HttpDataFactory httpDataFactory) {
         this.router = router;
         this.ssl = ssl;
         this.httpDataFactory = httpDataFactory == null ? new DefaultHttpDataFactory(DefaultHttpDataFactory.MINSIZE) : httpDataFactory;
-        this.chunkSize = chunkSize;
     }
 
     @Override
@@ -68,21 +66,21 @@ public class HttpServerHandler extends ChannelInboundHandlerAdapter {
      */
     @SneakyThrows
     public void handleRequest(final ChannelHandlerContext ctx, final FullHttpRequest request) {
-        // find the handler for the request path and method
-        final var httpRequest = HttpServerRequest.create(ctx, ssl, request, httpDataFactory);
 
-        final var routing = router.matchOne(httpRequest);
+        final HttpMethod httpMethod = HttpMethod.of(request.method().name());
+        final var t2 = router.match(httpMethod, request.uri().split("\\?")[0]);
+        final var httpRequest = HttpServerRequest.create(ctx, ssl, httpMethod, t2.v2, request, httpDataFactory);
 
-        if (routing == null) { // handler not found
+        final HttpHandler httpHandler = t2.v1;
+
+        if (httpHandler == null) { // handler not found
             ctx.writeAndFlush(HttpResult.make(HttpResponseStatus.NOT_FOUND)).addListener(Netty.close);
             return;
         }
 
         try {
             // handle the request
-            httpRequest.sourcePath(routing.path());
-
-            routing.target().handle(httpRequest, HttpServerResponse.create(ctx.channel(), httpRequest));
+            httpHandler.handle(httpRequest, HttpServerResponse.create(ctx.channel(), httpRequest));
         } catch (Exception e) {
             ctx.writeAndFlush(HttpResult.fail(e)).addListener(Netty.close);
             throw e;

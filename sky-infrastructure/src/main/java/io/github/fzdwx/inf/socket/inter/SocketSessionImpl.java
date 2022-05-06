@@ -1,7 +1,7 @@
-package io.github.fzdwx.inf.route.msg.inter;
+package io.github.fzdwx.inf.socket.inter;
 
 import io.github.fzdwx.inf.Netty;
-import io.github.fzdwx.inf.route.msg.SocketSession;
+import io.github.fzdwx.inf.socket.SocketSession;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
 import io.netty.handler.codec.http.websocketx.BinaryWebSocketFrame;

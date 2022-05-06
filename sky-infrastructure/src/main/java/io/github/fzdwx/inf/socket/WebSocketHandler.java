@@ -1,6 +1,5 @@
-package io.github.fzdwx.inf.msg;
+package io.github.fzdwx.inf.socket;
 
-import io.github.fzdwx.inf.route.msg.SocketSession;
 import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;

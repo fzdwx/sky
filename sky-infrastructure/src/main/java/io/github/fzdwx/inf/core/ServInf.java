@@ -99,6 +99,8 @@ public abstract class ServInf<Serv> extends ServAndClientBase<Serv> {
 
     @Override
     public ChannelFuture bind(final InetSocketAddress address) {
+        log.info(PrintUtil.banner());
+
         init();
 
         final var bindFuture = this.serverBootstrap
@@ -109,12 +111,10 @@ public abstract class ServInf<Serv> extends ServAndClientBase<Serv> {
 
         bindFuture.addListener(f -> {
             if (bindFuture.isSuccess()) {
-
-                PrintUtil.printBanner();
-
                 this.onStartSuccess();
             }
         });
+
         return bindFuture;
     }
 

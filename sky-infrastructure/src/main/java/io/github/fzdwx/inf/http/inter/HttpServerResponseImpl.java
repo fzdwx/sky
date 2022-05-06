@@ -7,9 +7,9 @@ import io.github.fzdwx.inf.core.exception.ChannelException;
 import io.github.fzdwx.inf.http.core.ContentType;
 import io.github.fzdwx.inf.http.core.HttpServerRequest;
 import io.github.fzdwx.inf.http.core.HttpServerResponse;
-import io.github.fzdwx.inf.route.inter.RequestMethod;
 import io.github.fzdwx.inf.ser.Json;
 import io.github.fzdwx.lambada.fun.Hooks;
+import io.github.fzdwx.lambada.lang.HttpMethod;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufHolder;
 import io.netty.channel.Channel;
@@ -89,6 +89,8 @@ public class HttpServerResponseImpl extends ChannelOutBound implements HttpServe
     private final HttpHeaders trailingHeaders = EmptyHttpHeaders.INSTANCE;
     private final HttpVersion version;
     private final boolean keepAlive;
+
+    private final int chunkSize;
     private final boolean head; // method type is head?
     private HttpResponseStatus status;
     private List<Cookie> cookie;
@@ -108,6 +110,7 @@ public class HttpServerResponseImpl extends ChannelOutBound implements HttpServe
     private long bytesWritten;
     private boolean closed;
 
+
     public HttpServerResponseImpl(final Channel channel, final HttpServerRequest httpRequest) {
         super(channel);
         this.channel = channel;
@@ -117,7 +120,7 @@ public class HttpServerResponseImpl extends ChannelOutBound implements HttpServe
         this.status = HttpResponseStatus.OK;
         this.keepAlive = (version == HttpVersion.HTTP_1_1 && !request.headers().contains(HttpHeaderNames.CONNECTION, HttpHeaderValues.CLOSE, true))
                 || (version == HttpVersion.HTTP_1_0 && request.headers().contains(HttpHeaderNames.CONNECTION, HttpHeaderValues.KEEP_ALIVE, true));
-        this.head = request.methodType() == RequestMethod.HEAD;
+        this.head = request.methodType() == HttpMethod.HEAD;
     }
 
     @Override
