@@ -90,7 +90,6 @@ public class HttpServerResponseImpl extends ChannelOutBound implements HttpServe
     private final HttpVersion version;
     private final boolean keepAlive;
 
-    private final int chunkSize;
     private final boolean head; // method type is head?
     private HttpResponseStatus status;
     private List<Cookie> cookie;
