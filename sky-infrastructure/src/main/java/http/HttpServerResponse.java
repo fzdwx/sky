@@ -187,6 +187,10 @@ public interface HttpServerResponse extends NettyOutbound {
         return write(s, Lang.CHARSET);
     }
 
+    default ChannelFuture writeFlush(String s) {
+        return sendAndFlush(s.getBytes(Lang.CHARSET)).then();
+    }
+
     default HttpServerResponse write(String s, Hooks<ChannelFuture> h) {
         h.call(write(s));
         return this;

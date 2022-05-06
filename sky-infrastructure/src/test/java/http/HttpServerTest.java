@@ -26,11 +26,11 @@ class HttpServerTest {
                 })
                 .GET("/post", (req, res) -> {
                     res.header("Content-Type", ContentType.STREAM_JSON);
-                    res.sendAndFlush("123123123\n".getBytes());
+                    res.writeFlush("123123123\n");
                     Lang.sleep(Duration.ofSeconds(1L));
-                    res.sendAndFlush("aaaaaaaaaaa\n".getBytes());
+                    res.writeFlush("aaaaaaaaaaa\n");
                     Lang.sleep(Duration.ofSeconds(1L));
-                    res.sendAndFlush("bbbbbbbbbb\n".getBytes());
+                    res.writeFlush("bbbbbbbbbb\n");
                     Lang.sleep(Duration.ofSeconds(1L));
                     res.end("ccccccccc\n");
                 });
