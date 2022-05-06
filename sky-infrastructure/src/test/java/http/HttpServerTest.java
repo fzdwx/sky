@@ -34,17 +34,19 @@ class HttpServerTest {
                     Lang.sleep(Duration.ofSeconds(1L));
                     res.end("ccccccccc\n");
                 });
-        new HttpServer((req, response) -> {
+        new HttpServer()
+                .handler((req, response) -> {
 
-            final Tuple2<HttpHandler, NvMap> t2 = router.match(req);
-            if (t2.v1 != null) {
-                t2.v1.handle(req, response);
-                return;
-            }
+                    final Tuple2<HttpHandler, NvMap> t2 = router.match(req);
+                    if (t2.v1 != null) {
+                        t2.v1.handle(req, response);
+                        return;
+                    }
 
-            response.sendNotFound();
+                    response.sendNotFound();
 
-        }).withGroup(0, 0).bind(8888);
+                })
+                .withGroup(0, 0).bind(8888);
 
         Lang.sleep(Duration.ofSeconds(1000000000L));
     }

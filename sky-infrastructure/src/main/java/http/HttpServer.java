@@ -17,13 +17,12 @@ import io.netty.handler.stream.ChunkedWriteHandler;
 public class HttpServer {
 
     private final Server server;
-    private final HttpRequestConsumer consumer;
+    private HttpRequestConsumer consumer;
 
     private boolean sslFlag = false;
 
-    public HttpServer(HttpRequestConsumer consumer) {
+    public HttpServer() {
         this.server = new Server();
-        this.consumer = consumer;
     }
 
     public <T> HttpServer withServerOptions(ChannelOption<T> option, T t) {
@@ -54,6 +53,11 @@ public class HttpServer {
     public HttpServer withSsl(final SslHandler sslHandler) {
         server.withSsl(sslHandler);
         this.sslFlag = true;
+        return this;
+    }
+
+    public HttpServer handler(final HttpRequestConsumer consumer) {
+        this.consumer = consumer;
         return this;
     }
 

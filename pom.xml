@@ -7,7 +7,7 @@
     <groupId>io.github.fzdwx</groupId>
     <artifactId>netty</artifactId>
     <packaging>pom</packaging>
-    <version>0.10</version>
+    <version>0.10.1</version>
     <modules>
         <module>sky-infrastructure</module>
     </modules>
@@ -18,7 +18,7 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
         <lambda.version>0.10</lambda.version>
-        <sky.version>0.10</sky.version>
+        <sky.version>0.10.1</sky.version>
 
         <netty.version>4.1.75.Final</netty.version>
         <lombok.version>1.18.22</lombok.version>
