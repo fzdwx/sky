@@ -1,6 +1,8 @@
 package http;
 
 import core.Server;
+import io.github.fzdwx.lambada.fun.Hooks;
+import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelOption;
 import io.netty.channel.EventLoopGroup;
 import io.netty.handler.codec.http.HttpObjectAggregator;
@@ -75,6 +77,11 @@ public class HttpServer {
                             .addLast(new HttpServerHandler(consumer, sslFlag, null));
                 });
 
+        return this;
+    }
+
+    public HttpServer afterStart(Hooks<ChannelFuture> hooks) {
+        server.afterStart(hooks);
         return this;
     }
 

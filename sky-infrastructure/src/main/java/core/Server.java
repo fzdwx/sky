@@ -26,6 +26,8 @@ public class Server implements Transport<Server> {
 
     private Hooks<SocketChannel> socketChannelInitHooks;
 
+    private Hooks<ChannelFuture> afterStartHooks;
+
     private EventLoopGroup boss;
 
     private EventLoopGroup worker;
@@ -68,11 +70,16 @@ public class Server implements Transport<Server> {
                 .group(boss, worker)
                 .bind(address).syncUninterruptibly();
 
+        if (afterStartHooks != null) {
+            afterStartHooks.call(startFuture);
+        }
+
         return this;
     }
 
-    public void afterStart(Hooks<ChannelFuture> hooks) {
-        hooks.call(startFuture);
+    public Server afterStart(Hooks<ChannelFuture> hooks) {
+        this.afterStartHooks = hooks;
+        return this;
     }
 
     /**
