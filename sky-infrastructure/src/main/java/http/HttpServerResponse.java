@@ -79,6 +79,11 @@ public interface HttpServerResponse extends NettyOutbound {
 
     boolean isChunked();
 
+    default ChannelFuture sendNotFound(final String message) {
+        return this.status(HttpResponseStatus.NOT_FOUND)
+                .end(message);
+    }
+
     default ChannelFuture sendNotFound() {
         return this.status(HttpResponseStatus.NOT_FOUND)
                 .end();

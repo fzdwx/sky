@@ -43,7 +43,7 @@ class HttpServerTest {
                         return;
                     }
 
-                    response.sendNotFound();
+                    response.sendNotFound("not found");
 
                 })
                 .withGroup(0, 0).bind(8888);
