@@ -28,6 +28,7 @@ public class HttpServer {
 
     private boolean sslFlag = false;
     private HttpDataFactory httpDataFactory = null;
+    private HttpExceptionHandler exceptionHandler;
 
     private HttpServer() {
         this.server = new Server();
@@ -118,6 +119,14 @@ public class HttpServer {
     }
 
     /**
+     * handler exception.
+     */
+    public HttpServer exceptionHandle(HttpExceptionHandler h) {
+        this.exceptionHandler = h;
+        return this;
+    }
+
+    /**
      * start server
      */
     public HttpServer bind(final int port) {
@@ -131,7 +140,7 @@ public class HttpServer {
                             .addLast(new HttpObjectAggregator(1024 * 1024))
                             .addLast(new ChunkedWriteHandler())
                             .addLast(new HttpServerExpectContinueHandler())
-                            .addLast(new HttpServerHandler(consumer, sslFlag, httpDataFactory));
+                            .addLast(new HttpServerHandler(consumer, exceptionHandler,sslFlag, httpDataFactory));
                 });
 
         return this;

@@ -43,7 +43,10 @@ class HttpServerTest {
             res.end("event4\n");
         }).GET("/1111", (req, res) -> {
             res.redirect("http://www.baidu.com");
+        }).GET("/error", (req, resp) -> {
+            throw new RuntimeException("json 序列化错误");
         });
+
 
         HttpServer.create()
                 .handle((req, response) -> {

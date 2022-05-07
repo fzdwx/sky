@@ -1,9 +1,11 @@
 package http;
 
 import core.Netty;
+import io.github.fzdwx.lambada.Coll;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.handler.codec.http.FullHttpRequest;
+import io.netty.handler.codec.http.HttpResponseStatus;
 import io.netty.handler.codec.http.multipart.DefaultHttpDataFactory;
 import io.netty.handler.codec.http.multipart.HttpDataFactory;
 import io.netty.util.ReferenceCountUtil;
@@ -14,11 +16,32 @@ public class HttpServerHandler extends ChannelInboundHandlerAdapter {
     private final HttpRequestConsumer consumer;
     private final boolean ssl;
     private final HttpDataFactory httpDataFactory;
+    private final HttpExceptionHandler exceptionHandler;
 
-    public HttpServerHandler(final HttpRequestConsumer consumer, final Boolean ssl, final HttpDataFactory httpDataFactory) {
+    public HttpServerHandler(final HttpRequestConsumer consumer, final HttpExceptionHandler exceptionHandler, final Boolean ssl,
+                             final HttpDataFactory httpDataFactory) {
         this.consumer = consumer;
+        this.exceptionHandler = defaultExceptionHandler(exceptionHandler);
         this.ssl = ssl;
         this.httpDataFactory = httpDataFactory == null ? new DefaultHttpDataFactory(DefaultHttpDataFactory.MINSIZE) : httpDataFactory;
+    }
+
+    private HttpExceptionHandler defaultExceptionHandler(final HttpExceptionHandler exceptionHandler) {
+        if (exceptionHandler != null) {
+            return exceptionHandler;
+        }
+
+        return (e, resp) -> {
+            resp.status(HttpResponseStatus.INTERNAL_SERVER_ERROR);
+            resp.json(
+                    Coll.linkedMap(
+                            "message", e.getMessage(),
+                            "class", e.getClass(),
+                            "cause", e.getCause(),
+                            "stack", e.getStackTrace()
+                    )
+            );
+        };
     }
 
     @Override
@@ -60,9 +83,7 @@ public class HttpServerHandler extends ChannelInboundHandlerAdapter {
         try {
             consumer.consume(httpRequest, response);
         } catch (Exception e) {
-            //  todo custom error handler
-            ctx.writeAndFlush(e.getMessage()).addListener(Netty.close);
-            throw e;
+            exceptionHandler.handler(e, response);
         } finally {
             httpRequest.release();
         }
