@@ -5,9 +5,9 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>io.github.fzdwx</groupId>
-    <artifactId>netty</artifactId>
+    <artifactId>sky</artifactId>
     <packaging>pom</packaging>
-    <version>0.10.1</version>
+    <version>0.10.2</version>
     <modules>
         <module>sky-infrastructure</module>
     </modules>

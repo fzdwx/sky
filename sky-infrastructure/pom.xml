@@ -3,9 +3,9 @@
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <parent>
-        <artifactId>netty</artifactId>
+        <artifactId>sky</artifactId>
         <groupId>io.github.fzdwx</groupId>
-        <version>0.10.1</version>
+        <version>0.10.2</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
@@ -40,9 +40,9 @@
         <maven.compiler.target>17</maven.compiler.target>
     </properties>
 
-    <description>a netty based toolkit.</description>
+    <description>sky project infrastructure</description>
     <url>https://github.com/fzdwx/sky</url>
-    <name>sky</name>
+    <name>sky-infrastructure</name>
 
     <licenses>
         <license>
