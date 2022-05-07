@@ -12,45 +12,43 @@
 ## Show case
 
 ```java
-class HttpServerTest {
+@Test
+void test_http() {
+    // 提供一个默认路由
+    final Router router = Router.router().GET("/ws", (req, res) -> {
+        req.upgradeToWebSocket().then(ws -> {
+            ws.mountOpen((h) -> {
+                ws.send("hello");
+            });
+        });
+    }).GET("/post", (req, res) -> {
+        res.header("Content-Type", ContentType.STREAM_JSON);
+        res.writeFlush("123123123\n");
+        Lang.sleep(Duration.ofSeconds(1L));
+        res.writeFlush("aaaaaaaaaaa\n");
+        Lang.sleep(Duration.ofSeconds(1L));
+        res.writeFlush("bbbbbbbbbb\n");
+        Lang.sleep(Duration.ofSeconds(1L));
+        res.end("ccccccccc\n");
+    });
 
+    HttpServer.create()
+            .handle((req, response) -> {
+                // 这里可以根据请求的url进行路由
+                final Tuple2<HttpHandler, NvMap> t2 = router.match(req);
+                if (t2.v1 != null) {
+                    t2.v1.handle(req, response);
+                    return;
+                }
 
-    @Test
-    void test_http() {
-        final Router router = Router.router()
-                .GET("/ws", (req, res) -> {
+                response.notFound(req.toString());
 
-                    // expose websocket endpoint
-                    req.upgradeToWebSocket().then(ws -> {
-                        ws.mountOpen((h) -> {
-                            ws.send("hello");
-                        });
-                    });
-                })
-                // event stream
-                .GET("/post", (req, res) -> {
-                    res.header("Content-Type", ContentType.STREAM_JSON);
-                    res.writeFlush("123123123\n");
-                    Lang.sleep(Duration.ofSeconds(1L));
-                    res.writeFlush("aaaaaaaaaaa\n");
-                    Lang.sleep(Duration.ofSeconds(1L));
-                    res.writeFlush("bbbbbbbbbb\n");
-                    Lang.sleep(Duration.ofSeconds(1L));
-                    res.end("ccccccccc\n");
-                });
-        new HttpServer((req, response) -> {
+            })
+            .withLog(LogLevel.INFO)
+            .withGroup(0, 0)
+            .bind(8888)
+            .dispose();
 
-            final Tuple2<HttpHandler, NvMap> t2 = router.match(req);
-            if (t2.v1 != null) {
-                t2.v1.handle(req, response);
-                return;
-            }
-
-            response.sendNotFound();
-
-        }).withGroup(0, 0).bind(8888);
-
-        Lang.sleep(Duration.ofSeconds(1000000000L));
-    }
+    // Lang.sleep(Duration.ofSeconds(1000000000L));
 }
 ```
