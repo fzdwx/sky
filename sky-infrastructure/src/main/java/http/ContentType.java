@@ -148,12 +148,6 @@ public enum ContentType {
         String UTF_8 = "; charset=utf-8";
     }
 
-
-    interface sniffSig {
-
-        ContentType match(byte[] data, int firstNonWS);
-    }
-
     public String addEncode(Charset charset) {
         return value + "; charset=" + charset.name();
     }
