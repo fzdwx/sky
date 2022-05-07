@@ -17,40 +17,39 @@ class HttpServerTest {
 
     @Test
     void test_http() {
-        final Router router = Router.router()
-                .GET("/ws", (req, res) -> {
-                    req.upgradeToWebSocket().then(ws -> {
-                        ws.mountOpen((h) -> {
-                            ws.send("hello");
-                        });
-                    });
-                })
-                .GET("/post", (req, res) -> {
-                    res.header("Content-Type", ContentType.STREAM_JSON);
-                    res.writeFlush("123123123\n");
-                    Lang.sleep(Duration.ofSeconds(1L));
-                    res.writeFlush("aaaaaaaaaaa\n");
-                    Lang.sleep(Duration.ofSeconds(1L));
-                    res.writeFlush("bbbbbbbbbb\n");
-                    Lang.sleep(Duration.ofSeconds(1L));
-                    res.end("ccccccccc\n");
+        final Router router = Router.router().GET("/ws", (req, res) -> {
+            req.upgradeToWebSocket().then(ws -> {
+                ws.mountOpen((h) -> {
+                    ws.send("hello");
                 });
-        new HttpServer()
-                .handle((req, response) -> {
+            });
+        }).GET("/post", (req, res) -> {
+            res.header("Content-Type", ContentType.STREAM_JSON);
+            res.writeFlush("123123123\n");
+            Lang.sleep(Duration.ofSeconds(1L));
+            res.writeFlush("aaaaaaaaaaa\n");
+            Lang.sleep(Duration.ofSeconds(1L));
+            res.writeFlush("bbbbbbbbbb\n");
+            Lang.sleep(Duration.ofSeconds(1L));
+            res.end("ccccccccc\n");
+        });
 
+        HttpServer.create()
+                .handle((req, response) -> {
                     final Tuple2<HttpHandler, NvMap> t2 = router.match(req);
                     if (t2.v1 != null) {
                         t2.v1.handle(req, response);
                         return;
                     }
 
-                    response.notFound("not found");
+                    response.notFound(req.toString());
 
                 })
                 .withLog(LogLevel.INFO)
                 .withGroup(0, 0)
-                .bind(8888);
+                .bind(8888)
+                .dispose();
 
-        Lang.sleep(Duration.ofSeconds(1000000000L));
+        // Lang.sleep(Duration.ofSeconds(1000000000L));
     }
 }

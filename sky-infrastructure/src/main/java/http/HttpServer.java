@@ -29,8 +29,12 @@ public class HttpServer {
     private boolean sslFlag = false;
     private HttpDataFactory httpDataFactory = null;
 
-    public HttpServer() {
+    private HttpServer() {
         this.server = new Server();
+    }
+
+    public static HttpServer create() {
+        return new HttpServer();
     }
 
     /**
@@ -131,6 +135,14 @@ public class HttpServer {
                 });
 
         return this;
+    }
+
+    public ChannelFuture dispose() {
+        return server.dispose();
+    }
+
+    public void shutdown() {
+        server.shutdown();
     }
 
     /**

@@ -200,4 +200,16 @@ public class HttpServerRequestImpl implements HttpServerRequest {
             readBody = true;
         }
     }
+
+    @Override
+    public String toString() {
+        return "{\"method\":\"" + methodType + "\", \"uri\":\"" + uri + "\", \"version\":\"" + version + "\"}";
+        // return "Http Request{" +
+        //         "uri='" + uri + "\n" +
+        //         ", method=" + methodType +
+        //         ", ssl=" + ssl +
+        //         ", httpVersion=" + this.request.protocolVersion() +
+        //         ", headers=" + this.headers +
+        //         '}';
+    }
 }

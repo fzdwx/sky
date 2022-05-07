@@ -1,6 +1,7 @@
 package core;
 
 import io.github.fzdwx.lambada.fun.Hooks;
+import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
@@ -29,7 +30,9 @@ public interface Transport<IMPL> {
 
     IMPL withInitChannel(Hooks<SocketChannel> hooks);
 
-    void dispose();
+    ChannelFuture dispose();
+
+    void shutdown();
 
     boolean sslFlag();
 

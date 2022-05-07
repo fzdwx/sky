@@ -200,7 +200,12 @@ public class Server implements Transport<Server> {
     }
 
     @Override
-    public void dispose() {
+    public ChannelFuture dispose() {
+        return startFuture.channel().closeFuture().syncUninterruptibly();
+    }
+
+    @Override
+    public void shutdown() {
         if (!this.worker.isShutdown()) {
             this.worker.shutdownGracefully();
         }
