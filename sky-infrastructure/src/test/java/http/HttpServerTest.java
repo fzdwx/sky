@@ -3,6 +3,7 @@ package http;
 import io.github.fzdwx.lambada.Lang;
 import io.github.fzdwx.lambada.internal.Tuple2;
 import io.github.fzdwx.lambada.lang.NvMap;
+import io.netty.handler.logging.LogLevel;
 import org.junit.jupiter.api.Test;
 
 import java.time.Duration;
@@ -35,7 +36,7 @@ class HttpServerTest {
                     res.end("ccccccccc\n");
                 });
         new HttpServer()
-                .handler((req, response) -> {
+                .handle((req, response) -> {
 
                     final Tuple2<HttpHandler, NvMap> t2 = router.match(req);
                     if (t2.v1 != null) {
@@ -46,7 +47,9 @@ class HttpServerTest {
                     response.notFound("not found");
 
                 })
-                .withGroup(0, 0).bind(8888);
+                .withLog(LogLevel.INFO)
+                .withGroup(0, 0)
+                .bind(8888);
 
         Lang.sleep(Duration.ofSeconds(1000000000L));
     }

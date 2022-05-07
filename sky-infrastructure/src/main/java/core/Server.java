@@ -3,6 +3,7 @@ package core;
 import io.github.fzdwx.lambada.fun.Hooks;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.ChannelFuture;
+import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelOption;
 import io.netty.channel.EventLoopGroup;
@@ -15,6 +16,7 @@ import io.netty.handler.ssl.SslHandler;
 
 import java.net.InetSocketAddress;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
@@ -48,39 +50,12 @@ public class Server implements Transport<Server> {
 
     private final Map<ChannelOption<?>, Object> childOptions = new HashMap<>();
 
+    private final List<ChannelHandler> serverHandlers = new java.util.ArrayList<>();
+
     public Server() {
         this.bootstrap = new ServerBootstrap();
     }
 
-    @Override
-    public Server bind(final InetSocketAddress address) {
-        preBind();
-
-        for (Map.Entry<ChannelOption<?>, ?> entry : serverOptions.entrySet()) {
-            this.bootstrap = bootstrap.option((ChannelOption<Object>) entry.getKey(), entry.getValue());
-        }
-
-        for (Map.Entry<ChannelOption<?>, ?> entry : childOptions.entrySet()) {
-            this.bootstrap = bootstrap.childOption((ChannelOption<Object>) entry.getKey(), entry.getValue());
-        }
-
-        startFuture = this.bootstrap
-                .childHandler(channelInitializer())
-                .channel(NioServerSocketChannel.class)
-                .group(boss, worker)
-                .bind(address).syncUninterruptibly();
-
-        if (afterStartHooks != null) {
-            afterStartHooks.call(startFuture);
-        }
-
-        return this;
-    }
-
-    public Server afterStart(Hooks<ChannelFuture> hooks) {
-        this.afterStartHooks = hooks;
-        return this;
-    }
 
     /**
      * @apiNote before bind
@@ -141,43 +116,12 @@ public class Server implements Transport<Server> {
         return this;
     }
 
-    @Override
-    public void dispose() {
-        if (!this.worker.isShutdown()) {
-            this.worker.shutdownGracefully();
-        }
-        if (!this.boss.isShutdown()) {
-            this.boss.shutdownGracefully();
-        }
-    }
-
-    @Override
-    public boolean sslFlag() {
-        return this.sslFlag;
-    }
-
-    @Override
-    public Server impl() {
-        return this;
-    }
-
     /**
-     * @apiNote before bind
+     * add server handler
      */
-    @Override
-    public ChannelInitializer<SocketChannel> channelInitializer() {
-        return new ChannelInitializer<>() {
-            @Override
-            protected void initChannel(final SocketChannel ch) throws Exception {
-                if (loggingHandler != null) {
-                    ch.pipeline().addLast(loggingHandler);
-                }
-                if (sslHandler != null) {
-                    ch.pipeline().addLast(sslHandler);
-                }
-                socketChannelInitHooks.call(ch);
-            }
-        };
+    public Server withServerHandler(ChannelHandler handler) {
+        serverHandlers.add(handler);
+        return this;
     }
 
     @Override
@@ -200,6 +144,79 @@ public class Server implements Transport<Server> {
 
     public Server withBossWorkerGroup(final int bossCount) {
         return withBossWorkerGroup(new NioEventLoopGroup(bossCount));
+    }
+
+    @Override
+    public Server bind(final InetSocketAddress address) {
+        preBind();
+
+        if (serverHandlers.size() > 0) {
+            serverHandlers.forEach(bootstrap::handler);
+        }
+
+        for (Map.Entry<ChannelOption<?>, ?> entry : serverOptions.entrySet()) {
+            this.bootstrap = bootstrap.option((ChannelOption<Object>) entry.getKey(), entry.getValue());
+        }
+
+        for (Map.Entry<ChannelOption<?>, ?> entry : childOptions.entrySet()) {
+            this.bootstrap = bootstrap.childOption((ChannelOption<Object>) entry.getKey(), entry.getValue());
+        }
+
+        startFuture = this.bootstrap
+                .childHandler(channelInitializer())
+                .channel(NioServerSocketChannel.class)
+                .group(boss, worker)
+                .bind(address).syncUninterruptibly();
+
+        if (afterStartHooks != null) {
+            afterStartHooks.call(startFuture);
+        }
+
+        return this;
+    }
+
+    /**
+     * @apiNote before bind
+     */
+    @Override
+    public ChannelInitializer<SocketChannel> channelInitializer() {
+        return new ChannelInitializer<>() {
+            @Override
+            protected void initChannel(final SocketChannel ch) throws Exception {
+                if (loggingHandler != null) {
+                    ch.pipeline().addLast(loggingHandler);
+                }
+                if (sslHandler != null) {
+                    ch.pipeline().addLast(sslHandler);
+                }
+                socketChannelInitHooks.call(ch);
+            }
+        };
+    }
+
+    public Server afterStart(Hooks<ChannelFuture> hooks) {
+        this.afterStartHooks = hooks;
+        return this;
+    }
+
+    @Override
+    public void dispose() {
+        if (!this.worker.isShutdown()) {
+            this.worker.shutdownGracefully();
+        }
+        if (!this.boss.isShutdown()) {
+            this.boss.shutdownGracefully();
+        }
+    }
+
+    @Override
+    public boolean sslFlag() {
+        return this.sslFlag;
+    }
+
+    @Override
+    public Server impl() {
+        return this;
     }
 
     private void preBind() {

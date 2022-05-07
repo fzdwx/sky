@@ -51,6 +51,9 @@ public interface Transport<IMPL> {
         return withWorkerGroup(new NioEventLoopGroup(workerCount));
     }
 
+    /**
+     * set child log handler
+     */
     default IMPL withLog(LogLevel level) {
         return withLog(new LoggingHandler(level));
     }
