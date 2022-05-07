@@ -19,6 +19,9 @@ class ServerTest {
                 .withGroup(0, 0)
                 .withLog(LogLevel.INFO)
                 .bind(8888)
+                .withInitChannel(ch -> {
+                    // init socket channel
+                })
         ;
 
         Lang.sleep(Duration.ofSeconds(10000000000L));

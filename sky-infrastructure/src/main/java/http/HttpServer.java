@@ -8,6 +8,7 @@ import io.netty.channel.EventLoopGroup;
 import io.netty.handler.codec.http.HttpObjectAggregator;
 import io.netty.handler.codec.http.HttpServerCodec;
 import io.netty.handler.codec.http.HttpServerExpectContinueHandler;
+import io.netty.handler.codec.http.multipart.HttpDataFactory;
 import io.netty.handler.logging.LoggingHandler;
 import io.netty.handler.ssl.SslHandler;
 import io.netty.handler.stream.ChunkedWriteHandler;
@@ -22,6 +23,7 @@ public class HttpServer {
     private HttpRequestConsumer consumer;
 
     private boolean sslFlag = false;
+    private HttpDataFactory httpDataFactory = null;
 
     public HttpServer() {
         this.server = new Server();
@@ -58,6 +60,11 @@ public class HttpServer {
         return this;
     }
 
+    public HttpServer withHttpDataFactory(final HttpDataFactory factory) {
+        this.httpDataFactory = factory;
+        return this;
+    }
+
     public HttpServer handler(final HttpRequestConsumer consumer) {
         this.consumer = consumer;
         return this;
@@ -74,7 +81,7 @@ public class HttpServer {
                             .addLast(new HttpObjectAggregator(1024 * 1024))
                             .addLast(new ChunkedWriteHandler())
                             .addLast(new HttpServerExpectContinueHandler())
-                            .addLast(new HttpServerHandler(consumer, sslFlag, null));
+                            .addLast(new HttpServerHandler(consumer, sslFlag, httpDataFactory));
                 });
 
         return this;
