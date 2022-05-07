@@ -10,7 +10,6 @@ import io.netty.buffer.Unpooled;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
 import io.netty.handler.codec.http.HttpHeaders;
-import io.netty.handler.codec.http.HttpMessage;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import io.netty.handler.codec.http.HttpVersion;
 
@@ -51,6 +50,8 @@ public interface HttpServerResponse extends NettyOutbound {
     HttpServerResponse keepAlive(boolean keepAlive);
 
     HttpServerResponse contentType(final String contentType);
+
+    HttpServerResponse contentType(final ContentType contentType);
 
     HttpServerResponse contentDisposition(final String contentDisposition);
 
@@ -106,17 +107,11 @@ public interface HttpServerResponse extends NettyOutbound {
 
     ChannelFuture reject();
 
-    ChannelFuture reject(HttpMessage result);
-
     /**
-     * @apiNote auto flush and close
-     */
-    void redirect(String url);
-
-    /**
+     * @return
      * @since 0.07
      */
-    void redirect(String url, Hooks<ChannelFuture> h);
+    ChannelFuture redirect(String url);
 
     /**
      * out put json data to client.

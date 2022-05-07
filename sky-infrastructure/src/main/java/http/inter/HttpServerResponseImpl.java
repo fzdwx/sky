@@ -1,13 +1,12 @@
 package http.inter;
 
 import core.ChannelOutBound;
+import core.Netty;
 import core.NettyOutbound;
+import exception.ChannelException;
 import http.ContentType;
 import http.HttpServerRequest;
 import http.HttpServerResponse;
-import core.Netty;
-import exception.ChannelException;
-import ser.Json;
 import io.github.fzdwx.lambada.fun.Hooks;
 import io.github.fzdwx.lambada.lang.HttpMethod;
 import io.netty.buffer.ByteBuf;
@@ -24,7 +23,6 @@ import io.netty.handler.codec.http.HttpChunkedInput;
 import io.netty.handler.codec.http.HttpHeaderNames;
 import io.netty.handler.codec.http.HttpHeaderValues;
 import io.netty.handler.codec.http.HttpHeaders;
-import io.netty.handler.codec.http.HttpMessage;
 import io.netty.handler.codec.http.HttpObject;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import io.netty.handler.codec.http.HttpUtil;
@@ -37,6 +35,7 @@ import io.netty.handler.stream.ChunkedInput;
 import io.netty.handler.stream.ChunkedNioStream;
 import io.netty.handler.stream.ChunkedStream;
 import lombok.extern.slf4j.Slf4j;
+import ser.Json;
 
 import java.io.InputStream;
 import java.nio.channels.ReadableByteChannel;
@@ -51,33 +50,27 @@ import java.util.concurrent.atomic.AtomicIntegerFieldUpdater;
 @Slf4j
 public class HttpServerResponseImpl extends ChannelOutBound implements HttpServerResponse {
 
-    final static AtomicIntegerFieldUpdater<HttpServerResponseImpl> HEAD_STATE =
-            AtomicIntegerFieldUpdater.newUpdater(HttpServerResponseImpl.class,
-                    "headWritten");
-    final static AtomicIntegerFieldUpdater<HttpServerResponseImpl> END_STATE =
-            AtomicIntegerFieldUpdater.newUpdater(HttpServerResponseImpl.class,
-                    "endWritten");
+    final static AtomicIntegerFieldUpdater<HttpServerResponseImpl> HEAD_STATE = AtomicIntegerFieldUpdater.newUpdater(HttpServerResponseImpl.class, "headWritten");
+    final static AtomicIntegerFieldUpdater<HttpServerResponseImpl> END_STATE = AtomicIntegerFieldUpdater.newUpdater(HttpServerResponseImpl.class, "endWritten");
     private static final String RESPONSE_WRITTEN = "Response has already been written";
     private static final String HEAD_NOT_WRITTEN = "Head response has not been written";
     private static final String HEAD_ALREADY_WRITTEN = "Head already written";
-    private final static ChannelInboundHandler HTTP_EXTRACTOR = Netty.inboundHandler(
-            (ctx, msg) -> {
-                if (msg instanceof ByteBufHolder) {
-                    if (msg instanceof FullHttpMessage) {
-                        // TODO convert into 2 messages if FullHttpMessage
-                        ctx.fireChannelRead(msg);
-                    } else {
-                        ByteBuf bb = ((ByteBufHolder) msg).content();
-                        ctx.fireChannelRead(bb);
-                        if (msg instanceof LastHttpContent) {
-                            ctx.fireChannelRead(LastHttpContent.EMPTY_LAST_CONTENT);
-                        }
-                    }
-                } else {
-                    ctx.fireChannelRead(msg);
+    private final static ChannelInboundHandler HTTP_EXTRACTOR = Netty.inboundHandler((ctx, msg) -> {
+        if (msg instanceof ByteBufHolder) {
+            if (msg instanceof FullHttpMessage) {
+                // TODO convert into 2 messages if FullHttpMessage
+                ctx.fireChannelRead(msg);
+            } else {
+                ByteBuf bb = ((ByteBufHolder) msg).content();
+                ctx.fireChannelRead(bb);
+                if (msg instanceof LastHttpContent) {
+                    ctx.fireChannelRead(LastHttpContent.EMPTY_LAST_CONTENT);
                 }
             }
-    );
+        } else {
+            ctx.fireChannelRead(msg);
+        }
+    });
     private final Channel channel;
     private final HttpHeaders headers;
     private final HttpHeaders trailingHeaders = EmptyHttpHeaders.INSTANCE;
@@ -110,8 +103,7 @@ public class HttpServerResponseImpl extends ChannelOutBound implements HttpServe
         this.headers = new DefaultHttpHeaders();
         this.version = httpRequest.version();
         this.status = HttpResponseStatus.OK;
-        this.keepAlive = (version == HttpVersion.HTTP_1_1 && !httpRequest.headers().contains(HttpHeaderNames.CONNECTION, HttpHeaderValues.CLOSE, true))
-                || (version == HttpVersion.HTTP_1_0 && httpRequest.headers().contains(HttpHeaderNames.CONNECTION, HttpHeaderValues.KEEP_ALIVE, true));
+        this.keepAlive = (version == HttpVersion.HTTP_1_1 && !httpRequest.headers().contains(HttpHeaderNames.CONNECTION, HttpHeaderValues.CLOSE, true)) || (version == HttpVersion.HTTP_1_0 && httpRequest.headers().contains(HttpHeaderNames.CONNECTION, HttpHeaderValues.KEEP_ALIVE, true));
         this.head = httpRequest.methodType() == HttpMethod.HEAD;
     }
 
@@ -129,8 +121,7 @@ public class HttpServerResponseImpl extends ChannelOutBound implements HttpServe
         // preCheck
         if (!headWritten() && !headers.contains(HttpHeaderNames.TRANSFER_ENCODING) && !headers.contains(HttpHeaderNames.CONTENT_LENGTH)) {
             if (version != HttpVersion.HTTP_1_0) {
-                then(new IllegalStateException("You must set the Content-Length header to be the total size of the message "
-                        + "body BEFORE sending any data if you are not using HTTP chunked encoding."));
+                then(new IllegalStateException("You must set the Content-Length header to be the total size of the message " + "body BEFORE sending any data if you are not using HTTP chunked encoding."));
             }
 
             Netty.setTransferEncodingChunked(headers, true);
@@ -142,9 +133,7 @@ public class HttpServerResponseImpl extends ChannelOutBound implements HttpServe
     @Override
     public NettyOutbound sendChunk(final InputStream in, final int chunkSize) {
         chunked();
-        return send(Netty.empty, true)
-                .then(h -> super.sendChunk(in, chunkSize))
-                .then(end(Netty.empty));
+        return send(Netty.empty, true).then(h -> super.sendChunk(in, chunkSize)).then(end(Netty.empty));
     }
 
     @Override
@@ -181,7 +170,6 @@ public class HttpServerResponseImpl extends ChannelOutBound implements HttpServe
             prepareHeaders(-1);
             ff = channel.writeAndFlush(new AssembledHttpResponse(head, version, status, headers, Netty.empty));
         } else if (!endWritten()) {
-            System.out.println("write end");
             ff = end(Netty.empty);
         } else return channel.newSucceededFuture();
 
@@ -218,6 +206,12 @@ public class HttpServerResponseImpl extends ChannelOutBound implements HttpServe
     @Override
     public HttpServerResponse contentType(final String contentType) {
         this.headers.set(HttpHeaderNames.CONTENT_TYPE, contentType);
+        return this;
+    }
+
+    @Override
+    public HttpServerResponse contentType(final ContentType contentType) {
+        this.headers.set(HttpHeaderNames.CONTENT_TYPE, contentType.value);
         return this;
     }
 
@@ -290,36 +284,29 @@ public class HttpServerResponseImpl extends ChannelOutBound implements HttpServe
     }
 
     @Override
-    public ChannelFuture reject(final HttpMessage result) {
-        return channel.writeAndFlush(result).addListener(Netty.close);
-    }
-
-    @Override
-    public void redirect(final String url) {
-        redirect(url, c -> c.addListener(f -> channel.flush().close()));
-    }
-
-    @Override
-    public void redirect(final String url, final Hooks<ChannelFuture> h) {
-        h.call(channel.write(HttpResult.redirect(url)));
+    public ChannelFuture redirect(final String url) {
+        this.status(HttpResponseStatus.FOUND);
+        this.contentType(ContentType.TEXT_HTML);
+        this.headers.set(HttpHeaderNames.LOCATION, url);
+        return channel.write(end());
     }
 
     @Override
     public ChannelFuture json(final Object obj) {
+        this.contentType(ContentType.STREAM_JSON);
+
         if (obj == null) {
-            this.header(HttpHeaderNames.CONTENT_TYPE, ContentType.JSON);
             return end("null");
         }
 
         // no catch exception
         final var buf = Json.codec.encodeToBuf(obj);
-        this.header(HttpHeaderNames.CONTENT_TYPE, ContentType.JSON);
         return end(buf);
     }
 
     @Override
     public ChannelFuture html(final String html) {
-        this.header(HttpHeaderNames.CONTENT_TYPE, ContentType.TEXT_HTML);
+        this.contentType(ContentType.TEXT_HTML);
         return end(html);
     }
 

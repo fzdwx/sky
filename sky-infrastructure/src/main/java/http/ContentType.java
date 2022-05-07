@@ -1,79 +1,160 @@
 package http;
 
-import io.netty.handler.codec.http.HttpHeaderValues;
+import java.nio.charset.Charset;
 
 /**
- * HTTP Content-Type.
+ * http content type
  *
- * @author <a href="mailto:likelovec@gmail.com">fzdwx</a>
- * @date 2022/3/18 16:46
- * @see HttpHeaderValues
+ * @author <a href="mailto:likelovec@gmail.com">韦朕</a>
+ * @date 2022/05/07 18:02:55
  */
-public interface ContentType {
+public enum ContentType {
+
+    ALL("*/*"),
+
+    /**
+     * 标准表单编码，当action为get时候，浏览器用x-www-form-urlencoded的编码方式把form数据转换成一个字串（name1=value1&amp;name2=value2…）
+     */
+    FORM_URLENCODED("application/x-www-form-urlencoded"),
+
+    FORM_URLENCODED_UTF_8("application/x-www-form-urlencoded" + charset.UTF_8),
 
     /**
      * 文件上传编码，浏览器会把整个表单以控件为单位分割，并为每个部分加上Content-Disposition，并加上分割符(boundary)
      */
-    String MULTIPART = "multipart/form-data; charset=utf-8";
-    /**
-     * text/html编码
-     */
-    String TEXT_HTML = "text/html; charset=utf-8";
-    /**
-     * text/plain编码
-     */
-    String TEXT_PLAIN = "text/plain; charset=utf-8";
+    MULTIPART("multipart/form-data"),
+
+    MULTIPART_UTF_8("multipart/form-data" + charset.UTF_8),
+
     /**
      * Rest请求JSON编码
      */
-    String JSON = "application/json; charset=utf-8";
+    JSON("application/json"),
+
+    JSON_UTF_8("application/json" + charset.UTF_8),
+
     /**
      * Rest请求XML编码
      */
-    String XML = "application/xml; charset=utf-8";
+    XML("application/xml"),
+
+    XML_UTF_8("application/xml" + charset.UTF_8),
+
     /**
-     * application/octet-stream编码
+     * pdf
      */
-    String OCTET_STREAM = "application/octet-stream; charset=utf-8";
+    PDF("application/pdf"),
 
-    String STREAM_JSON = "application/stream+json; charset=utf-8";
     /**
-     * 标准表单编码，当action为get时候，浏览器用x-www-form-urlencoded的编码方式把form数据转换成一个字串（name1=value1&amp;name2=value2…）
+     * word 文档
      */
-    String FORM_URLENCODED = "application/x-www-form-urlencoded; charset=utf-8";
+    DOC("application/msword"),
 
-    String IMAGE_JPEG = "image/jpeg";
-    String IMAGE_GIF = "image/gif";
-    String IMAGE_PNG = "image/png";
-    String IMAGE_BMP = "image/bmp";
-    String IMAGE_WEBP = "image/webp";
-    String IMAGE_SVG = "image/svg+xml";
-    String IMAGE_TIFF = "image/tiff";
-    String IMAGE_ICO = "image/x-icon";
-    String IMAGE_ICNS = "image/x-icns";
-    String IMAGE_ICON = "image/vnd.microsoft.icon";
-    String IMAGE_ICON_BMP = "image/x-icon";
-    String IMAGE_ICON_GIF = "image/gif";
-    String IMAGE_ICON_PNG = "image/png";
-    String IMAGE_ICON_SVG = "image/svg+xml";
-    String IMAGE_ICON_TIFF = "image/tiff";
-    String IMAGE_ICON_ICO = "image/x-icon";
-    String IMAGE_ICON_ICNS = "image/x-icns";
-    String IMAGE_ICON_ICON = "image/vnd.microsoft.icon";
+    DOCX("application/vnd.openxmlformats-officedocument.wordprocessingml.document"),
 
-    String AUDIO_MP3 = "audio/mpeg";
-    String AUDIO_MP4 = "audio/mp4";
-    String AUDIO_MPEG = "audio/mpeg";
-    String AUDIO_OGG = "audio/ogg";
-    String AUDIO_WEBM = "audio/webm";
-    String AUDIO_WAV = "audio/wav";
-    String AUDIO_WMA = "audio/x-ms-wma";
-    String AUDIO_MID = "audio/midi";
-    String AUDIO_MIDI = "audio/midi";
-    String AUDIO_AAC = "audio/aac";
-    String AUDIO_AIFF = "audio/aiff";
-    String AUDIO_AU = "audio/basic";
-    String AUDIO_SND = "audio/basic";
-    String AUDIO_M3U = "audio/x-mpegurl";
-    String AUDIO_M4A = "audio/mp4";
+    /**
+     * 二进制数据
+     */
+    OCTET_STREAM("application/octet-stream"),
+
+    /**
+     * 表单数据
+     */
+    FROM_DATA("multipart/form-data"),
+
+    /**
+     * text/plain编码
+     */
+    TEXT_PLAIN("text/plain"),
+
+    TEXT_PLAIN_UTF_8("text/plain" + charset.UTF_8),
+
+    /**
+     * Rest请求text/xml编码
+     */
+    TEXT_XML("text/xml"),
+
+    TEXT_XML_UTF_8("text/xml" + charset.UTF_8),
+
+    /**
+     * text/html编码
+     */
+    TEXT_HTML("text/html"),
+
+    TEXT_HTML_UTF_8("text/html" + charset.UTF_8),
+
+    CSS("text/css"),
+
+    CSV("text/csv"),
+
+    IMAGE_JPEG("image/jpeg"),
+
+    IMAGE_GIF("image/gif"),
+
+    IMAGE_PNG("image/png"),
+
+    IMAGE_BMP("image/bmp"),
+
+    IMAGE_WEBP("image/webp"),
+
+    IMAGE_SVG("image/svg+xml"),
+
+    IMAGE_TIFF("image/tiff"),
+
+    ICO("image/vnd.microsoft.icon"),
+
+    AUDIO_MP4("audio/mp4"),
+
+    MP3("audio/mpeg"),
+
+    MPEG("video/mpeg"),
+
+    /**
+     * 富文本
+     */
+    RTF("application/rtf"),
+
+    AAC("audio/aac"),
+
+    AVI("video/x-msvideo"),
+
+    STREAM_JSON("application/stream+json"),
+
+    STREAM_JSON_UTF_8("application/stream+json" + charset.UTF_8),
+
+    EVENT_STREAM("text/event-stream"),
+
+    ;
+
+
+    public final String value;
+
+    /**
+     * 构造
+     *
+     * @param value ContentType值
+     */
+    ContentType(String value) {
+        this.value = value;
+    }
+
+    @Override
+    public String toString() {
+        return value;
+    }
+
+    interface charset {
+
+        String UTF_8 = "; charset=utf-8";
+    }
+
+
+    interface sniffSig {
+
+        ContentType match(byte[] data, int firstNonWS);
+    }
+
+    public String addEncode(Charset charset) {
+        return value + "; charset=" + charset.name();
+    }
 }

@@ -24,7 +24,7 @@ class HttpServerTest {
                 });
             });
         }).GET("/post", (req, res) -> {
-            res.header("Content-Type", ContentType.STREAM_JSON);
+            res.contentType(ContentType.STREAM_JSON);
             res.writeFlush("123123123\n");
             Lang.sleep(Duration.ofSeconds(1L));
             res.writeFlush("aaaaaaaaaaa\n");
@@ -32,6 +32,17 @@ class HttpServerTest {
             res.writeFlush("bbbbbbbbbb\n");
             Lang.sleep(Duration.ofSeconds(1L));
             res.end("ccccccccc\n");
+        }).GET("/event", (req, res) -> {
+            res.contentType(ContentType.EVENT_STREAM);
+            res.writeFlush("event1\n");
+            Lang.sleep(Duration.ofSeconds(1L));
+            res.writeFlush("event2\n");
+            Lang.sleep(Duration.ofSeconds(1L));
+            res.writeFlush("event3\n");
+            Lang.sleep(Duration.ofSeconds(1L));
+            res.end("event4\n");
+        }).GET("/1111", (req, res) -> {
+            res.redirect("http://www.baidu.com");
         });
 
         HttpServer.create()

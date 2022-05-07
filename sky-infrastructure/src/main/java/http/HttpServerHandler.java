@@ -1,7 +1,6 @@
 package http;
 
 import core.Netty;
-import http.inter.HttpResult;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.handler.codec.http.FullHttpRequest;
@@ -62,7 +61,7 @@ public class HttpServerHandler extends ChannelInboundHandlerAdapter {
             consumer.consume(httpRequest, response);
         } catch (Exception e) {
             //  todo custom error handler
-            ctx.writeAndFlush(HttpResult.fail(e)).addListener(Netty.close);
+            ctx.writeAndFlush(e.getMessage()).addListener(Netty.close);
             throw e;
         } finally {
             httpRequest.release();
