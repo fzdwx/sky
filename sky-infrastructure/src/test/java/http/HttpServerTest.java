@@ -1,7 +1,10 @@
 package http;
 
+import com.alibaba.fastjson2.JSON;
+import com.alibaba.fastjson2.JSONObject;
 import io.github.fzdwx.lambada.Lang;
 import io.github.fzdwx.lambada.internal.Tuple2;
+import io.github.fzdwx.lambada.lang.HttpMethod;
 import io.github.fzdwx.lambada.lang.NvMap;
 import io.netty.handler.logging.LogLevel;
 import org.junit.jupiter.api.Test;
@@ -46,6 +49,20 @@ class HttpServerTest {
             throw new RuntimeException("json 序列化错误");
         });
 
+        // 动态添加路由
+        router.POST("/d", (req, res) -> {
+            final JSONObject jsonObject = JSON.parseObject(req.readJsonString());
+
+            final String path = jsonObject.getString("path");
+            final String text = jsonObject.getString("text");
+            final String method = jsonObject.getString("method");
+
+            router.add(HttpMethod.of(method), path, (req1, res1) -> {
+                res1.end(text);
+            });
+            res.end();
+        });
+
 
         final int port = 8888;
         HttpServer.create()
@@ -59,7 +76,7 @@ class HttpServerTest {
                     response.notFound(req.toString());
 
                 })
-                .withLog(LogLevel.INFO)
+                .withLog(LogLevel.DEBUG)
                 .withGroup(0, 0)
                 .afterStart(h -> {
                     System.out.println("http server start http://localhost:" + port);

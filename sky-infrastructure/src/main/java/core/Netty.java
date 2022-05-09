@@ -49,11 +49,15 @@ public final class Netty {
     public static GenericFutureListener<? extends Future<? super Void>> close = ChannelFutureListener.CLOSE;
 
     public static String read(ByteBuf buf) {
+        return new String(readBytes(buf));
+    }
+
+    public static byte[] readBytes(ByteBuf buf) {
         final var dest = new byte[buf.readableBytes()];
 
         buf.readBytes(dest);
 
-        return new String(dest);
+        return dest;
     }
 
     public static ByteBuf allocInt() {
@@ -135,7 +139,7 @@ public final class Netty {
 
     public static void removeHandler(final Channel channel, final String handlerName) {
         if (channel.isActive() && channel.pipeline()
-                                          .context(handlerName) != null) {
+                .context(handlerName) != null) {
             channel.pipeline()
                     .remove(handlerName);
         }
@@ -143,7 +147,7 @@ public final class Netty {
 
     public static void replaceHandler(Channel channel, String handlerName, ChannelHandler handler) {
         if (channel.isActive() && channel.pipeline()
-                                          .context(handlerName) != null) {
+                .context(handlerName) != null) {
             channel.pipeline()
                     .replace(handlerName, handlerName, handler);
 
