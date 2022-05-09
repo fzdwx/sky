@@ -127,6 +127,14 @@ public class HttpServer {
     }
 
     /**
+     * after start hook.
+     */
+    public HttpServer afterStart(Hooks<ChannelFuture> hooks) {
+        server.afterStart(hooks);
+        return this;
+    }
+
+    /**
      * start server
      */
     public HttpServer bind(final int port) {
@@ -154,15 +162,11 @@ public class HttpServer {
         server.shutdown();
     }
 
-    /**
-     * after start hook.
-     */
-    public HttpServer afterStart(Hooks<ChannelFuture> hooks) {
-        server.afterStart(hooks);
-        return this;
-    }
-
     public String scheme() {
         return sslFlag ? "https" : "http";
+    }
+
+    public int port() {
+        return server.port();
     }
 }

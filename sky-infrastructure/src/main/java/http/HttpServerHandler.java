@@ -34,7 +34,7 @@ public class HttpServerHandler extends ChannelInboundHandlerAdapter {
         return (e, resp) -> {
             resp.status(HttpResponseStatus.INTERNAL_SERVER_ERROR);
             resp.json(
-                    Coll.map(
+                    Coll.linkedMap(
                             "message", e.getMessage(),
                             "class", e.getClass(),
                             "cause", e.getCause(),

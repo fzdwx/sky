@@ -44,6 +44,8 @@ public class Server implements Transport<Server> {
 
     private SslHandler sslHandler;
 
+    private InetSocketAddress address;
+
     private Class<? extends ServerChannel> channelType = NioServerSocketChannel.class;
 
     private final Map<ChannelOption<?>, Object> serverOptions = new HashMap<>();
@@ -55,7 +57,6 @@ public class Server implements Transport<Server> {
     public Server() {
         this.bootstrap = new ServerBootstrap();
     }
-
 
     /**
      * @apiNote before bind
@@ -146,9 +147,33 @@ public class Server implements Transport<Server> {
         return withBossWorkerGroup(new NioEventLoopGroup(bossCount));
     }
 
+    /**
+     * @apiNote before bind
+     */
+    @Override
+    public ChannelInitializer<SocketChannel> channelInitializer() {
+        return new ChannelInitializer<>() {
+            @Override
+            protected void initChannel(final SocketChannel ch) throws Exception {
+                if (loggingHandler != null) {
+                    ch.pipeline().addLast(loggingHandler);
+                }
+                if (sslHandler != null) {
+                    ch.pipeline().addLast(sslHandler);
+                }
+                socketChannelInitHooks.call(ch);
+            }
+        };
+    }
+
+    public Server afterStart(Hooks<ChannelFuture> hooks) {
+        this.afterStartHooks = hooks;
+        return this;
+    }
+
     @Override
     public Server bind(final InetSocketAddress address) {
-        preBind();
+        preBind(address);
 
         if (serverHandlers.size() > 0) {
             serverHandlers.forEach(bootstrap::handler);
@@ -172,30 +197,6 @@ public class Server implements Transport<Server> {
             afterStartHooks.call(startFuture);
         }
 
-        return this;
-    }
-
-    /**
-     * @apiNote before bind
-     */
-    @Override
-    public ChannelInitializer<SocketChannel> channelInitializer() {
-        return new ChannelInitializer<>() {
-            @Override
-            protected void initChannel(final SocketChannel ch) throws Exception {
-                if (loggingHandler != null) {
-                    ch.pipeline().addLast(loggingHandler);
-                }
-                if (sslHandler != null) {
-                    ch.pipeline().addLast(sslHandler);
-                }
-                socketChannelInitHooks.call(ch);
-            }
-        };
-    }
-
-    public Server afterStart(Hooks<ChannelFuture> hooks) {
-        this.afterStartHooks = hooks;
         return this;
     }
 
@@ -224,9 +225,15 @@ public class Server implements Transport<Server> {
         return this;
     }
 
-    private void preBind() {
+    public int port() {
+        return this.address.getPort();
+    }
+
+    private void preBind(final InetSocketAddress address) {
+        Objects.requireNonNull(address, "address is null");
         Objects.requireNonNull(channelType, "channelType is null");
         Objects.requireNonNull(boss, "boss event group is null");
         Objects.requireNonNull(worker, "worker event group is null");
+        this.address = address;
     }
 }

@@ -14,7 +14,6 @@ import java.time.Duration;
  */
 class HttpServerTest {
 
-
     @Test
     void test_http() {
         final Router router = Router.router().GET("/ws", (req, res) -> {
@@ -48,6 +47,7 @@ class HttpServerTest {
         });
 
 
+        final int port = 8888;
         HttpServer.create()
                 .handle((req, response) -> {
                     final Tuple2<HttpHandler, NvMap> t2 = router.match(req);
@@ -61,7 +61,10 @@ class HttpServerTest {
                 })
                 .withLog(LogLevel.INFO)
                 .withGroup(0, 0)
-                .bind(8888)
+                .afterStart(h -> {
+                    System.out.println("http server start http://localhost:" + port);
+                })
+                .bind(port)
                 .dispose();
 
         // Lang.sleep(Duration.ofSeconds(1000000000L));
