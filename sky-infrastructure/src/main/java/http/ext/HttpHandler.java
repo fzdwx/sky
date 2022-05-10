@@ -3,8 +3,6 @@ package http.ext;
 import http.HttpServerRequest;
 import http.HttpServerResponse;
 
-import java.lang.reflect.InvocationTargetException;
-
 /**
  * handle
  *
@@ -15,5 +13,5 @@ import java.lang.reflect.InvocationTargetException;
 @FunctionalInterface
 public interface HttpHandler {
 
-    void handle(HttpServerRequest request, final HttpServerResponse resp) throws InvocationTargetException, IllegalAccessException;
+    void handle(HttpServerRequest request, final HttpServerResponse resp);
 }

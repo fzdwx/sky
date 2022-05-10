@@ -3,7 +3,6 @@ package http.ext;
 import http.HttpServerRequest;
 import http.HttpServerResponse;
 
-import java.lang.reflect.InvocationTargetException;
 
 /**
  * @author <a href="mailto:likelovec@gmail.com">韦朕</a>
@@ -12,5 +11,5 @@ import java.lang.reflect.InvocationTargetException;
 @FunctionalInterface
 public interface HttpRequestConsumer {
 
-    void consume(HttpServerRequest req, HttpServerResponse response) throws InvocationTargetException, IllegalAccessException;
+    void consume(final HttpServerRequest req, final HttpServerResponse response);
 }
