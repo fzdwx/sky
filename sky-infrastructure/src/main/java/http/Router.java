@@ -2,7 +2,7 @@ package http;
 
 import http.ext.HttpHandler;
 import io.github.fzdwx.lambada.internal.Tuple2;
-import io.github.fzdwx.lambada.lang.HttpMethod;
+import io.github.fzdwx.lambada.http.HttpMethod;
 import io.github.fzdwx.lambada.lang.NvMap;
 
 import java.util.Map;
@@ -18,7 +18,7 @@ public class Router {
 
     String FAVICON_ICO = "/favicon.ico";
 
-    private final io.github.fzdwx.lambada.lang.route.Router<HttpHandler> router;
+    private final io.github.fzdwx.lambada.http.Router<HttpHandler> router;
 
     /**
      * new router instance
@@ -30,7 +30,7 @@ public class Router {
     }
 
     public Router() {
-        router = io.github.fzdwx.lambada.lang.route.Router.router();
+        router = io.github.fzdwx.lambada.http.Router.router();
     }
 
     /**

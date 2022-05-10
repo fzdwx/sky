@@ -8,7 +8,7 @@ import socket.WebSocketHandler;
 import io.github.fzdwx.lambada.Seq;
 import io.github.fzdwx.lambada.fun.Hooks;
 import io.github.fzdwx.lambada.fun.Result;
-import io.github.fzdwx.lambada.lang.HttpMethod;
+import io.github.fzdwx.lambada.http.HttpMethod;
 import io.github.fzdwx.lambada.lang.NvMap;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.Channel;
