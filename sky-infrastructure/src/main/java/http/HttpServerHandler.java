@@ -9,7 +9,6 @@ import io.netty.handler.codec.http.FullHttpRequest;
 import io.netty.handler.codec.http.multipart.DefaultHttpDataFactory;
 import io.netty.handler.codec.http.multipart.HttpDataFactory;
 import io.netty.util.ReferenceCountUtil;
-import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -59,7 +58,6 @@ public class HttpServerHandler extends ChannelInboundHandlerAdapter {
      * @param ctx     ctx
      * @param request http request
      */
-    @SneakyThrows
     public void handleRequest(final ChannelHandlerContext ctx, final FullHttpRequest request) {
 
         final var httpRequest = HttpServerRequest.create(ctx, ssl, request, httpDataFactory);
