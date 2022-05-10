@@ -1,5 +1,6 @@
 package http.ext;
 
+import http.HttpServerRequest;
 import http.HttpServerResponse;
 import io.github.fzdwx.lambada.Coll;
 import io.netty.handler.codec.http.HttpResponseStatus;
@@ -11,7 +12,7 @@ import io.netty.handler.codec.http.HttpResponseStatus;
 @FunctionalInterface
 public interface HttpExceptionHandler {
 
-    void handler(Exception e, HttpServerResponse resp);
+    void handler(HttpServerRequest req, HttpServerResponse resp, Throwable e);
 
     static HttpExceptionHandler defaultExceptionHandler(final HttpExceptionHandler exceptionHandler) {
         if (exceptionHandler != null) {
@@ -22,7 +23,7 @@ public interface HttpExceptionHandler {
     }
 
     static HttpExceptionHandler defaultExceptionHandler() {
-        return (e, resp) -> {
+        return (req, resp, e) -> {
             resp.status(HttpResponseStatus.INTERNAL_SERVER_ERROR);
             resp.json(
                     Coll.linkedMap(
