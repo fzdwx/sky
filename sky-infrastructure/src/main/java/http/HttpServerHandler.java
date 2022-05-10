@@ -65,7 +65,7 @@ public class HttpServerHandler extends ChannelInboundHandlerAdapter {
         try {
             consumer.consume(httpRequest, response);
         } catch (Exception e) {
-            exceptionHandler.handler(e, response);
+            exceptionHandler.handler(httpRequest, response, e);
         } finally {
             httpRequest.release();
         }
