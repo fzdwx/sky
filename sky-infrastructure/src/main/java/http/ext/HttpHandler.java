@@ -1,4 +1,7 @@
-package http;
+package http.ext;
+
+import http.HttpServerRequest;
+import http.HttpServerResponse;
 
 import java.lang.reflect.InvocationTargetException;
 

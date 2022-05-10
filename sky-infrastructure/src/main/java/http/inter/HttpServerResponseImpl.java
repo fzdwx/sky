@@ -4,7 +4,7 @@ import core.ChannelOutBound;
 import core.Netty;
 import core.NettyOutbound;
 import exception.ChannelException;
-import http.ContentType;
+import http.util.ContentType;
 import http.HttpServerRequest;
 import http.HttpServerResponse;
 import io.github.fzdwx.lambada.fun.Hooks;

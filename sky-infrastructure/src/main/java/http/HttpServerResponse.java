@@ -3,6 +3,7 @@ package http;
 import core.Netty;
 import core.NettyOutbound;
 import http.inter.HttpServerResponseImpl;
+import http.util.ContentType;
 import io.github.fzdwx.lambada.Lang;
 import io.github.fzdwx.lambada.fun.Hooks;
 import io.netty.buffer.ByteBuf;

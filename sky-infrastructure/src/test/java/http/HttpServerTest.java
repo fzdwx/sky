@@ -2,6 +2,8 @@ package http;
 
 import com.alibaba.fastjson2.JSON;
 import com.alibaba.fastjson2.JSONObject;
+import http.ext.HttpHandler;
+import http.util.ContentType;
 import io.github.fzdwx.lambada.Lang;
 import io.github.fzdwx.lambada.internal.Tuple2;
 import io.github.fzdwx.lambada.lang.HttpMethod;

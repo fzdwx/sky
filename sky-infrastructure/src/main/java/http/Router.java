@@ -1,5 +1,6 @@
 package http;
 
+import http.ext.HttpHandler;
 import io.github.fzdwx.lambada.internal.Tuple2;
 import io.github.fzdwx.lambada.lang.HttpMethod;
 import io.github.fzdwx.lambada.lang.NvMap;

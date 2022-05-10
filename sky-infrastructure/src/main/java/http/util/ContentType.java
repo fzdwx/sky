@@ -1,4 +1,4 @@
-package http;
+package http.util;
 
 import java.nio.charset.Charset;
 

@@ -1,4 +1,6 @@
-package http;
+package http.ext;
+
+import http.HttpServerResponse;
 
 /**
  * @author <a href="mailto:likelovec@gmail.com">fzdwx</a>

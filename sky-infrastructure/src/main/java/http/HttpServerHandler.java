@@ -1,6 +1,8 @@
 package http;
 
 import core.Netty;
+import http.ext.HttpExceptionHandler;
+import http.ext.HttpRequestConsumer;
 import io.github.fzdwx.lambada.Coll;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
