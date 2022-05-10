@@ -10,7 +10,9 @@ import io.netty.handler.codec.http.multipart.DefaultHttpDataFactory;
 import io.netty.handler.codec.http.multipart.HttpDataFactory;
 import io.netty.util.ReferenceCountUtil;
 import lombok.SneakyThrows;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 public class HttpServerHandler extends ChannelInboundHandlerAdapter {
 
     private final HttpRequestConsumer consumer;
@@ -45,9 +47,10 @@ public class HttpServerHandler extends ChannelInboundHandlerAdapter {
     }
 
     @Override
-    public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
-        cause.printStackTrace();
-        ctx.close();
+    public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
+        log.info("http server handler exceptionCaught: {}", cause.getMessage());
+        // TODO: 2022/5/10 日志级别
+        super.exceptionCaught(ctx, cause);
     }
 
     /**
