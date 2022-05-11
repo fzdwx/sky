@@ -68,6 +68,11 @@ public final class Netty {
         return buffer.writeBytes(binary);
     }
 
+    public static ByteBuf wrap(final ByteBufAllocator alloc, final String data) {
+        return wrap(alloc, data.getBytes());
+    }
+
+
     public static boolean isWebSocket(HttpHeaders headers) {
         return headers.contains(HttpHeaderNames.UPGRADE, HttpHeaderValues.WEBSOCKET, true);
     }

@@ -4,6 +4,8 @@ import io.github.fzdwx.lambada.fun.Hooks;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
+import io.netty.channel.ChannelHandlerContext;
+import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelOption;
 import io.netty.channel.EventLoopGroup;
@@ -51,7 +53,8 @@ public class Client implements Transport<Client> {
             this.bootstrap = bootstrap.option((ChannelOption<Object>) entry.getKey(), entry.getValue());
         }
 
-        this.startFuture = bootstrap.group(worker)
+        this.startFuture = bootstrap
+                .group(worker)
                 .channel(channelType)
                 .handler(channelInitializer())
                 .connect(address);
@@ -99,7 +102,24 @@ public class Client implements Transport<Client> {
                             .newHandler(ch.alloc(), address.getHostName(), address.getPort());
                     ch.pipeline().addLast(sslHandler);
                 }
-                socketChannelInitHooks.call(ch);
+                ch.pipeline().addLast(new ChannelInboundHandlerAdapter() {
+
+                    @Override
+                    public void channelActive(final ChannelHandlerContext ctx) throws Exception {
+                        ctx.writeAndFlush("hell world");
+                    }
+
+                    @Override
+                    public void channelReadComplete(ChannelHandlerContext ctx) {
+                        ctx.flush();
+                    }
+
+                    @Override
+                    public void channelRead(final ChannelHandlerContext ctx, final Object msg) throws Exception {
+                        System.out.println("client receive: " + msg);
+                    }
+                });
+                // socketChannelInitHooks.call(ch);
             }
         };
     }

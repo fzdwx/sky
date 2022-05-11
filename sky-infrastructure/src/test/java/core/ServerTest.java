@@ -2,6 +2,7 @@ package core;
 
 import io.github.fzdwx.lambada.Lang;
 import io.github.fzdwx.lambada.Seq;
+import io.netty.buffer.ByteBufAllocator;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.handler.logging.LogLevel;
@@ -26,9 +27,10 @@ class ServerTest {
                     ch.pipeline().addLast(new ChannelInboundHandlerAdapter() {
                         @Override
                         public void channelActive(final ChannelHandlerContext ctx) throws Exception {
+                            final ByteBufAllocator alloc = ctx.alloc();
                             Seq.range(100)
                                     .forEach(i -> {
-                                        ctx.writeAndFlush(i);
+                                        ctx.writeAndFlush(Netty.wrap(alloc, i + ""));
                                         Lang.sleep(Duration.ofMillis(100));
                                     });
                         }
