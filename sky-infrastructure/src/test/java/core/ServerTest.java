@@ -16,7 +16,6 @@ import java.time.Duration;
  */
 class ServerTest {
 
-
     @Test
     void test_server() {
         final Server s = new Server()
@@ -27,7 +26,7 @@ class ServerTest {
                         @Override
                         public void channelActive(final ChannelHandlerContext ctx) throws Exception {
                             final ByteBufAllocator alloc = ctx.alloc();
-                            Seq.range(100)
+                            Seq.range(2)
                                     .forEach(i -> {
                                         ctx.writeAndFlush(Netty.wrap(alloc, i + ""));
                                         Lang.sleep(Duration.ofMillis(100));

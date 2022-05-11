@@ -9,7 +9,6 @@ import io.github.fzdwx.lambada.http.ContentType;
 import io.github.fzdwx.lambada.http.HttpMethod;
 import io.github.fzdwx.lambada.internal.Tuple2;
 import io.github.fzdwx.lambada.lang.NvMap;
-import io.netty.handler.logging.LogLevel;
 import org.junit.jupiter.api.Test;
 
 import java.time.Duration;
@@ -78,8 +77,6 @@ class HttpServerTest {
                     response.notFound(req.toString());
 
                 })
-                .withLog(LogLevel.DEBUG)
-                .withGroup(0, 0)
                 .afterStart(h -> {
                     System.out.println("http server start http://localhost:" + port);
                 })

@@ -17,6 +17,7 @@ import io.netty.handler.ssl.util.InsecureTrustManagerFactory;
 import serializer.JsonSerializer;
 
 import java.net.InetSocketAddress;
+import java.time.Duration;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
@@ -27,8 +28,13 @@ import java.util.Objects;
  */
 public class Client implements Transport<Client> {
 
-    public boolean startFlag = false;
+    private final int DEFAULT_MAX_RECONNECT_TIMES = 3;
+    private final Duration DEFAULT_RECONNECT_TIMEOUT = Duration.ofSeconds(1);
+    private int maxReconnectTimes;
+    private Duration reconnectTimeout;
+    private boolean enableAutoReconnect = false;
 
+    public boolean startFlag = false;
     private Bootstrap bootstrap;
     private EventLoopGroup worker;
     private JsonSerializer serializer;
@@ -114,6 +120,42 @@ public class Client implements Transport<Client> {
         return this;
     }
 
+    /**
+     * @see #withEnableAutoReconnect(int, Duration)
+     */
+    public Client withEnableAutoReconnect() {
+        return withEnableAutoReconnect(DEFAULT_MAX_RECONNECT_TIMES, DEFAULT_RECONNECT_TIMEOUT);
+    }
+
+    /**
+     * @see #withEnableAutoReconnect(int, Duration)
+     */
+    public Client withEnableAutoReconnect(int maxReconnectTimes) {
+        return withEnableAutoReconnect(maxReconnectTimes, DEFAULT_RECONNECT_TIMEOUT);
+    }
+
+    /**
+     * @see #withEnableAutoReconnect(int, Duration)
+     */
+    public Client withEnableAutoReconnect(Duration reconnectTimeout) {
+        return withEnableAutoReconnect(DEFAULT_MAX_RECONNECT_TIMES, reconnectTimeout);
+    }
+
+    /**
+     * 开启断线重连
+     *
+     * @param maxReconnectTimes 最大重连次数
+     * @param reconnectTimeout  连接超时时间
+     * @return {@link Client }
+     */
+    public Client withEnableAutoReconnect(int maxReconnectTimes, Duration reconnectTimeout) {
+        checkStart();
+        this.enableAutoReconnect = true;
+        this.maxReconnectTimes = maxReconnectTimes;
+        this.reconnectTimeout = reconnectTimeout;
+        return this;
+    }
+
     @Override
     public ChannelInitializer<SocketChannel> channelInitializer() {
         checkNotStart();
@@ -125,10 +167,12 @@ public class Client implements Transport<Client> {
                 }
 
                 if (sslFlag) {
-                    final SslHandler sslHandler = SslContextBuilder.forClient()
-                            .trustManager(InsecureTrustManagerFactory.INSTANCE).build()
-                            .newHandler(ch.alloc(), address.getHostName(), address.getPort());
+                    final SslHandler sslHandler = SslContextBuilder.forClient().trustManager(InsecureTrustManagerFactory.INSTANCE).build().newHandler(ch.alloc(), address.getHostName(), address.getPort());
                     ch.pipeline().addLast(sslHandler);
+                }
+
+                if (enableAutoReconnect) {
+                    // todo
                 }
                 socketChannelInitHooks.call(ch);
             }
@@ -188,5 +232,9 @@ public class Client implements Transport<Client> {
         if (!startFlag) {
             throw new IllegalStateException("client is not started");
         }
+    }
+
+    ChannelFuture connect() {
+        return bootstrap.connect(address);
     }
 }

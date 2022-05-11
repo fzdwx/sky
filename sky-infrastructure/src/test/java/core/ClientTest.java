@@ -6,6 +6,8 @@ import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.channel.ChannelOption;
 import org.junit.jupiter.api.Test;
 
+import java.time.Duration;
+
 /**
  * @author <a href="mailto:likelovec@gmail.com">韦朕</a>
  * @date 2022/5/11 16:08
@@ -30,6 +32,7 @@ class ClientTest {
                         }
                     });
                 })
+                .withEnableAutoReconnect(Duration.ofSeconds(3))
                 .start("localhost", 8888);
 
         c.dispose();
