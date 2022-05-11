@@ -1,5 +1,6 @@
 package core;
 
+import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.channel.ChannelOption;
@@ -12,7 +13,7 @@ import org.junit.jupiter.api.Test;
 class ClientTest {
 
     @Test
-    void test() {
+    void test2() {
         final Client c = new Client()
                 .withOptions(ChannelOption.TCP_NODELAY, true)
                 .withInitChannel(ch -> {
@@ -20,21 +21,16 @@ class ClientTest {
 
                         @Override
                         public void channelActive(final ChannelHandlerContext ctx) throws Exception {
-                            ctx.writeAndFlush(Netty.wrap(ctx.alloc(),"hello"));
-                        }
-
-                        @Override
-                        public void channelReadComplete(ChannelHandlerContext ctx) {
-                            ctx.flush();
+                            ctx.writeAndFlush(Netty.wrap(ctx.alloc(), "hello"));
                         }
 
                         @Override
                         public void channelRead(final ChannelHandlerContext ctx, final Object msg) throws Exception {
-                            System.out.println("client receive: " + msg);
+                            System.out.println("client receive: " + Netty.read((ByteBuf) msg));
                         }
                     });
                 })
-                .start("192.168.1.248", 8888);
+                .start("localhost", 8888);
 
         c.dispose();
     }
