@@ -138,7 +138,7 @@ public class HttpServer {
     }
 
     /**
-     * after start hook.
+     * after start.
      */
     public HttpServer afterStart(Hooks<ChannelFuture> hooks) {
         this.server.afterStart(hooks);
@@ -148,12 +148,12 @@ public class HttpServer {
     /**
      * start server
      */
-    public HttpServer bind(final int port) {
+    public HttpServer start(final int port) {
         this.withServerOptions(ChannelOption.SO_BACKLOG, 1024);
         this.withChildOptions(ChannelOption.TCP_NODELAY, true);
         this.withChildOptions(ChannelOption.SO_KEEPALIVE, true);
 
-        this.server.bind(port)
+        this.server.start(port)
                 .withInitChannel(channel -> {
                     channel.pipeline().addLast(new HttpServerCodec())
                             .addLast(new HttpObjectAggregator(1024 * 1024))
@@ -170,7 +170,7 @@ public class HttpServer {
     }
 
     public void shutdown() {
-        this.server.shutdown();
+        this.server.close();
     }
 
     public String scheme() {

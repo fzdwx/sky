@@ -21,7 +21,7 @@ public interface Transport<IMPL> {
     /**
      * start transport
      */
-    IMPL bind(InetSocketAddress address);
+    IMPL start(InetSocketAddress address);
 
     IMPL withWorkerGroup(EventLoopGroup worker);
 
@@ -35,7 +35,7 @@ public interface Transport<IMPL> {
 
     ChannelFuture dispose();
 
-    void shutdown();
+    void close();
 
     boolean sslFlag();
 
@@ -46,13 +46,12 @@ public interface Transport<IMPL> {
      */
     IMPL impl();
 
-
-    default IMPL bind(int port) {
-        return bind(new InetSocketAddress(port));
+    default IMPL start(int port) {
+        return start(new InetSocketAddress(port));
     }
 
-    default IMPL bind(String host, int port) {
-        return bind(new InetSocketAddress(host, port));
+    default IMPL start(String host, int port) {
+        return start(new InetSocketAddress(host, port));
     }
 
     default IMPL withWorkerGroup(int workerCount) {

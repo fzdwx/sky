@@ -184,8 +184,8 @@ public class Server implements Transport<Server> {
     }
 
     @Override
-    public Server bind(final InetSocketAddress address) {
-        preBind(address);
+    public Server start(final InetSocketAddress address) {
+        preStart(address);
 
         if (serverHandlers.size() > 0) {
             serverHandlers.forEach(bootstrap::handler);
@@ -201,7 +201,7 @@ public class Server implements Transport<Server> {
 
         startFuture = this.bootstrap
                 .childHandler(channelInitializer())
-                .channel(NioServerSocketChannel.class)
+                .channel(channelType)
                 .group(boss, worker)
                 .bind(address).syncUninterruptibly();
 
@@ -218,7 +218,7 @@ public class Server implements Transport<Server> {
     }
 
     @Override
-    public void shutdown() {
+    public void close() {
         if (!this.worker.isShutdown()) {
             this.worker.shutdownGracefully();
         }
@@ -246,12 +246,18 @@ public class Server implements Transport<Server> {
         return this.address.getPort();
     }
 
-    private void preBind(final InetSocketAddress address) {
+    private void preStart(final InetSocketAddress address) {
         Objects.requireNonNull(address, "address is null");
         Objects.requireNonNull(channelType, "channelType is null");
-        Objects.requireNonNull(boss, "boss event group is null");
-        Objects.requireNonNull(worker, "worker event group is null");
         this.address = address;
+
+        if (this.boss == null) {
+            this.boss = new NioEventLoopGroup();
+        }
+
+        if (this.worker == null) {
+            this.worker = new NioEventLoopGroup();
+        }
 
         if (this.serializer == null) {
             this.serializer = JsonSerializer.codec;

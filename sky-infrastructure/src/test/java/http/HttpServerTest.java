@@ -65,20 +65,26 @@ class HttpServerTest {
             res.end();
         });
 
-
         final int port = 8888;
-        HttpServer.create().handle((req, response) -> {
-            final Tuple2<HttpHandler, NvMap> t2 = router.match(req);
-            if (t2.v1 != null) {
-                t2.v1.handle(req, response);
-                return;
-            }
+        HttpServer.create()
+                .handle((req, response) -> {
+                    final Tuple2<HttpHandler, NvMap> t2 = router.match(req);
 
-            response.notFound(req.toString());
+                    if (t2.v1 != null) {
+                        t2.v1.handle(req, response);
+                        return;
+                    }
 
-        }).withLog(LogLevel.DEBUG).withGroup(0, 0).afterStart(h -> {
-            System.out.println("http server start http://localhost:" + port);
-        }).bind(port).dispose();
+                    response.notFound(req.toString());
+
+                })
+                .withLog(LogLevel.DEBUG)
+                .withGroup(0, 0)
+                .afterStart(h -> {
+                    System.out.println("http server start http://localhost:" + port);
+                })
+                .start(port)
+                .dispose();
 
         // Lang.sleep(Duration.ofSeconds(1000000000L));
     }
