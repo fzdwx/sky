@@ -146,13 +146,10 @@ public interface HttpServerResponse extends NettyOutbound {
     }
 
     default HttpServerResponse end(String s, Hooks<ChannelFuture> h) {
-        h.call(end(Netty.wrap(alloc(),s.getBytes())));
+        h.call(end(Netty.wrap(alloc(), s.getBytes())));
         return this;
     }
 
-    /**
-     * @since 0.07
-     */
     default void json(final Object obj, Hooks<ChannelFuture> h) {
         h.call(json(obj));
     }
@@ -193,6 +190,10 @@ public interface HttpServerResponse extends NettyOutbound {
 
     default ChannelFuture writeFlush(String s) {
         return sendAndFlush(s.getBytes(Lang.CHARSET)).then();
+    }
+
+    default ChannelFuture writeFlush(byte[] bytes) {
+        return sendAndFlush(bytes).then();
     }
 
     default HttpServerResponse write(String s, Hooks<ChannelFuture> h) {

@@ -4,6 +4,7 @@ import com.alibaba.fastjson2.JSON;
 import com.alibaba.fastjson2.JSONObject;
 import http.ext.HttpHandler;
 import io.github.fzdwx.lambada.Lang;
+import io.github.fzdwx.lambada.Seq;
 import io.github.fzdwx.lambada.http.ContentType;
 import io.github.fzdwx.lambada.http.HttpMethod;
 import io.github.fzdwx.lambada.internal.Tuple2;
@@ -38,13 +39,12 @@ class HttpServerTest {
             res.end("ccccccccc\n");
         }).GET("/event", (req, res) -> {
             res.contentType(ContentType.EVENT_STREAM);
-            res.writeFlush("event1\n");
-            Lang.sleep(Duration.ofSeconds(1L));
-            res.writeFlush("event2\n");
-            Lang.sleep(Duration.ofSeconds(1L));
-            res.writeFlush("event3\n");
-            Lang.sleep(Duration.ofSeconds(1L));
-            res.end("event4\n");
+            Seq.range(100).onClose(() -> res.end("end"))
+                    .forEach(i -> {
+                        res.writeFlush(i + "\n");
+                        Lang.sleep(Duration.ofMillis(100L));
+                    });
+            // System.out.println("end");
         }).GET("/1111", (req, res) -> {
             res.redirect("http://www.baidu.com");
         }).GET("/error", (req, resp) -> {
@@ -67,24 +67,18 @@ class HttpServerTest {
 
 
         final int port = 8888;
-        HttpServer.create()
-                .handle((req, response) -> {
-                    final Tuple2<HttpHandler, NvMap> t2 = router.match(req);
-                    if (t2.v1 != null) {
-                        t2.v1.handle(req, response);
-                        return;
-                    }
+        HttpServer.create().handle((req, response) -> {
+            final Tuple2<HttpHandler, NvMap> t2 = router.match(req);
+            if (t2.v1 != null) {
+                t2.v1.handle(req, response);
+                return;
+            }
 
-                    response.notFound(req.toString());
+            response.notFound(req.toString());
 
-                })
-                .withLog(LogLevel.DEBUG)
-                .withGroup(0, 0)
-                .afterStart(h -> {
-                    System.out.println("http server start http://localhost:" + port);
-                })
-                .bind(port)
-                .dispose();
+        }).withLog(LogLevel.DEBUG).withGroup(0, 0).afterStart(h -> {
+            System.out.println("http server start http://localhost:" + port);
+        }).bind(port).dispose();
 
         // Lang.sleep(Duration.ofSeconds(1000000000L));
     }
