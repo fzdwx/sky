@@ -104,11 +104,6 @@ public interface HttpServerResponse extends NettyOutbound {
      */
     HttpServerResponse cookie(String key, String val);
 
-    /**
-     * write buf to client.
-     */
-    ChannelFuture write(ByteBuf buf);
-
     ChannelFuture reject();
 
     /**
@@ -161,31 +156,40 @@ public interface HttpServerResponse extends NettyOutbound {
         h.call(html(html));
     }
 
-    default HttpServerResponse write(ByteBuf buf, Hooks<ChannelFuture> h) {
-        h.call(write(buf));
-        return this;
+    default NettyOutbound write(ByteBuf buf) {
+        return send(buf, false);
     }
 
-    default ChannelFuture write(byte[] bytes) {
+    default NettyOutbound write(byte[] bytes) {
         return write(Netty.wrap(alloc(), bytes));
     }
 
-    default HttpServerResponse write(byte[] bytes, Hooks<ChannelFuture> h) {
-        h.call(write(bytes));
+    default HttpServerResponse write(ByteBuf buf, Hooks<ChannelFuture> h) {
+        h.call(write(buf).then());
         return this;
     }
 
-    default ChannelFuture write(String s, Charset charset) {
+    default HttpServerResponse write(byte[] bytes, Hooks<ChannelFuture> h) {
+        h.call(write(bytes).then());
+        return this;
+    }
+
+    default NettyOutbound write(String s, Charset charset) {
         return write(s.getBytes(charset));
     }
 
     default HttpServerResponse write(String s, Charset charset, Hooks<ChannelFuture> h) {
-        h.call(write(s, charset));
+        h.call(write(s, charset).then());
         return this;
     }
 
-    default ChannelFuture write(String s) {
+    default NettyOutbound write(String s) {
         return write(s, Lang.CHARSET);
+    }
+
+    default HttpServerResponse write(String s, Hooks<ChannelFuture> h) {
+        h.call(write(s).then());
+        return this;
     }
 
     default ChannelFuture writeFlush(String s) {
@@ -194,10 +198,5 @@ public interface HttpServerResponse extends NettyOutbound {
 
     default ChannelFuture writeFlush(byte[] bytes) {
         return sendAndFlush(bytes).then();
-    }
-
-    default HttpServerResponse write(String s, Hooks<ChannelFuture> h) {
-        h.call(write(s));
-        return this;
     }
 }

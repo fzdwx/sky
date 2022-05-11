@@ -282,11 +282,6 @@ public class HttpServerResponseImpl extends ChannelOutBound implements HttpServe
     }
 
     @Override
-    public ChannelFuture write(final ByteBuf buf) {
-        return send(buf, false).then();
-    }
-
-    @Override
     public ChannelFuture reject() {
         return channel.close();
     }
