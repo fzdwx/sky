@@ -2,6 +2,7 @@ package core;
 
 import io.github.fzdwx.lambada.lang.NvMap;
 import io.netty.buffer.ByteBuf;
+import io.netty.buffer.ByteBufAllocator;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
@@ -16,7 +17,6 @@ import io.netty.handler.codec.http.HttpHeaderNames;
 import io.netty.handler.codec.http.HttpHeaderValues;
 import io.netty.handler.codec.http.HttpHeaders;
 import io.netty.handler.codec.http.QueryStringDecoder;
-import io.netty.handler.stream.ChunkedInput;
 import io.netty.handler.timeout.IdleState;
 import io.netty.handler.timeout.IdleStateEvent;
 import io.netty.handler.timeout.IdleStateHandler;
@@ -60,23 +60,12 @@ public final class Netty {
         return dest;
     }
 
-    public static ByteBuf allocInt() {
-        return Unpooled.buffer(4);
-    }
-
-    public static ByteBuf wrap(final byte[] binary) {
+    public static ByteBuf wrap(final ByteBufAllocator alloc, final byte[] binary) {
         if (binary == null || binary.length <= 0) {
             return empty;
         }
-        return Unpooled.wrappedBuffer(binary);
-    }
-
-    public static ChunkedInput<ByteBuf> chunked(byte[] data) {
-        return SingleChunkedInput.of(data, DEFAULT_CHUNK_SIZE);
-    }
-
-    public static ChunkedInput<ByteBuf> chunked(byte[] data, int chunkSize) {
-        return SingleChunkedInput.of(data, chunkSize);
+        final ByteBuf buffer = alloc.buffer(binary.length);
+        return buffer.writeBytes(binary);
     }
 
     public static boolean isWebSocket(HttpHeaders headers) {

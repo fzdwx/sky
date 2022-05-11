@@ -41,11 +41,11 @@ public class SocketSessionImpl implements SocketSession {
 
     @Override
     public ChannelFuture send(final byte[] text) {
-        return this.channel.writeAndFlush(new TextWebSocketFrame(Netty.wrap(text)));
+        return this.channel.writeAndFlush(new TextWebSocketFrame(Netty.wrap(channel.alloc(), text)));
     }
 
     @Override
     public ChannelFuture sendBinary(final byte[] binary) {
-        return this.channel.writeAndFlush(new BinaryWebSocketFrame(Netty.wrap(binary)));
+        return this.channel.writeAndFlush(new BinaryWebSocketFrame(Netty.wrap(channel.alloc(), binary)));
     }
 }

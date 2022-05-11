@@ -134,7 +134,7 @@ public interface HttpServerResponse extends NettyOutbound {
     void close();
 
     default ChannelFuture end(byte[] bytes) {
-        return end(Netty.wrap(bytes));
+        return end(Netty.wrap(alloc(), bytes));
     }
 
     default ChannelFuture end() {
@@ -142,11 +142,11 @@ public interface HttpServerResponse extends NettyOutbound {
     }
 
     default ChannelFuture end(String s) {
-        return end(Netty.wrap(s.getBytes()));
+        return end(Netty.wrap(alloc(), s.getBytes()));
     }
 
     default HttpServerResponse end(String s, Hooks<ChannelFuture> h) {
-        h.call(end(Netty.wrap(s.getBytes())));
+        h.call(end(Netty.wrap(alloc(),s.getBytes())));
         return this;
     }
 
@@ -170,7 +170,7 @@ public interface HttpServerResponse extends NettyOutbound {
     }
 
     default ChannelFuture write(byte[] bytes) {
-        return write(Netty.wrap(bytes));
+        return write(Netty.wrap(alloc(), bytes));
     }
 
     default HttpServerResponse write(byte[] bytes, Hooks<ChannelFuture> h) {

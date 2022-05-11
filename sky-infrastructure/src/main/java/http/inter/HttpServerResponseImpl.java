@@ -301,14 +301,14 @@ public class HttpServerResponseImpl extends ChannelOutBound implements HttpServe
 
     @Override
     public ChannelFuture json(final Object obj) {
-        this.contentType(ContentType.STREAM_JSON);
+        this.contentType(ContentType.JSON);
 
         if (obj == null) {
             return end("null");
         }
 
         // no catch exception
-        return end(serializer.encodeToBuf(obj));
+        return end(serializer.encodeToBuf(alloc(), obj));
     }
 
     @Override

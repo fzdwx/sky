@@ -2,6 +2,7 @@ package serializer;
 
 import core.Netty;
 import io.netty.buffer.ByteBuf;
+import io.netty.buffer.ByteBufAllocator;
 
 /**
  * @author <a href="mailto:likelovec@gmail.com">fzdwx</a>
@@ -11,7 +12,7 @@ public interface JsonSerializer extends Serializer {
 
     JsonSerializer codec = FasJsonSerializerSerializer.instance;
 
-    default ByteBuf encodeToBuf(final Object obj) {
-        return Netty.wrap(serialize(obj));
+    default ByteBuf encodeToBuf(final ByteBufAllocator alloc, final Object o) {
+        return Netty.wrap(alloc, serialize(o));
     }
 }
