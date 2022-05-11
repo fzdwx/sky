@@ -2,7 +2,6 @@ package http;
 
 import core.Netty;
 import http.inter.HttpServerRequestImpl;
-import socket.WebSocket;
 import io.github.fzdwx.lambada.Seq;
 import io.github.fzdwx.lambada.fun.Hooks;
 import io.github.fzdwx.lambada.fun.Result;
@@ -16,6 +15,8 @@ import io.netty.handler.codec.http.HttpVersion;
 import io.netty.handler.codec.http.multipart.Attribute;
 import io.netty.handler.codec.http.multipart.FileUpload;
 import io.netty.handler.codec.http.multipart.HttpDataFactory;
+import serializer.JsonSerializer;
+import socket.WebSocket;
 
 /**
  * http request.
@@ -29,8 +30,9 @@ public interface HttpServerRequest {
     static HttpServerRequest create(final ChannelHandlerContext ctx,
                                     final boolean ssl,
                                     final FullHttpRequest request,
-                                    final HttpDataFactory httpDataFactory) {
-        return new HttpServerRequestImpl(ctx, ssl, request, httpDataFactory);
+                                    final HttpDataFactory httpDataFactory,
+                                    final JsonSerializer serializer) {
+        return new HttpServerRequestImpl(ctx, ssl, request, httpDataFactory, serializer);
     }
 
     HttpVersion version();
@@ -42,6 +44,8 @@ public interface HttpServerRequest {
     NvMap params();
 
     boolean ssl();
+
+    JsonSerializer serializer();
 
     default HttpServerRequest readFile(Hooks<FileUpload> hooks, String key) {
         hooks.call(readFile(key));

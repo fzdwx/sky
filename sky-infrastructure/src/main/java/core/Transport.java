@@ -8,6 +8,7 @@ import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.handler.logging.LogLevel;
 import io.netty.handler.logging.LoggingHandler;
+import serializer.JsonSerializer;
 
 import java.net.InetSocketAddress;
 
@@ -24,6 +25,8 @@ public interface Transport<IMPL> {
 
     IMPL withWorkerGroup(EventLoopGroup worker);
 
+    IMPL withSerializer(JsonSerializer serializer);
+
     ChannelInitializer<SocketChannel> channelInitializer();
 
     IMPL withLog(LoggingHandler loggingHandler);
@@ -35,6 +38,8 @@ public interface Transport<IMPL> {
     void shutdown();
 
     boolean sslFlag();
+
+    JsonSerializer serializer();
 
     /**
      * @return this

@@ -35,7 +35,7 @@ import io.netty.handler.stream.ChunkedInput;
 import io.netty.handler.stream.ChunkedNioStream;
 import io.netty.handler.stream.ChunkedStream;
 import lombok.extern.slf4j.Slf4j;
-import ser.Json;
+import serializer.JsonSerializer;
 
 import java.io.InputStream;
 import java.nio.channels.ReadableByteChannel;
@@ -77,6 +77,8 @@ public class HttpServerResponseImpl extends ChannelOutBound implements HttpServe
     private final HttpVersion version;
     private final boolean keepAlive;
 
+    private final JsonSerializer serializer;
+
     private final boolean head; // method type is head?
     private HttpResponseStatus status;
     private List<Cookie> cookie;
@@ -105,6 +107,7 @@ public class HttpServerResponseImpl extends ChannelOutBound implements HttpServe
         this.status = HttpResponseStatus.OK;
         this.keepAlive = (version == HttpVersion.HTTP_1_1 && !httpRequest.headers().contains(HttpHeaderNames.CONNECTION, HttpHeaderValues.CLOSE, true)) || (version == HttpVersion.HTTP_1_0 && httpRequest.headers().contains(HttpHeaderNames.CONNECTION, HttpHeaderValues.KEEP_ALIVE, true));
         this.head = httpRequest.methodType() == HttpMethod.HEAD;
+        this.serializer = httpRequest.serializer();
     }
 
     @Override
@@ -184,6 +187,11 @@ public class HttpServerResponseImpl extends ChannelOutBound implements HttpServe
     @Override
     public boolean isEnd() {
         return END_STATE.get(this) != 0;
+    }
+
+    @Override
+    public JsonSerializer serializer() {
+        return this.serializer;
     }
 
     @Override
@@ -300,8 +308,7 @@ public class HttpServerResponseImpl extends ChannelOutBound implements HttpServe
         }
 
         // no catch exception
-        final var buf = Json.codec.encodeToBuf(obj);
-        return end(buf);
+        return end(serializer.encodeToBuf(obj));
     }
 
     @Override

@@ -3,9 +3,9 @@ package http;
 import core.Netty;
 import core.NettyOutbound;
 import http.inter.HttpServerResponseImpl;
-import io.github.fzdwx.lambada.http.ContentType;
 import io.github.fzdwx.lambada.Lang;
 import io.github.fzdwx.lambada.fun.Hooks;
+import io.github.fzdwx.lambada.http.ContentType;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.Channel;
@@ -13,6 +13,7 @@ import io.netty.channel.ChannelFuture;
 import io.netty.handler.codec.http.HttpHeaders;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import io.netty.handler.codec.http.HttpVersion;
+import serializer.JsonSerializer;
 
 import java.nio.charset.Charset;
 
@@ -40,6 +41,8 @@ public interface HttpServerResponse extends NettyOutbound {
      * is end of response.
      */
     boolean isEnd();
+
+    JsonSerializer serializer();
 
     /**
      * http version

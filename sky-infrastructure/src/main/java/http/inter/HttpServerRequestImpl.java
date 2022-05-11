@@ -2,9 +2,6 @@ package http.inter;
 
 import core.Netty;
 import http.HttpServerRequest;
-import socket.SocketSession;
-import socket.WebSocket;
-import socket.WebSocketHandler;
 import io.github.fzdwx.lambada.Seq;
 import io.github.fzdwx.lambada.fun.Hooks;
 import io.github.fzdwx.lambada.fun.Result;
@@ -26,6 +23,10 @@ import io.netty.handler.codec.http.multipart.HttpPostMultipartRequestDecoder;
 import io.netty.handler.codec.http.multipart.InterfaceHttpData;
 import io.netty.handler.codec.http.websocketx.CloseWebSocketFrame;
 import io.netty.handler.codec.http.websocketx.WebSocketServerHandshakerFactory;
+import serializer.JsonSerializer;
+import socket.SocketSession;
+import socket.WebSocket;
+import socket.WebSocketHandler;
 
 import static io.netty.handler.codec.http.websocketx.WebSocketServerHandshakerFactory.sendUnsupportedVersionResponse;
 
@@ -44,6 +45,7 @@ public class HttpServerRequestImpl implements HttpServerRequest {
     private final HttpMethod methodType;
     private final HttpVersion version;
     private final HttpHeaders headers;
+    private final JsonSerializer serializer;
     private final boolean ssl;
     private final HttpDataFactory httpDataFactory;
     private HttpPostMultipartRequestDecoder bodyDecoder;
@@ -51,9 +53,11 @@ public class HttpServerRequestImpl implements HttpServerRequest {
     private NvMap params;
     private final String uri;
 
-    public HttpServerRequestImpl(final ChannelHandlerContext ctx, final boolean ssl,
+    public HttpServerRequestImpl(final ChannelHandlerContext ctx,
+                                 final boolean ssl,
                                  final HttpRequest request,
-                                 final HttpDataFactory httpDataFactory) {
+                                 final HttpDataFactory httpDataFactory,
+                                 final JsonSerializer serializer) {
         this.ctx = ctx;
         this.channel = ctx.channel();
         this.request = request;
@@ -63,6 +67,7 @@ public class HttpServerRequestImpl implements HttpServerRequest {
         this.ssl = ssl;
         this.uri = request.uri();
         this.httpDataFactory = httpDataFactory;
+        this.serializer = serializer;
     }
 
     @Override
@@ -94,6 +99,11 @@ public class HttpServerRequestImpl implements HttpServerRequest {
     @Override
     public boolean ssl() {
         return this.ssl;
+    }
+
+    @Override
+    public JsonSerializer serializer() {
+        return this.serializer;
     }
 
     @Override

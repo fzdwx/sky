@@ -13,6 +13,7 @@ import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.handler.logging.LoggingHandler;
 import io.netty.handler.ssl.SslHandler;
+import serializer.JsonSerializer;
 
 import java.net.InetSocketAddress;
 import java.util.HashMap;
@@ -45,6 +46,8 @@ public class Server implements Transport<Server> {
     private SslHandler sslHandler;
 
     private InetSocketAddress address;
+
+    private JsonSerializer serializer;
 
     private Class<? extends ServerChannel> channelType = NioServerSocketChannel.class;
 
@@ -98,6 +101,15 @@ public class Server implements Transport<Server> {
     @Override
     public Server withWorkerGroup(final EventLoopGroup worker) {
         this.worker = worker;
+        return this;
+    }
+
+    /**
+     * default is {@link serializer.JsonSerializer#codec}
+     */
+    @Override
+    public Server withSerializer(final JsonSerializer serializer) {
+        this.serializer = serializer;
         return this;
     }
 
@@ -221,6 +233,11 @@ public class Server implements Transport<Server> {
     }
 
     @Override
+    public JsonSerializer serializer() {
+        return this.serializer;
+    }
+
+    @Override
     public Server impl() {
         return this;
     }
@@ -235,5 +252,9 @@ public class Server implements Transport<Server> {
         Objects.requireNonNull(boss, "boss event group is null");
         Objects.requireNonNull(worker, "worker event group is null");
         this.address = address;
+
+        if (this.serializer == null) {
+            this.serializer = JsonSerializer.codec;
+        }
     }
 }

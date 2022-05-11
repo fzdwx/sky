@@ -1,4 +1,4 @@
-package ser;
+package serializer;
 
 import core.Netty;
 import io.netty.buffer.ByteBuf;
@@ -7,9 +7,9 @@ import io.netty.buffer.ByteBuf;
  * @author <a href="mailto:likelovec@gmail.com">fzdwx</a>
  * @date 2022/3/21 17:58
  */
-public interface Json extends Serializer {
+public interface JsonSerializer extends Serializer {
 
-    Json codec = FasJsonSerializer.instance;
+    JsonSerializer codec = FasJsonSerializerSerializer.instance;
 
     default ByteBuf encodeToBuf(final Object obj) {
         return Netty.wrap(serialize(obj));

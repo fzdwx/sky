@@ -16,6 +16,7 @@ import io.netty.handler.logging.LogLevel;
 import io.netty.handler.logging.LoggingHandler;
 import io.netty.handler.ssl.SslHandler;
 import io.netty.handler.stream.ChunkedWriteHandler;
+import serializer.JsonSerializer;
 
 /**
  * http server implementation
@@ -60,7 +61,7 @@ public class HttpServer {
      * add server handler
      */
     public HttpServer withServerHandler(ChannelHandler handler) {
-        server.withServerHandler(handler);
+        this.server.withServerHandler(handler);
         return this;
     }
 
@@ -68,7 +69,7 @@ public class HttpServer {
      * ser child log handler
      */
     public HttpServer withLog(final LoggingHandler loggingHandler) {
-        server.withLog(loggingHandler);
+        this.server.withLog(loggingHandler);
         return this;
     }
 
@@ -83,7 +84,7 @@ public class HttpServer {
      * enable ssl.
      */
     public HttpServer withSsl(final SslHandler sslHandler) {
-        server.withSsl(sslHandler);
+        this.server.withSsl(sslHandler);
         this.sslFlag = true;
         return this;
     }
@@ -92,7 +93,7 @@ public class HttpServer {
      * add server option
      */
     public <T> HttpServer withServerOptions(ChannelOption<T> option, T t) {
-        server.withServerOptions(option, t);
+        this.server.withServerOptions(option, t);
         return this;
     }
 
@@ -100,7 +101,7 @@ public class HttpServer {
      * add child option
      */
     public <T> HttpServer withChildOptions(ChannelOption<T> option, T t) {
-        server.withChildOptions(option, t);
+        this.server.withChildOptions(option, t);
         return this;
     }
 
@@ -109,6 +110,14 @@ public class HttpServer {
      */
     public HttpServer withHttpDataFactory(final HttpDataFactory factory) {
         this.httpDataFactory = factory;
+        return this;
+    }
+
+    /**
+     * default is {@link serializer.JsonSerializer#codec}
+     */
+    public HttpServer withSerializer(final JsonSerializer serializer) {
+        this.server.withSerializer(serializer);
         return this;
     }
 
@@ -132,7 +141,7 @@ public class HttpServer {
      * after start hook.
      */
     public HttpServer afterStart(Hooks<ChannelFuture> hooks) {
-        server.afterStart(hooks);
+        this.server.afterStart(hooks);
         return this;
     }
 
@@ -144,31 +153,35 @@ public class HttpServer {
         this.withChildOptions(ChannelOption.TCP_NODELAY, true);
         this.withChildOptions(ChannelOption.SO_KEEPALIVE, true);
 
-        server.bind(port)
+        this.server.bind(port)
                 .withInitChannel(channel -> {
                     channel.pipeline().addLast(new HttpServerCodec())
                             .addLast(new HttpObjectAggregator(1024 * 1024))
                             .addLast(new ChunkedWriteHandler())
                             .addLast(new HttpServerExpectContinueHandler())
-                            .addLast(new HttpServerHandler(consumer, exceptionHandler,sslFlag, httpDataFactory));
+                            .addLast(new HttpServerHandler(consumer, exceptionHandler, sslFlag, httpDataFactory, serializer()));
                 });
 
         return this;
     }
 
     public ChannelFuture dispose() {
-        return server.dispose();
+        return this.server.dispose();
     }
 
     public void shutdown() {
-        server.shutdown();
+        this.server.shutdown();
     }
 
     public String scheme() {
-        return sslFlag ? "https" : "http";
+        return this.sslFlag ? "https" : "http";
     }
 
     public int port() {
-        return server.port();
+        return this.server.port();
+    }
+
+    public JsonSerializer serializer() {
+        return this.server.serializer();
     }
 }

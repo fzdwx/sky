@@ -10,6 +10,7 @@ import io.netty.handler.codec.http.multipart.DefaultHttpDataFactory;
 import io.netty.handler.codec.http.multipart.HttpDataFactory;
 import io.netty.util.ReferenceCountUtil;
 import lombok.extern.slf4j.Slf4j;
+import serializer.JsonSerializer;
 
 @Slf4j
 public class HttpServerHandler extends ChannelInboundHandlerAdapter {
@@ -18,13 +19,15 @@ public class HttpServerHandler extends ChannelInboundHandlerAdapter {
     private final boolean ssl;
     private final HttpDataFactory httpDataFactory;
     private final HttpExceptionHandler exceptionHandler;
+    private final JsonSerializer serializer;
 
     public HttpServerHandler(final HttpRequestConsumer consumer, final HttpExceptionHandler exceptionHandler, final Boolean ssl,
-                             final HttpDataFactory httpDataFactory) {
+                             final HttpDataFactory httpDataFactory, final JsonSerializer serializer) {
         this.consumer = consumer;
         this.exceptionHandler = HttpExceptionHandler.defaultExceptionHandler(exceptionHandler);
         this.ssl = ssl;
         this.httpDataFactory = httpDataFactory == null ? new DefaultHttpDataFactory(DefaultHttpDataFactory.MINSIZE) : httpDataFactory;
+        this.serializer = serializer == null ? JsonSerializer.codec : serializer;
     }
 
     @Override
@@ -60,7 +63,7 @@ public class HttpServerHandler extends ChannelInboundHandlerAdapter {
      */
     public void handleRequest(final ChannelHandlerContext ctx, final FullHttpRequest request) {
 
-        final var httpRequest = HttpServerRequest.create(ctx, ssl, request, httpDataFactory);
+        final var httpRequest = HttpServerRequest.create(ctx, ssl, request, httpDataFactory, serializer);
         final var response = HttpServerResponse.create(ctx.channel(), httpRequest);
 
         try {
