@@ -27,6 +27,8 @@ import java.util.Objects;
  */
 public class Client implements Transport<Client> {
 
+    public boolean startFlag = false;
+
     private Bootstrap bootstrap;
     private EventLoopGroup worker;
     private JsonSerializer serializer;
@@ -61,18 +63,21 @@ public class Client implements Transport<Client> {
     }
 
     public <T> Client withOptions(ChannelOption<T> option, T t) {
+        checkStart();
         childOptions.put(option, t);
         return this;
     }
 
     @Override
     public Client withWorkerGroup(final EventLoopGroup worker) {
+        checkStart();
         this.worker = worker;
         return this;
     }
 
     @Override
     public Client withSerializer(final JsonSerializer serializer) {
+        checkStart();
         this.serializer = serializer;
         return this;
     }
@@ -81,12 +86,37 @@ public class Client implements Transport<Client> {
      * use ssl connect
      */
     public Client withSsl() {
+        checkStart();
         this.sslFlag = true;
         return this;
     }
 
     @Override
+    public Client withLog(final LoggingHandler loggingHandler) {
+        checkStart();
+        this.loggingHandler = loggingHandler;
+        return this;
+    }
+
+    @Override
+    public Client withInitChannel(final Hooks<SocketChannel> hooks) {
+        checkStart();
+        this.socketChannelInitHooks = hooks;
+        return this;
+    }
+
+    /**
+     * @apiNote default is {@link NioSocketChannel}
+     */
+    public Client withChannelType(final Class<? extends Channel> channelType) {
+        checkStart();
+        this.channelType = channelType;
+        return this;
+    }
+
+    @Override
     public ChannelInitializer<SocketChannel> channelInitializer() {
+        checkNotStart();
         return new ChannelInitializer<>() {
             @Override
             protected void initChannel(final SocketChannel ch) throws Exception {
@@ -106,32 +136,14 @@ public class Client implements Transport<Client> {
     }
 
     @Override
-    public Client withLog(final LoggingHandler loggingHandler) {
-        this.loggingHandler = loggingHandler;
-        return this;
-    }
-
-    @Override
-    public Client withInitChannel(final Hooks<SocketChannel> hooks) {
-        this.socketChannelInitHooks = hooks;
-        return this;
-    }
-
-    /**
-     * @apiNote default is {@link NioSocketChannel}
-     */
-    public Client withChannelType(final Class<? extends Channel> channelType) {
-        this.channelType = channelType;
-        return this;
-    }
-
-    @Override
     public ChannelFuture dispose() {
+        checkNotStart();
         return startFuture.channel().closeFuture().syncUninterruptibly();
     }
 
     @Override
     public void close() {
+        checkNotStart();
         this.worker.shutdownGracefully();
     }
 
@@ -151,6 +163,7 @@ public class Client implements Transport<Client> {
     }
 
     private void preStart(final InetSocketAddress address) {
+        this.startFlag = true;
         Objects.requireNonNull(address, "address is null");
         Objects.requireNonNull(channelType, "channelType is null");
 
@@ -162,6 +175,18 @@ public class Client implements Transport<Client> {
 
         if (this.serializer == null) {
             this.serializer = JsonSerializer.codec;
+        }
+    }
+
+    private void checkStart() {
+        if (startFlag) {
+            throw new IllegalStateException("client is already started");
+        }
+    }
+
+    private void checkNotStart() {
+        if (!startFlag) {
+            throw new IllegalStateException("client is not started");
         }
     }
 }

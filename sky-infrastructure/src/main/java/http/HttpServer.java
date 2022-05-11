@@ -153,14 +153,15 @@ public class HttpServer {
         this.withChildOptions(ChannelOption.TCP_NODELAY, true);
         this.withChildOptions(ChannelOption.SO_KEEPALIVE, true);
 
-        this.server.start(port)
+        this.server
                 .withInitChannel(channel -> {
                     channel.pipeline().addLast(new HttpServerCodec())
                             .addLast(new HttpObjectAggregator(1024 * 1024))
                             .addLast(new ChunkedWriteHandler())
                             .addLast(new HttpServerExpectContinueHandler())
                             .addLast(new HttpServerHandler(consumer, exceptionHandler, sslFlag, httpDataFactory, serializer()));
-                });
+                })
+                .start(port);
 
         return this;
     }

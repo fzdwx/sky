@@ -22,7 +22,6 @@ class ServerTest {
         final Server s = new Server()
                 .withGroup(0, 0)
                 .withLog(LogLevel.INFO)
-                .start(8888)
                 .withInitChannel(ch -> {
                     ch.pipeline().addLast(new ChannelInboundHandlerAdapter() {
                         @Override
@@ -35,7 +34,8 @@ class ServerTest {
                                     });
                         }
                     });
-                });
+                })
+                .start(8888);
 
         s.dispose();
     }

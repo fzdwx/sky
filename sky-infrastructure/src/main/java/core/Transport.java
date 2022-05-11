@@ -27,11 +27,11 @@ public interface Transport<IMPL> {
 
     IMPL withSerializer(JsonSerializer serializer);
 
-    ChannelInitializer<SocketChannel> channelInitializer();
-
     IMPL withLog(LoggingHandler loggingHandler);
 
     IMPL withInitChannel(Hooks<SocketChannel> hooks);
+
+    ChannelInitializer<SocketChannel> channelInitializer();
 
     ChannelFuture dispose();
 

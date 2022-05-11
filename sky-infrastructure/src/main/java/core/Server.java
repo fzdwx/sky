@@ -48,6 +48,7 @@ public class Server implements Transport<Server> {
     private InetSocketAddress address;
 
     private JsonSerializer serializer;
+    private boolean startFlag = false;
 
     private Class<? extends ServerChannel> channelType = NioServerSocketChannel.class;
 
@@ -61,89 +62,74 @@ public class Server implements Transport<Server> {
         this.bootstrap = new ServerBootstrap();
     }
 
-    /**
-     * @apiNote before bind
-     */
     public Server withGroup(final int bossCount, final int workerCount) {
+        checkStart();
         this.boss = new NioEventLoopGroup(bossCount);
         this.worker = new NioEventLoopGroup(workerCount);
         return this;
     }
 
-    /**
-     * @apiNote before bind
-     */
     public Server withGroup(final EventLoopGroup boss, final EventLoopGroup worker) {
+        checkStart();
         this.boss = boss;
         this.worker = worker;
         return this;
     }
 
-    /**
-     * @apiNote before bind
-     */
     public Server withBossWorkerGroup(final EventLoopGroup boss) {
+        checkStart();
         this.worker = boss;
         return this;
     }
 
-    /**
-     * @apiNote default is {@link NioServerSocketChannel}
-     */
     public Server withChannelType(Class<? extends ServerChannel> channelType) {
+        checkStart();
         this.channelType = channelType;
         return this;
     }
 
-    /**
-     * @apiNote before bind
-     */
     @Override
     public Server withWorkerGroup(final EventLoopGroup worker) {
+        checkStart();
         this.worker = worker;
         return this;
     }
 
-    /**
-     * default is {@link serializer.JsonSerializer#codec}
-     */
     @Override
     public Server withSerializer(final JsonSerializer serializer) {
+        checkStart();
+
         this.serializer = serializer;
         return this;
     }
 
-    /**
-     * @apiNote before bind
-     */
     public <T> Server withServerOptions(ChannelOption<T> option, T t) {
+        checkStart();
         serverOptions.put(option, t);
         return this;
     }
 
-    /**
-     * @apiNote before bind
-     */
     public <T> Server withChildOptions(ChannelOption<T> option, T t) {
+        checkStart();
         childOptions.put(option, t);
         return this;
     }
 
-    /**
-     * add server handler
-     */
     public Server withServerHandler(ChannelHandler handler) {
+        checkStart();
         serverHandlers.add(handler);
         return this;
     }
 
     @Override
     public Server withLog(final LoggingHandler loggingHandler) {
+        checkStart();
         this.loggingHandler = loggingHandler;
         return this;
     }
 
     public Server withSsl(final SslHandler sslHandler) {
+        checkStart();
         this.sslHandler = sslHandler;
         this.sslFlag = true;
         return this;
@@ -151,19 +137,19 @@ public class Server implements Transport<Server> {
 
     @Override
     public Server withInitChannel(Hooks<SocketChannel> hooks) {
+        checkStart();
         socketChannelInitHooks = hooks;
         return this;
     }
 
     public Server withBossWorkerGroup(final int bossCount) {
+        checkStart();
         return withBossWorkerGroup(new NioEventLoopGroup(bossCount));
     }
 
-    /**
-     * @apiNote before bind
-     */
     @Override
     public ChannelInitializer<SocketChannel> channelInitializer() {
+        checkNotStart();
         return new ChannelInitializer<>() {
             @Override
             protected void initChannel(final SocketChannel ch) throws Exception {
@@ -179,6 +165,7 @@ public class Server implements Transport<Server> {
     }
 
     public Server afterStart(Hooks<ChannelFuture> hooks) {
+        checkStart();
         this.afterStartHooks = hooks;
         return this;
     }
@@ -219,6 +206,7 @@ public class Server implements Transport<Server> {
 
     @Override
     public void close() {
+        checkNotStart();
         if (!this.worker.isShutdown()) {
             this.worker.shutdownGracefully();
         }
@@ -247,6 +235,7 @@ public class Server implements Transport<Server> {
     }
 
     private void preStart(final InetSocketAddress address) {
+        this.startFlag = true;
         Objects.requireNonNull(address, "address is null");
         Objects.requireNonNull(channelType, "channelType is null");
         this.address = address;
@@ -261,6 +250,18 @@ public class Server implements Transport<Server> {
 
         if (this.serializer == null) {
             this.serializer = JsonSerializer.codec;
+        }
+    }
+
+    private void checkStart() {
+        if (startFlag) {
+            throw new IllegalStateException("client is already started");
+        }
+    }
+
+    private void checkNotStart() {
+        if (!startFlag) {
+            throw new IllegalStateException("client is not started");
         }
     }
 }
