@@ -4,6 +4,7 @@ import io.github.fzdwx.lambada.fun.Hooks;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
+import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelOption;
 import io.netty.channel.EventLoopGroup;
@@ -14,6 +15,7 @@ import io.netty.handler.logging.LoggingHandler;
 import io.netty.handler.ssl.SslContextBuilder;
 import io.netty.handler.ssl.SslHandler;
 import io.netty.handler.ssl.util.InsecureTrustManagerFactory;
+import lombok.extern.slf4j.Slf4j;
 import serializer.JsonSerializer;
 
 import java.net.InetSocketAddress;
@@ -21,19 +23,21 @@ import java.time.Duration;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
+import java.util.concurrent.TimeUnit;
 
 /**
  * @author <a href="mailto:likelovec@gmail.com">韦朕</a>
  * @date 2022/5/11 15:10
  */
+@Slf4j
 public class Client implements Transport<Client> {
 
     private final int DEFAULT_MAX_RECONNECT_TIMES = 3;
     private final Duration DEFAULT_RECONNECT_TIMEOUT = Duration.ofSeconds(1);
     private int maxReconnectTimes;
+    private int reconnectTimes = 0;
     private Duration reconnectTimeout;
     private boolean enableAutoReconnect = false;
-
     public boolean startFlag = false;
     private Bootstrap bootstrap;
     private EventLoopGroup worker;
@@ -43,6 +47,7 @@ public class Client implements Transport<Client> {
     private InetSocketAddress address;
     private Hooks<SocketChannel> socketChannelInitHooks;
     private ChannelFuture startFuture;
+    private Channel channel;
     private Class<? extends Channel> channelType = NioSocketChannel.class;
 
     private final Map<ChannelOption<?>, Object> childOptions = new HashMap<>();
@@ -59,11 +64,9 @@ public class Client implements Transport<Client> {
             this.bootstrap = bootstrap.option((ChannelOption<Object>) entry.getKey(), entry.getValue());
         }
 
-        this.startFuture = bootstrap
-                .group(worker)
-                .channel(channelType)
-                .handler(channelInitializer())
-                .connect(address);
+        bootstrap.group(worker).channel(channelType).handler(channelInitializer());
+
+        connect();
 
         return this;
     }
@@ -172,7 +175,7 @@ public class Client implements Transport<Client> {
                 }
 
                 if (enableAutoReconnect) {
-                    // todo
+                    ch.pipeline().addFirst(new ReconnectHandler(Client.this::reconnect));
                 }
                 socketChannelInitHooks.call(ch);
             }
@@ -234,7 +237,50 @@ public class Client implements Transport<Client> {
         }
     }
 
-    ChannelFuture connect() {
-        return bootstrap.connect(address);
+    void connect() {
+        connect(false);
     }
+
+    void reconnect() {
+        connect(true);
+    }
+
+    void connect(final boolean reconnectFlag) {
+        if (channel != null && channel.isActive()) {
+            return;
+        }
+
+        startFuture = bootstrap.connect(address);
+
+        startFuture.addListener((ChannelFutureListener) futureListener -> {
+            if (reconnectFlag) {
+                reconnectTimes++;
+            }
+
+            if (futureListener.isSuccess()) {
+                channel = futureListener.channel();
+
+                log.info("connect to {} success", address);
+                this.reconnectTimes = 0;
+            } else {
+                log.error("connect to {} failed", address, futureListener.cause());
+
+                if (reconnectTimes > maxReconnectTimes) {
+                    log.error("connect to {} failed, max reconnect times {}", address, maxReconnectTimes);
+                    return;
+                }
+
+                if (reconnectFlag) {
+                    log.info("reconnect times:{},maxTimes:{},delay:{}", reconnectTimes, maxReconnectTimes, this.reconnectTimeout.toString());
+                } else {
+                    log.info("reconnect delay:{}", this.reconnectTimeout.toString());
+                }
+
+                futureListener.channel().eventLoop().schedule(() -> {
+                    Client.this.connect(reconnectFlag);
+                }, this.reconnectTimeout.toMillis(), TimeUnit.MILLISECONDS);
+            }
+        });
+    }
+
 }
