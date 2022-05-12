@@ -2,11 +2,13 @@ package core;
 
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author <a href="mailto:likelovec@gmail.com">韦朕</a>
  * @date 2022/5/12 10:25
  */
+@Slf4j
 public class ReconnectHandler extends ChannelInboundHandlerAdapter {
 
     private final static String CONNECTION_RESET_MESSAGE = "java.net.SocketException: Connection reset";
@@ -19,15 +21,11 @@ public class ReconnectHandler extends ChannelInboundHandlerAdapter {
 
     @Override
     public void exceptionCaught(final ChannelHandlerContext ctx, final Throwable cause) throws Exception {
-        // if (Lang.eq(cause.toString(), CONNECTION_RESET_MESSAGE)) {
-        //     reconnectFunc.run();
-        // }
-        System.out.println("error");
     }
 
     @Override
     public void channelInactive(final ChannelHandlerContext ctx) throws Exception {
-        System.out.println("run reconnect func");
+        log.info("call reconnectFunc");
         reconnectFunc.run();
         //channelUnregistered
     }
