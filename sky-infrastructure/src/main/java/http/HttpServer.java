@@ -41,8 +41,19 @@ public class HttpServer implements Transport<HttpServer> {
         this.server = new Server();
     }
 
+    private HttpServer(Server server) {
+        this.server = server;
+    }
+
     public static HttpServer create() {
         return new HttpServer();
+    }
+
+    /**
+     * customization server impl,change HTTP Server core.
+     */
+    public static HttpServer create(Server server) {
+        return new HttpServer(server);
     }
 
     /**
