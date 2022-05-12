@@ -32,10 +32,9 @@ import java.net.InetSocketAddress;
 public class HttpServer implements Transport<HttpServer> {
 
     private final Server server;
+    private boolean sslFlag;
+    private HttpDataFactory httpDataFactory;
     private HttpRequestConsumer consumer;
-
-    private boolean sslFlag = false;
-    private HttpDataFactory httpDataFactory = null;
     private HttpExceptionHandler exceptionHandler;
 
     private HttpServer() {
@@ -174,7 +173,11 @@ public class HttpServer implements Transport<HttpServer> {
         this.withChildOptions(ChannelOption.SO_KEEPALIVE, true);
 
         this.server.withInitChannel(channel -> {
-            channel.pipeline().addLast(new HttpServerCodec()).addLast(new HttpObjectAggregator(1024 * 1024)).addLast(new ChunkedWriteHandler()).addLast(new HttpServerExpectContinueHandler()).addLast(new HttpServerHandler(consumer, exceptionHandler, sslFlag, httpDataFactory, serializer()));
+            channel.pipeline()
+                    .addLast(new HttpServerCodec())
+                    .addLast(new HttpObjectAggregator(1024 * 1024))
+                    .addLast(new ChunkedWriteHandler()).addLast(new HttpServerExpectContinueHandler())
+                    .addLast(new HttpServerHandler(consumer, exceptionHandler, sslFlag, httpDataFactory, serializer()));
         }).start(address);
 
         return this;
