@@ -1,13 +1,16 @@
 package http;
 
 import core.Server;
+import core.Transport;
 import http.ext.HttpExceptionHandler;
 import http.ext.HttpRequestConsumer;
 import io.github.fzdwx.lambada.fun.Hooks;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelHandler;
+import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelOption;
 import io.netty.channel.EventLoopGroup;
+import io.netty.channel.socket.SocketChannel;
 import io.netty.handler.codec.http.HttpObjectAggregator;
 import io.netty.handler.codec.http.HttpServerCodec;
 import io.netty.handler.codec.http.HttpServerExpectContinueHandler;
@@ -18,13 +21,15 @@ import io.netty.handler.ssl.SslHandler;
 import io.netty.handler.stream.ChunkedWriteHandler;
 import serializer.JsonSerializer;
 
+import java.net.InetSocketAddress;
+
 /**
  * http server implementation
  *
  * @author <a href="mailto:likelovec@gmail.com">fzdwx</a>
  * @date 2022/5/6 16:19
  */
-public class HttpServer {
+public class HttpServer implements Transport<HttpServer> {
 
     private final Server server;
     private HttpRequestConsumer consumer;
@@ -70,6 +75,23 @@ public class HttpServer {
      */
     public HttpServer withLog(final LoggingHandler loggingHandler) {
         this.server.withLog(loggingHandler);
+        return this;
+    }
+
+    @Override
+    public HttpServer withInitChannel(final Hooks<SocketChannel> hooks) {
+        this.server.withInitChannel(hooks);
+        return this;
+    }
+
+    @Override
+    public ChannelInitializer<SocketChannel> channelInitializer() {
+        return server.channelInitializer();
+    }
+
+    @Override
+    public HttpServer withWorker(final EventLoopGroup worker) {
+        this.server.withWorker(worker);
         return this;
     }
 
@@ -145,29 +167,38 @@ public class HttpServer {
         return this;
     }
 
-    /**
-     * start server
-     */
-    public HttpServer start(final int port) {
+    @Override
+    public HttpServer start(final InetSocketAddress address) {
         this.withServerOptions(ChannelOption.SO_BACKLOG, 1024);
         this.withChildOptions(ChannelOption.TCP_NODELAY, true);
         this.withChildOptions(ChannelOption.SO_KEEPALIVE, true);
 
-        this.server
-                .withInitChannel(channel -> {
-                    channel.pipeline().addLast(new HttpServerCodec())
-                            .addLast(new HttpObjectAggregator(1024 * 1024))
-                            .addLast(new ChunkedWriteHandler())
-                            .addLast(new HttpServerExpectContinueHandler())
-                            .addLast(new HttpServerHandler(consumer, exceptionHandler, sslFlag, httpDataFactory, serializer()));
-                })
-                .start(port);
+        this.server.withInitChannel(channel -> {
+            channel.pipeline().addLast(new HttpServerCodec()).addLast(new HttpObjectAggregator(1024 * 1024)).addLast(new ChunkedWriteHandler()).addLast(new HttpServerExpectContinueHandler()).addLast(new HttpServerHandler(consumer, exceptionHandler, sslFlag, httpDataFactory, serializer()));
+        }).start(address);
 
         return this;
     }
 
+    /**
+     * start server
+     */
+    public HttpServer start(final int port) {
+        return this.start(new InetSocketAddress(port));
+    }
+
     public ChannelFuture dispose() {
         return this.server.dispose();
+    }
+
+    @Override
+    public void close() {
+        this.server.close();
+    }
+
+    @Override
+    public boolean sslFlag() {
+        return this.server.sslFlag();
     }
 
     public void shutdown() {
@@ -184,5 +215,10 @@ public class HttpServer {
 
     public JsonSerializer serializer() {
         return this.server.serializer();
+    }
+
+    @Override
+    public HttpServer impl() {
+        return this;
     }
 }

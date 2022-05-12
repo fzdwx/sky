@@ -23,7 +23,7 @@ public interface Transport<IMPL> {
      */
     IMPL start(InetSocketAddress address);
 
-    IMPL withWorkerGroup(EventLoopGroup worker);
+    IMPL withWorker(EventLoopGroup worker);
 
     IMPL withSerializer(JsonSerializer serializer);
 
@@ -54,8 +54,8 @@ public interface Transport<IMPL> {
         return start(new InetSocketAddress(host, port));
     }
 
-    default IMPL withWorkerGroup(int workerCount) {
-        return withWorkerGroup(new NioEventLoopGroup(workerCount));
+    default IMPL withWorker(int workerCount) {
+        return withWorker(new NioEventLoopGroup(workerCount));
     }
 
     /**

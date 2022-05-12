@@ -78,7 +78,7 @@ public class Client implements Transport<Client> {
     }
 
     @Override
-    public Client withWorkerGroup(final EventLoopGroup worker) {
+    public Client withWorker(final EventLoopGroup worker) {
         checkStart();
         this.worker = worker;
         return this;

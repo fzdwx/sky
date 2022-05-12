@@ -76,22 +76,22 @@ public class Server implements Transport<Server> {
         return this;
     }
 
-    public Server withBossWorkerGroup(final EventLoopGroup boss) {
+    public Server withBoss(final EventLoopGroup boss) {
         checkStart();
         this.worker = boss;
+        return this;
+    }
+
+    @Override
+    public Server withWorker(final EventLoopGroup worker) {
+        checkStart();
+        this.worker = worker;
         return this;
     }
 
     public Server withChannelType(Class<? extends ServerChannel> channelType) {
         checkStart();
         this.channelType = channelType;
-        return this;
-    }
-
-    @Override
-    public Server withWorkerGroup(final EventLoopGroup worker) {
-        checkStart();
-        this.worker = worker;
         return this;
     }
 
@@ -142,9 +142,9 @@ public class Server implements Transport<Server> {
         return this;
     }
 
-    public Server withBossWorkerGroup(final int bossCount) {
+    public Server withBoss(final int bossCount) {
         checkStart();
-        return withBossWorkerGroup(new NioEventLoopGroup(bossCount));
+        return withBoss(new NioEventLoopGroup(bossCount));
     }
 
     @Override
