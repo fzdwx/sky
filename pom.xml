@@ -7,7 +7,7 @@
     <groupId>io.github.fzdwx</groupId>
     <artifactId>sky</artifactId>
     <packaging>pom</packaging>
-    <version>0.10.4-dev</version>
+    <version>0.10.4</version>
     <modules>
         <module>sky-infrastructure</module>
     </modules>
@@ -17,8 +17,8 @@
         <maven.compiler.target>17</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
-        <lambda.version>0.10.1-dev</lambda.version>
-        <sky.version>0.10.4-dev</sky.version>
+        <lambda.version>0.10.1</lambda.version>
+        <sky.version>0.10.4</sky.version>
 
         <netty.version>4.1.77.Final</netty.version>
         <lombok.version>1.18.22</lombok.version>
