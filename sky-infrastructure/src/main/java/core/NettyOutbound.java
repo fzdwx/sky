@@ -31,11 +31,11 @@ public interface NettyOutbound {
     }
 
     default NettyOutbound send(byte[] data) {
-        return send(Netty.wrap(data));
+        return send(Netty.wrap(alloc(), data));
     }
 
     default NettyOutbound sendAndFlush(byte[] data) {
-        return send(Netty.wrap(data), true);
+        return send(Netty.wrap(alloc(), data), true);
     }
 
     default NettyOutbound then(Throwable t) {

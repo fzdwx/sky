@@ -1,4 +1,4 @@
-package ser;
+package serializer;
 
 /**
  * serializer.
@@ -8,6 +8,8 @@ package ser;
  * @since 0.06
  */
 public interface Serializer {
+
+    Serializer DEFAULT = JsonSerializer.codec;
 
     /**
      * @since 0.06

@@ -5,14 +5,15 @@ import core.NettyOutbound;
 import http.inter.HttpServerResponseImpl;
 import io.github.fzdwx.lambada.Lang;
 import io.github.fzdwx.lambada.fun.Hooks;
+import io.github.fzdwx.lambada.http.ContentType;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
 import io.netty.handler.codec.http.HttpHeaders;
-import io.netty.handler.codec.http.HttpMessage;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import io.netty.handler.codec.http.HttpVersion;
+import serializer.JsonSerializer;
 
 import java.nio.charset.Charset;
 
@@ -41,6 +42,8 @@ public interface HttpServerResponse extends NettyOutbound {
      */
     boolean isEnd();
 
+    JsonSerializer serializer();
+
     /**
      * http version
      */
@@ -51,6 +54,8 @@ public interface HttpServerResponse extends NettyOutbound {
     HttpServerResponse keepAlive(boolean keepAlive);
 
     HttpServerResponse contentType(final String contentType);
+
+    HttpServerResponse contentType(final ContentType contentType);
 
     HttpServerResponse contentDisposition(final String contentDisposition);
 
@@ -99,24 +104,13 @@ public interface HttpServerResponse extends NettyOutbound {
      */
     HttpServerResponse cookie(String key, String val);
 
-    /**
-     * write buf to client.
-     */
-    ChannelFuture write(ByteBuf buf);
-
     ChannelFuture reject();
 
-    ChannelFuture reject(HttpMessage result);
-
     /**
-     * @apiNote auto flush and close
-     */
-    void redirect(String url);
-
-    /**
+     * @return
      * @since 0.07
      */
-    void redirect(String url, Hooks<ChannelFuture> h);
+    ChannelFuture redirect(String url);
 
     /**
      * out put json data to client.
@@ -135,7 +129,7 @@ public interface HttpServerResponse extends NettyOutbound {
     void close();
 
     default ChannelFuture end(byte[] bytes) {
-        return end(Netty.wrap(bytes));
+        return end(Netty.wrap(alloc(), bytes));
     }
 
     default ChannelFuture end() {
@@ -143,17 +137,14 @@ public interface HttpServerResponse extends NettyOutbound {
     }
 
     default ChannelFuture end(String s) {
-        return end(Netty.wrap(s.getBytes()));
+        return end(Netty.wrap(alloc(), s.getBytes()));
     }
 
     default HttpServerResponse end(String s, Hooks<ChannelFuture> h) {
-        h.call(end(Netty.wrap(s.getBytes())));
+        h.call(end(Netty.wrap(alloc(), s.getBytes())));
         return this;
     }
 
-    /**
-     * @since 0.07
-     */
     default void json(final Object obj, Hooks<ChannelFuture> h) {
         h.call(json(obj));
     }
@@ -165,39 +156,47 @@ public interface HttpServerResponse extends NettyOutbound {
         h.call(html(html));
     }
 
-    default HttpServerResponse write(ByteBuf buf, Hooks<ChannelFuture> h) {
-        h.call(write(buf));
-        return this;
+    default NettyOutbound write(ByteBuf buf) {
+        return send(buf, false);
     }
 
-    default ChannelFuture write(byte[] bytes) {
-        return write(Netty.wrap(bytes));
+    default NettyOutbound write(byte[] bytes) {
+        return write(Netty.wrap(alloc(), bytes));
+    }
+
+    default HttpServerResponse write(ByteBuf buf, Hooks<ChannelFuture> h) {
+        h.call(write(buf).then());
+        return this;
     }
 
     default HttpServerResponse write(byte[] bytes, Hooks<ChannelFuture> h) {
-        h.call(write(bytes));
+        h.call(write(bytes).then());
         return this;
     }
 
-    default ChannelFuture write(String s, Charset charset) {
+    default NettyOutbound write(String s, Charset charset) {
         return write(s.getBytes(charset));
     }
 
     default HttpServerResponse write(String s, Charset charset, Hooks<ChannelFuture> h) {
-        h.call(write(s, charset));
+        h.call(write(s, charset).then());
         return this;
     }
 
-    default ChannelFuture write(String s) {
+    default NettyOutbound write(String s) {
         return write(s, Lang.CHARSET);
+    }
+
+    default HttpServerResponse write(String s, Hooks<ChannelFuture> h) {
+        h.call(write(s).then());
+        return this;
     }
 
     default ChannelFuture writeFlush(String s) {
         return sendAndFlush(s.getBytes(Lang.CHARSET)).then();
     }
 
-    default HttpServerResponse write(String s, Hooks<ChannelFuture> h) {
-        h.call(write(s));
-        return this;
+    default ChannelFuture writeFlush(byte[] bytes) {
+        return sendAndFlush(bytes).then();
     }
 }

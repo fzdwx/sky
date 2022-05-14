@@ -1,4 +1,4 @@
-package ser;
+package serializer;
 
 
 import com.alibaba.fastjson2.JSON;
@@ -10,9 +10,9 @@ import com.alibaba.fastjson2.JSON;
  * @date 2022/3/17 17:28
  * @since 0.06
  */
-public class FasJsonSerializer implements Json {
+public class FasJsonSerializerSerializer implements JsonSerializer {
 
-    public static FasJsonSerializer instance = new FasJsonSerializer();
+    public static FasJsonSerializerSerializer instance = new FasJsonSerializerSerializer();
 
     @Override
     public byte[] serialize(final Object obj) {
