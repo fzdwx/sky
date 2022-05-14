@@ -22,7 +22,7 @@
 
         <netty.version>4.1.77.Final</netty.version>
         <lombok.version>1.18.22</lombok.version>
-        <fastjson.version>2.0.2</fastjson.version>
+        <fastjson2.version>2.0.3</fastjson2.version>
         <junit.version>5.8.2</junit.version>
     </properties>
 
@@ -31,7 +31,7 @@
             <dependency>
                 <groupId>com.alibaba.fastjson2</groupId>
                 <artifactId>fastjson2</artifactId>
-                <version>${fastjson.version}</version>
+                <version>${fastjson2.version}</version>
             </dependency>
             <dependency>
                 <groupId>io.github.fzdwx</groupId>
