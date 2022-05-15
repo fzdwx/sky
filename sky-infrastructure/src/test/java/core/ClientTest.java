@@ -35,7 +35,7 @@ class ClientTest {
                         });
                     })
                     .withEnableAutoReconnect(Duration.ofSeconds(10))
-                    .start("localhost", 8888);
+                    .listen("localhost", 8888);
 
             c.dispose();
         }).start();

@@ -77,10 +77,7 @@ class HttpServerTest {
                     response.notFound(req.toString());
 
                 })
-                .afterStart(h -> {
-                    System.out.println("http server start http://localhost:" + port);
-                })
-                .start(port)
+                .listen(port)
                 .dispose();
 
         // Lang.sleep(Duration.ofSeconds(1000000000L));

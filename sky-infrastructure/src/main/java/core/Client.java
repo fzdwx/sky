@@ -34,11 +34,12 @@ public class Client implements Transport<Client> {
 
     private final int DEFAULT_MAX_RECONNECT_TIMES = 3;
     private final Duration DEFAULT_RECONNECT_TIMEOUT = Duration.ofSeconds(1);
+    private final Map<ChannelOption<?>, Object> childOptions = new HashMap<>();
+    public boolean startFlag = false;
     private int maxReconnectTimes;
     private int reconnectTimes = 0;
     private Duration reconnectTimeout;
     private boolean enableAutoReconnect = false;
-    public boolean startFlag = false;
     private Bootstrap bootstrap;
     private EventLoopGroup worker;
     private JsonSerializer serializer;
@@ -49,15 +50,16 @@ public class Client implements Transport<Client> {
     private ChannelFuture startFuture;
     private Channel channel;
     private Class<? extends Channel> channelType = NioSocketChannel.class;
-
-    private final Map<ChannelOption<?>, Object> childOptions = new HashMap<>();
+    private Hooks<ChannelFuture> afterListen;
+    private Hooks<Client> onSuccessHooks;
+    private Hooks<Throwable> onFailureHooks;
 
     public Client() {
         this.bootstrap = new Bootstrap();
     }
 
     @Override
-    public Client start(final InetSocketAddress address) {
+    public Client listen(final InetSocketAddress address) {
         preStart(address);
 
         for (Map.Entry<ChannelOption<?>, ?> entry : childOptions.entrySet()) {
@@ -68,19 +70,46 @@ public class Client implements Transport<Client> {
 
         connect();
 
-        return this;
-    }
+        startFuture.addListener(f -> {
+            if (afterListen != null) {
+                afterListen.call(startFuture);
+            }
 
-    public <T> Client withOptions(ChannelOption<T> option, T t) {
-        checkStart();
-        childOptions.put(option, t);
+            if (f.isSuccess()) {
+                if (this.onSuccessHooks != null) {
+                    this.onSuccessHooks.call(this);
+                }
+            } else {
+                if (this.onFailureHooks != null) {
+                    this.onFailureHooks.call(f.cause());
+                }
+            }
+        });
+
         return this;
     }
 
     @Override
-    public Client withWorker(final EventLoopGroup worker) {
+    public Client afterListen(final Hooks<ChannelFuture> hooks) {
         checkStart();
-        this.worker = worker;
+
+        this.afterListen = hooks;
+        return this;
+    }
+
+    @Override
+    public Client onSuccess(final Hooks<Client> hooks) {
+        checkStart();
+
+        this.onSuccessHooks = hooks;
+        return this;
+    }
+
+    @Override
+    public Client onFailure(final Hooks<Throwable> hooks) {
+        checkStart();
+
+        this.onFailureHooks = hooks;
         return this;
     }
 
@@ -91,71 +120,10 @@ public class Client implements Transport<Client> {
         return this;
     }
 
-    /**
-     * use ssl connect
-     */
-    public Client withSsl() {
-        checkStart();
-        this.sslFlag = true;
-        return this;
-    }
-
-    @Override
-    public Client withLog(final LoggingHandler loggingHandler) {
-        checkStart();
-        this.loggingHandler = loggingHandler;
-        return this;
-    }
-
     @Override
     public Client withInitChannel(final Hooks<SocketChannel> hooks) {
         checkStart();
         this.socketChannelInitHooks = hooks;
-        return this;
-    }
-
-    /**
-     * @apiNote default is {@link NioSocketChannel}
-     */
-    public Client withChannelType(final Class<? extends Channel> channelType) {
-        checkStart();
-        this.channelType = channelType;
-        return this;
-    }
-
-    /**
-     * @see #withEnableAutoReconnect(int, Duration)
-     */
-    public Client withEnableAutoReconnect() {
-        return withEnableAutoReconnect(DEFAULT_MAX_RECONNECT_TIMES, DEFAULT_RECONNECT_TIMEOUT);
-    }
-
-    /**
-     * @see #withEnableAutoReconnect(int, Duration)
-     */
-    public Client withEnableAutoReconnect(int maxReconnectTimes) {
-        return withEnableAutoReconnect(maxReconnectTimes, DEFAULT_RECONNECT_TIMEOUT);
-    }
-
-    /**
-     * @see #withEnableAutoReconnect(int, Duration)
-     */
-    public Client withEnableAutoReconnect(Duration reconnectTimeout) {
-        return withEnableAutoReconnect(DEFAULT_MAX_RECONNECT_TIMES, reconnectTimeout);
-    }
-
-    /**
-     * 开启断线重连
-     *
-     * @param maxReconnectTimes 最大重连次数
-     * @param reconnectTimeout  连接超时时间
-     * @return {@link Client }
-     */
-    public Client withEnableAutoReconnect(int maxReconnectTimes, Duration reconnectTimeout) {
-        checkStart();
-        this.enableAutoReconnect = true;
-        this.maxReconnectTimes = maxReconnectTimes;
-        this.reconnectTimeout = reconnectTimeout;
         return this;
     }
 
@@ -209,32 +177,78 @@ public class Client implements Transport<Client> {
         return this;
     }
 
-    private void preStart(final InetSocketAddress address) {
-        this.startFlag = true;
-        Objects.requireNonNull(address, "address is null");
-        Objects.requireNonNull(channelType, "channelType is null");
-
-        this.address = address;
-
-        if (this.worker == null) {
-            this.worker = new NioEventLoopGroup();
-        }
-
-        if (this.serializer == null) {
-            this.serializer = JsonSerializer.codec;
-        }
+    @Override
+    public Client withWorker(final EventLoopGroup worker) {
+        checkStart();
+        this.worker = worker;
+        return this;
     }
 
-    private void checkStart() {
-        if (startFlag) {
-            throw new IllegalStateException("client is already started");
-        }
+    @Override
+    public Client withLog(final LoggingHandler loggingHandler) {
+        checkStart();
+        this.loggingHandler = loggingHandler;
+        return this;
     }
 
-    private void checkNotStart() {
-        if (!startFlag) {
-            throw new IllegalStateException("client is not started");
-        }
+    public <T> Client withOptions(ChannelOption<T> option, T t) {
+        checkStart();
+        childOptions.put(option, t);
+        return this;
+    }
+
+    /**
+     * use ssl connect
+     */
+    public Client withSsl() {
+        checkStart();
+        this.sslFlag = true;
+        return this;
+    }
+
+    /**
+     * @apiNote default is {@link NioSocketChannel}
+     */
+    public Client withChannelType(final Class<? extends Channel> channelType) {
+        checkStart();
+        this.channelType = channelType;
+        return this;
+    }
+
+    /**
+     * @see #withEnableAutoReconnect(int, Duration)
+     */
+    public Client withEnableAutoReconnect() {
+        return withEnableAutoReconnect(DEFAULT_MAX_RECONNECT_TIMES, DEFAULT_RECONNECT_TIMEOUT);
+    }
+
+    /**
+     * 开启断线重连
+     *
+     * @param maxReconnectTimes 最大重连次数
+     * @param reconnectTimeout  连接超时时间
+     * @return {@link Client }
+     */
+    public Client withEnableAutoReconnect(int maxReconnectTimes, Duration reconnectTimeout) {
+        checkStart();
+        this.enableAutoReconnect = true;
+        this.maxReconnectTimes = maxReconnectTimes;
+        this.reconnectTimeout = reconnectTimeout;
+        return this;
+    }
+
+    /**
+     * @see #withEnableAutoReconnect(int, Duration)
+     */
+    public Client withEnableAutoReconnect(int maxReconnectTimes) {
+        return withEnableAutoReconnect(maxReconnectTimes, DEFAULT_RECONNECT_TIMEOUT);
+    }
+
+    /**
+     * @see #withEnableAutoReconnect(int, Duration)
+     */
+    public Client withEnableAutoReconnect(Duration reconnectTimeout) {
+        return withEnableAutoReconnect(DEFAULT_MAX_RECONNECT_TIMES, reconnectTimeout);
     }
 
     void connect() {
@@ -252,6 +266,7 @@ public class Client implements Transport<Client> {
 
         startFuture = bootstrap.connect(address);
 
+        // reconnect
         startFuture.addListener((ChannelFutureListener) futureListener -> {
             if (reconnectFlag) {
                 reconnectTimes++;
@@ -281,6 +296,34 @@ public class Client implements Transport<Client> {
                 }, this.reconnectTimeout.toMillis(), TimeUnit.MILLISECONDS);
             }
         });
+    }
+
+    private void checkNotStart() {
+        if (!startFlag) {
+            throw new IllegalStateException("client is not started");
+        }
+    }
+
+    private void checkStart() {
+        if (startFlag) {
+            throw new IllegalStateException("client is already started");
+        }
+    }
+
+    private void preStart(final InetSocketAddress address) {
+        this.startFlag = true;
+        Objects.requireNonNull(address, "address is null");
+        Objects.requireNonNull(channelType, "channelType is null");
+
+        this.address = address;
+
+        if (this.worker == null) {
+            this.worker = new NioEventLoopGroup();
+        }
+
+        if (this.serializer == null) {
+            this.serializer = JsonSerializer.codec;
+        }
     }
 
 }
