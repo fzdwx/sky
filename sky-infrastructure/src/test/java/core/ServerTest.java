@@ -34,7 +34,7 @@ class ServerTest {
                         }
                     });
                 })
-                .start(8888);
+                .listen(8888);
 
         s.dispose();
     }

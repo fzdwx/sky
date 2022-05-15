@@ -18,16 +18,26 @@ import java.net.InetSocketAddress;
  */
 public interface Transport<IMPL> {
 
+    default IMPL listen(int port) {
+        return listen(new InetSocketAddress(port));
+    }
+
     /**
      * start transport
      */
-    IMPL start(InetSocketAddress address);
+    IMPL listen(InetSocketAddress address);
 
-    IMPL withWorker(EventLoopGroup worker);
+    default IMPL listen(String host, int port) {
+        return listen(new InetSocketAddress(host, port));
+    }
+
+    IMPL afterListen(Hooks<ChannelFuture> hooks);
+
+    IMPL onSuccess(Hooks<IMPL> hooks);
+
+    IMPL onFailure(Hooks<Throwable> hooks);
 
     IMPL withSerializer(JsonSerializer serializer);
-
-    IMPL withLog(LoggingHandler loggingHandler);
 
     IMPL withInitChannel(Hooks<SocketChannel> hooks);
 
@@ -46,17 +56,11 @@ public interface Transport<IMPL> {
      */
     IMPL impl();
 
-    default IMPL start(int port) {
-        return start(new InetSocketAddress(port));
-    }
-
-    default IMPL start(String host, int port) {
-        return start(new InetSocketAddress(host, port));
-    }
-
     default IMPL withWorker(int workerCount) {
         return withWorker(new NioEventLoopGroup(workerCount));
     }
+
+    IMPL withWorker(EventLoopGroup worker);
 
     /**
      * set child log handler
@@ -64,4 +68,6 @@ public interface Transport<IMPL> {
     default IMPL withLog(LogLevel level) {
         return withLog(new LoggingHandler(level));
     }
+
+    IMPL withLog(LoggingHandler loggingHandler);
 }

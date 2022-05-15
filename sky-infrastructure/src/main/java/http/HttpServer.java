@@ -4,6 +4,7 @@ import core.Server;
 import core.Transport;
 import http.ext.HttpExceptionHandler;
 import http.ext.HttpRequestConsumer;
+import io.github.fzdwx.lambada.Console;
 import io.github.fzdwx.lambada.fun.Hooks;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelHandler;
@@ -19,7 +20,9 @@ import io.netty.handler.logging.LogLevel;
 import io.netty.handler.logging.LoggingHandler;
 import io.netty.handler.ssl.SslHandler;
 import io.netty.handler.stream.ChunkedWriteHandler;
+import lombok.extern.slf4j.Slf4j;
 import serializer.JsonSerializer;
+import sky.Utils;
 
 import java.net.InetSocketAddress;
 
@@ -29,6 +32,7 @@ import java.net.InetSocketAddress;
  * @author <a href="mailto:likelovec@gmail.com">fzdwx</a>
  * @date 2022/5/6 16:19
  */
+@Slf4j
 public class HttpServer implements Transport<HttpServer> {
 
     private final Server server;
@@ -36,6 +40,7 @@ public class HttpServer implements Transport<HttpServer> {
     private HttpDataFactory httpDataFactory;
     private HttpRequestConsumer consumer;
     private HttpExceptionHandler exceptionHandler;
+    private Hooks<ChannelFuture> afterListenHooks;
 
     private HttpServer() {
         this.server = new Server();
@@ -54,6 +59,142 @@ public class HttpServer implements Transport<HttpServer> {
      */
     public static HttpServer create(Server server) {
         return new HttpServer(server);
+    }
+
+    /**
+     * start server
+     */
+    public HttpServer listen(final int port) {
+        return this.listen(new InetSocketAddress(port));
+    }
+
+    @Override
+    public HttpServer listen(final InetSocketAddress address) {
+        this.withServerOptions(ChannelOption.SO_BACKLOG, 1024);
+        this.withChildOptions(ChannelOption.TCP_NODELAY, true);
+        this.withChildOptions(ChannelOption.SO_KEEPALIVE, true);
+
+        this.server.afterListen(f -> {
+            if (f.isSuccess()) {
+                log.info(Console.cyan(Utils.PREFIX) + "HTTP server started Listen on " + scheme() + "://localhost:" + port());
+            }
+
+            if (this.afterListenHooks != null) {
+                this.afterListenHooks.call(f);
+            }
+        });
+
+        this.server.withInitChannel(channel -> {
+            channel.pipeline()
+                    .addLast(new HttpServerCodec())
+                    .addLast(new HttpObjectAggregator(1024 * 1024))
+                    .addLast(new ChunkedWriteHandler())
+                    .addLast(new HttpServerExpectContinueHandler())
+                    .addLast(new HttpServerHandler(consumer, exceptionHandler, sslFlag, httpDataFactory, serializer()));
+        }).listen(address);
+
+        return this;
+    }
+
+    /**
+     * after start.
+     */
+    public HttpServer afterListen(Hooks<ChannelFuture> hooks) {
+        this.afterListenHooks = hooks;
+        return this;
+    }
+
+    @Override
+    public HttpServer onSuccess(final Hooks<HttpServer> hooks) {
+        this.server.onSuccess(server -> {
+            hooks.call(this);
+        });
+        return this;
+    }
+
+    @Override
+    public HttpServer onFailure(final Hooks<Throwable> hooks) {
+        this.server.onFailure(hooks);
+        return this;
+    }
+
+    /**
+     * default is {@link serializer.JsonSerializer#codec}
+     */
+    public HttpServer withSerializer(final JsonSerializer serializer) {
+        this.server.withSerializer(serializer);
+        return this;
+    }
+
+    @Override
+    public HttpServer withInitChannel(final Hooks<SocketChannel> hooks) {
+        this.server.withInitChannel(hooks);
+        return this;
+    }
+
+    @Override
+    public ChannelInitializer<SocketChannel> channelInitializer() {
+        return server.channelInitializer();
+    }
+
+    public ChannelFuture dispose() {
+        return this.server.dispose();
+    }
+
+    @Override
+    public void close() {
+        this.server.close();
+    }
+
+    @Override
+    public boolean sslFlag() {
+        return this.server.sslFlag();
+    }
+
+    public JsonSerializer serializer() {
+        return this.server.serializer();
+    }
+
+    @Override
+    public HttpServer impl() {
+        return this;
+    }
+
+    @Override
+    public HttpServer withWorker(final EventLoopGroup worker) {
+        this.server.withWorker(worker);
+        return this;
+    }
+
+    /**
+     * @see #withLog(LoggingHandler)
+     */
+    public HttpServer withLog(final LogLevel logLevel) {
+        return this.withLog(new LoggingHandler(logLevel));
+    }
+
+    /**
+     * ser child log handler
+     */
+    public HttpServer withLog(final LoggingHandler loggingHandler) {
+        this.server.withLog(loggingHandler);
+        return this;
+    }
+
+    /**
+     * add server option
+     */
+    public <T> HttpServer withServerOptions(ChannelOption<T> option, T t) {
+        this.server.withServerOptions(option, t);
+        return this;
+    }
+
+    /**
+     * add child option
+     */
+    public <T> HttpServer withChildOptions(ChannelOption<T> option, T t) {
+        this.server.withChildOptions(option, t);
+        return this;
     }
 
     /**
@@ -81,38 +222,6 @@ public class HttpServer implements Transport<HttpServer> {
     }
 
     /**
-     * ser child log handler
-     */
-    public HttpServer withLog(final LoggingHandler loggingHandler) {
-        this.server.withLog(loggingHandler);
-        return this;
-    }
-
-    @Override
-    public HttpServer withInitChannel(final Hooks<SocketChannel> hooks) {
-        this.server.withInitChannel(hooks);
-        return this;
-    }
-
-    @Override
-    public ChannelInitializer<SocketChannel> channelInitializer() {
-        return server.channelInitializer();
-    }
-
-    @Override
-    public HttpServer withWorker(final EventLoopGroup worker) {
-        this.server.withWorker(worker);
-        return this;
-    }
-
-    /**
-     * @see #withLog(LoggingHandler)
-     */
-    public HttpServer withLog(final LogLevel logLevel) {
-        return this.withLog(new LoggingHandler(logLevel));
-    }
-
-    /**
      * enable ssl.
      */
     public HttpServer withSsl(final SslHandler sslHandler) {
@@ -122,34 +231,10 @@ public class HttpServer implements Transport<HttpServer> {
     }
 
     /**
-     * add server option
-     */
-    public <T> HttpServer withServerOptions(ChannelOption<T> option, T t) {
-        this.server.withServerOptions(option, t);
-        return this;
-    }
-
-    /**
-     * add child option
-     */
-    public <T> HttpServer withChildOptions(ChannelOption<T> option, T t) {
-        this.server.withChildOptions(option, t);
-        return this;
-    }
-
-    /**
      * set http data factory
      */
     public HttpServer withHttpDataFactory(final HttpDataFactory factory) {
         this.httpDataFactory = factory;
-        return this;
-    }
-
-    /**
-     * default is {@link serializer.JsonSerializer#codec}
-     */
-    public HttpServer withSerializer(final JsonSerializer serializer) {
-        this.server.withSerializer(serializer);
         return this;
     }
 
@@ -169,52 +254,6 @@ public class HttpServer implements Transport<HttpServer> {
         return this;
     }
 
-    /**
-     * after start.
-     */
-    public HttpServer afterStart(Hooks<ChannelFuture> hooks) {
-        this.server.afterStart(hooks);
-        return this;
-    }
-
-    @Override
-    public HttpServer start(final InetSocketAddress address) {
-        this.withServerOptions(ChannelOption.SO_BACKLOG, 1024);
-        this.withChildOptions(ChannelOption.TCP_NODELAY, true);
-        this.withChildOptions(ChannelOption.SO_KEEPALIVE, true);
-
-        this.server.withInitChannel(channel -> {
-            channel.pipeline()
-                    .addLast(new HttpServerCodec())
-                    .addLast(new HttpObjectAggregator(1024 * 1024))
-                    .addLast(new ChunkedWriteHandler()).addLast(new HttpServerExpectContinueHandler())
-                    .addLast(new HttpServerHandler(consumer, exceptionHandler, sslFlag, httpDataFactory, serializer()));
-        }).start(address);
-
-        return this;
-    }
-
-    /**
-     * start server
-     */
-    public HttpServer start(final int port) {
-        return this.start(new InetSocketAddress(port));
-    }
-
-    public ChannelFuture dispose() {
-        return this.server.dispose();
-    }
-
-    @Override
-    public void close() {
-        this.server.close();
-    }
-
-    @Override
-    public boolean sslFlag() {
-        return this.server.sslFlag();
-    }
-
     public void shutdown() {
         this.server.close();
     }
@@ -225,14 +264,5 @@ public class HttpServer implements Transport<HttpServer> {
 
     public int port() {
         return this.server.port();
-    }
-
-    public JsonSerializer serializer() {
-        return this.server.serializer();
-    }
-
-    @Override
-    public HttpServer impl() {
-        return this;
     }
 }
