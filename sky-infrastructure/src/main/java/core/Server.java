@@ -250,7 +250,7 @@ public class Server implements Transport<Server> {
 
     private void checkStart() {
         if (startFlag) {
-            throw new IllegalStateException("client is already started");
+            throw new IllegalStateException("server is already started");
         }
     }
 
@@ -275,7 +275,7 @@ public class Server implements Transport<Server> {
 
     private void checkNotStart() {
         if (!startFlag) {
-            throw new IllegalStateException("client is not started");
+            throw new IllegalStateException("server is not started");
         }
     }
 }
