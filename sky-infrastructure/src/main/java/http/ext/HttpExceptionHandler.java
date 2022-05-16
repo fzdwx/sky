@@ -2,7 +2,7 @@ package http.ext;
 
 import http.HttpServerRequest;
 import http.HttpServerResponse;
-import io.github.fzdwx.lambada.Coll;
+import io.github.fzdwx.lambada.Collections;
 import io.netty.handler.codec.http.HttpResponseStatus;
 
 /**
@@ -26,7 +26,7 @@ public interface HttpExceptionHandler {
         return (req, resp, e) -> {
             resp.status(HttpResponseStatus.INTERNAL_SERVER_ERROR);
             resp.json(
-                    Coll.linkedMap(
+                    Collections.linkedMap(
                             "message", e.getMessage(),
                             "class", e.getClass(),
                             "cause", e.getCause(),
