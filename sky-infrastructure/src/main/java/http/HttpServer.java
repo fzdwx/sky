@@ -3,7 +3,7 @@ package http;
 import core.Server;
 import core.Transport;
 import http.ext.HttpExceptionHandler;
-import http.ext.HttpRequestConsumer;
+import http.ext.HttpHandler;
 import io.github.fzdwx.lambada.Console;
 import io.github.fzdwx.lambada.fun.Hooks;
 import io.netty.channel.ChannelFuture;
@@ -38,7 +38,7 @@ public class HttpServer implements Transport<HttpServer> {
     private final Server server;
     private boolean sslFlag;
     private HttpDataFactory httpDataFactory;
-    private HttpRequestConsumer consumer;
+    private HttpHandler httpHandler;
     private HttpExceptionHandler exceptionHandler;
     private Hooks<ChannelFuture> afterListenHooks;
 
@@ -90,7 +90,7 @@ public class HttpServer implements Transport<HttpServer> {
                     .addLast(new HttpObjectAggregator(1024 * 1024))
                     .addLast(new ChunkedWriteHandler())
                     .addLast(new HttpServerExpectContinueHandler())
-                    .addLast(new HttpServerHandler(consumer, exceptionHandler, sslFlag, httpDataFactory, serializer()));
+                    .addLast(new HttpServerHandler(httpHandler, exceptionHandler, sslFlag, httpDataFactory, serializer()));
         }).listen(address);
 
         return this;
@@ -241,8 +241,8 @@ public class HttpServer implements Transport<HttpServer> {
     /**
      * handler request and return response.
      */
-    public HttpServer handle(final HttpRequestConsumer consumer) {
-        this.consumer = consumer;
+    public HttpServer handle(final HttpHandler httpHandler) {
+        this.httpHandler = httpHandler;
         return this;
     }
 

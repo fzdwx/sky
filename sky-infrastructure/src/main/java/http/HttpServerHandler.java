@@ -2,7 +2,7 @@ package http;
 
 import core.Netty;
 import http.ext.HttpExceptionHandler;
-import http.ext.HttpRequestConsumer;
+import http.ext.HttpHandler;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.handler.codec.http.FullHttpRequest;
@@ -15,15 +15,15 @@ import serializer.JsonSerializer;
 @Slf4j
 public class HttpServerHandler extends ChannelInboundHandlerAdapter {
 
-    private final HttpRequestConsumer consumer;
+    private final HttpHandler httpHandler;
     private final boolean ssl;
     private final HttpDataFactory httpDataFactory;
     private final HttpExceptionHandler exceptionHandler;
     private final JsonSerializer serializer;
 
-    public HttpServerHandler(final HttpRequestConsumer consumer, final HttpExceptionHandler exceptionHandler, final Boolean ssl,
+    public HttpServerHandler(final HttpHandler httpHandler, final HttpExceptionHandler exceptionHandler, final Boolean ssl,
                              final HttpDataFactory httpDataFactory, final JsonSerializer serializer) {
-        this.consumer = consumer;
+        this.httpHandler = httpHandler;
         this.exceptionHandler = HttpExceptionHandler.defaultExceptionHandler(exceptionHandler);
         this.ssl = ssl;
         this.httpDataFactory = httpDataFactory == null ? new DefaultHttpDataFactory(DefaultHttpDataFactory.MINSIZE) : httpDataFactory;
@@ -67,7 +67,7 @@ public class HttpServerHandler extends ChannelInboundHandlerAdapter {
         final var response = HttpServerResponse.create(ctx.channel(), httpRequest);
 
         try {
-            consumer.consume(httpRequest, response);
+            httpHandler.handle(httpRequest, response);
         } catch (Exception e) {
             exceptionHandler.handler(httpRequest, response, e);
         } finally {
