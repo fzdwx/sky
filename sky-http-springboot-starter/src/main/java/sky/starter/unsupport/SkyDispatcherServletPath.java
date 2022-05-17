@@ -1,4 +1,4 @@
-package sky.starter;
+package sky.starter.unsupport;
 
 import org.springframework.boot.autoconfigure.web.servlet.DispatcherServletPath;
 

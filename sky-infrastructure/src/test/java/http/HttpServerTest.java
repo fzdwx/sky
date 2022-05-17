@@ -3,8 +3,8 @@ package http;
 import com.alibaba.fastjson2.JSON;
 import com.alibaba.fastjson2.JSONObject;
 import http.ext.HttpHandler;
-import io.github.fzdwx.lambada.Lang;
 import io.github.fzdwx.lambada.Seq;
+import io.github.fzdwx.lambada.Threads;
 import io.github.fzdwx.lambada.http.ContentType;
 import io.github.fzdwx.lambada.http.HttpMethod;
 import io.github.fzdwx.lambada.internal.Tuple2;
@@ -30,18 +30,18 @@ class HttpServerTest {
         }).GET("/post", (req, res) -> {
             res.contentType(ContentType.STREAM_JSON);
             res.writeFlush("123123123\n");
-            Lang.sleep(Duration.ofSeconds(1L));
+            Threads.sleep(Duration.ofSeconds(1L));
             res.writeFlush("aaaaaaaaaaa\n");
-            Lang.sleep(Duration.ofSeconds(1L));
+            Threads.sleep(Duration.ofSeconds(1L));
             res.writeFlush("bbbbbbbbbb\n");
-            Lang.sleep(Duration.ofSeconds(1L));
+            Threads.sleep(Duration.ofSeconds(1L));
             res.end("ccccccccc\n");
         }).GET("/event", (req, res) -> {
             res.contentType(ContentType.EVENT_STREAM);
             Seq.range(100).onClose(() -> res.end("end"))
                     .forEach(i -> {
                         res.writeFlush(i + "\n");
-                        Lang.sleep(Duration.ofMillis(100L));
+                        Threads.sleep(Duration.ofMillis(100L));
                     });
             // System.out.println("end");
         }).GET("/1111", (req, res) -> {

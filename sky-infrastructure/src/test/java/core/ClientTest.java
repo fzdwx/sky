@@ -1,6 +1,6 @@
 package core;
 
-import io.github.fzdwx.lambada.Lang;
+import io.github.fzdwx.lambada.Threads;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
@@ -40,7 +40,7 @@ class ClientTest {
             c.dispose();
         }).start();
 
-        Lang.sleep(Duration.ofDays(5));
+        Threads.sleep(Duration.ofDays(5));
     }
 
     @Test

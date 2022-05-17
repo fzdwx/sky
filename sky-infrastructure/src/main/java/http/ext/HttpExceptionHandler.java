@@ -3,6 +3,8 @@ package http.ext;
 import http.HttpServerRequest;
 import http.HttpServerResponse;
 import io.github.fzdwx.lambada.Collections;
+import io.github.fzdwx.lambada.Threads;
+import io.github.fzdwx.lambada.Time;
 import io.netty.handler.codec.http.HttpResponseStatus;
 
 /**
@@ -27,6 +29,8 @@ public interface HttpExceptionHandler {
             resp.status(HttpResponseStatus.INTERNAL_SERVER_ERROR);
             resp.json(
                     Collections.linkedMap(
+                            "timestamp", Time.now(),
+                            "thread", Threads.current().getName(),
                             "message", e.getMessage(),
                             "class", e.getClass(),
                             "cause", e.getCause(),
