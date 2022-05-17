@@ -9,10 +9,11 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurationSupport;
 import sky.starter.SkyDispatcherServletPath;
-import sky.starter.SkyHttpServerProps;
 import sky.starter.SkyServletContext;
 import sky.starter.SkyWebServer;
 import sky.starter.SkyWebServerFactory;
+import sky.starter.ext.SkyBanner;
+import sky.starter.props.SkyHttpServerProps;
 
 import javax.servlet.ServletContext;
 
@@ -31,6 +32,8 @@ public class SkyHttpServerAutoConfiguration {
 
     public SkyHttpServerAutoConfiguration(final SkyHttpServerProps skyHttpServerProps) {
         this.skyHttpServerProps = skyHttpServerProps;
+
+        showBanner();
     }
 
     @Bean
@@ -49,5 +52,11 @@ public class SkyHttpServerAutoConfiguration {
     @Primary
     ServletContext servletContext() {
         return new SkyServletContext(skyHttpServerProps.sky.path);
+    }
+
+    private void showBanner() {
+        if (skyHttpServerProps.sky.banner) {
+            SkyBanner.print();
+        }
     }
 }

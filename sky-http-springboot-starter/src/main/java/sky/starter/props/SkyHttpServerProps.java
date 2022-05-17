@@ -1,7 +1,8 @@
-package sky.starter;
+package sky.starter.props;
 
 import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;
+import sky.starter.ext.SkyBanner;
 
 /**
  * @author <a href="mailto:likelovec@gmail.com">fzdwx</a>
@@ -24,7 +25,14 @@ public class SkyHttpServerProps {
     @Data
     public static class SkyHttpServer {
 
-         static SkyHttpServer ins = new SkyHttpServer();
+        static SkyHttpServer ins = new SkyHttpServer();
+
+        /**
+         * show sky banner.
+         *
+         * @see SkyBanner#print()
+         */
+        public Boolean banner = true;
 
         /**
          * path prefix

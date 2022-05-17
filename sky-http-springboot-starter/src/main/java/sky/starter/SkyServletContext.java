@@ -34,12 +34,12 @@ public class SkyServletContext implements ServletContext {
 
     @Override
     public int getMajorVersion() {
-        return 0;
+        return 2;
     }
 
     @Override
     public int getMinorVersion() {
-        return 0;
+        return 5;
     }
 
     @Override
