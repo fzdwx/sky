@@ -11,7 +11,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurationSupport;
 import sky.starter.HandlerMappingContainer;
-import sky.starter.SkySpringbootHandlerMappingContainer;
+import sky.starter.SkyHandlerMappingContainer;
 import sky.starter.SkyWebServer;
 import sky.starter.SkyWebServerFactory;
 import sky.starter.ext.SkyBanner;
@@ -54,7 +54,7 @@ public class SkyHttpServerAutoConfiguration {
      */
     @Bean
     HandlerMappingContainer<?> container(@Autowired ApplicationContext applicationContext) {
-        return new SkySpringbootHandlerMappingContainer(applicationContext, skyHttpServerProps);
+        return new SkyHandlerMappingContainer(applicationContext, skyHttpServerProps);
     }
 
     /**

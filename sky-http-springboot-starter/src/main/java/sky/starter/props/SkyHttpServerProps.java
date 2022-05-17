@@ -12,7 +12,7 @@ import sky.starter.ext.SkyBanner;
 @ConfigurationProperties(prefix = "server")
 public class SkyHttpServerProps {
 
-    /**
+    /**1
      * http server port
      */
     public int port = 9999;
