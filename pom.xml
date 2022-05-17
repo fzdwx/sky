@@ -30,7 +30,7 @@
         <slf4j.version>1.7.36</slf4j.version>
 
         <servlet.version>2.5</servlet.version>
-        <spring.boot.version>2.6.5</spring.boot.version>
+        <spring.boot.version>2.6.7</spring.boot.version>
     </properties>
 
     <dependencies>
