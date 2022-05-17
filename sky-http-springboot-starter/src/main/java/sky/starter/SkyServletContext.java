@@ -1,25 +1,60 @@
 package sky.starter;
 
+import io.github.fzdwx.lambada.anno.Nullable;
+import io.github.fzdwx.lambada.http.ContentType;
+import io.github.fzdwx.lambada.http.UrlEncode;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.util.ResourceUtils;
+
 import javax.servlet.RequestDispatcher;
 import javax.servlet.Servlet;
 import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
+import java.io.FileNotFoundException;
 import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.util.Enumeration;
 import java.util.Set;
 
 /**
+ * did I need to implement it?
+ *
  * @author <a href="mailto:likelovec@gmail.com">fzdwx</a>
  * @date 2022/5/16 22:31
  */
+@Slf4j
 public class SkyServletContext implements ServletContext {
 
-    private final String path;
+    private String name = "sky web server";
+    private String path;
+    private String encodedPath;
 
     public SkyServletContext(final String path) {
-        this.path = path;
+        setPath(path);
+    }
+
+    private void setPath(final String path) {
+        boolean invalid = false;
+        if (path == null || path.equals("/")) {
+            invalid = true;
+            this.path = "";
+        } else if (path.isEmpty() || path.startsWith("/")) {
+            this.path = path;
+        } else {
+            invalid = true;
+            this.path = "/" + path;
+        }
+        if (this.path.endsWith("/")) {
+            invalid = true;
+            this.path = this.path.substring(0, this.path.length() - 1);
+        }
+
+        if (invalid) {
+            log.warn("pathInvalid {}", this.path);
+        }
+        encodedPath = UrlEncode.DEFAULT.encode(this.path, StandardCharsets.UTF_8);
     }
 
     @Override
@@ -43,8 +78,9 @@ public class SkyServletContext implements ServletContext {
     }
 
     @Override
+    @Nullable
     public String getMimeType(final String file) {
-        return null;
+        return ContentType.parseFromFileName(file);
     }
 
     @Override
@@ -54,12 +90,20 @@ public class SkyServletContext implements ServletContext {
 
     @Override
     public URL getResource(final String path) throws MalformedURLException {
-        return null;
+        try {
+            return ResourceUtils.getURL(path);
+        } catch (FileNotFoundException e) {
+            throw new MalformedURLException(e.getMessage());
+        }
     }
 
     @Override
     public InputStream getResourceAsStream(final String path) {
-        return null;
+        try {
+            return getResource(path).openStream();
+        } catch (Exception e) {
+            return null;
+        }
     }
 
     @Override
