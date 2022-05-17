@@ -38,5 +38,10 @@ public class SkyHttpServerProps {
          * path prefix
          */
         public String path = "sky";
+
+        /**
+         * use debug model.
+         */
+        public Boolean debug = false;
     }
 }
