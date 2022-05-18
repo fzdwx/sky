@@ -14,6 +14,8 @@ import sky.starter.ext.RequestResultHandler;
 import java.util.List;
 
 /**
+ * dispatch handler.
+ *
  * @author <a href="mailto:likelovec@gmail.com">fzdwx</a>
  * @date 2022/5/18 15:00
  */
@@ -23,7 +25,8 @@ public class DispatchHandler implements HttpHandler {
     private final Router<SkyRouteDefinition> router;
     private final List<RequestResultHandler> resultHandlers;
 
-    public DispatchHandler(final Router<SkyRouteDefinition> router, final List<RequestResultHandler> resultHandlers) {
+    public DispatchHandler(final Router<SkyRouteDefinition> router,
+                           final List<RequestResultHandler> resultHandlers) {
         this.router = router;
         this.resultHandlers = resultHandlers;
     }
@@ -52,14 +55,13 @@ public class DispatchHandler implements HttpHandler {
     }
 
     public boolean handlerResult(final Object result, final SkyRouteDefinition definition, final HttpServerResponse response) {
-        boolean handler = false;
         for (RequestResultHandler rh : resultHandlers) {
             if (rh.support(result, definition)) {
-                handler = true;
                 rh.apply(result, definition, response);
+                return true;
             }
         }
-        return handler;
+        return false;
     }
 
     private void createWithResolvedBean(final Router.Route<SkyRouteDefinition> route) {

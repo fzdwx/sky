@@ -1,6 +1,7 @@
 package sky;
 
 import http.HttpServer;
+import io.github.fzdwx.lambada.Seq;
 import io.github.fzdwx.lambada.http.Router;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
@@ -45,7 +46,7 @@ public class SkyHttpServerAutoConfiguration {
     public SkyHttpServerAutoConfiguration(final SkyHttpServerProps skyHttpServerProps,
                                           final List<RequestResultHandler> resultHandlers) {
         this.skyHttpServerProps = skyHttpServerProps;
-        this.resultHandlers = resultHandlers;
+        this.resultHandlers = Seq.sort(resultHandlers,RequestResultHandler.sort);
 
         showBanner();
     }
