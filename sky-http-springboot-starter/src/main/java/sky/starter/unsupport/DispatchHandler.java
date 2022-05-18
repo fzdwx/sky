@@ -4,7 +4,7 @@ import http.HttpServerRequest;
 import http.HttpServerResponse;
 import http.ext.HttpHandler;
 import io.github.fzdwx.lambada.http.Router;
-import org.springframework.web.method.HandlerMethod;
+import sky.starter.domain.SkyRouteDefinition;
 
 /**
  * @author <a href="mailto:likelovec@gmail.com">fzdwx</a>
@@ -12,12 +12,13 @@ import org.springframework.web.method.HandlerMethod;
  */
 public class DispatchHandler implements HttpHandler {
 
-    private final Router<HandlerMethod> router;
+    private final Router<SkyRouteDefinition> router;
 
-    public DispatchHandler(final Router<HandlerMethod> router) { this.router = router; }
+    public DispatchHandler(final Router<SkyRouteDefinition> router) { this.router = router; }
 
     @Override
     public void handle(final HttpServerRequest request, final HttpServerResponse response) {
+        final Router.Route<SkyRouteDefinition> route = router.match(request.methodType(), request.uri());
         response.notFound("404");
     }
 }

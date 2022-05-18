@@ -1,4 +1,4 @@
-package sky.starter;
+package sky.starter.domain;
 
 import io.github.fzdwx.lambada.http.Router;
 import org.springframework.util.ObjectUtils;
@@ -92,10 +92,10 @@ public class SkyHandlerInfo {
         return new SkyHandlerInfo(name, pathPatterns, methods, headers, consumer, producer);
     }
 
-    public void addToRouter(final Router<HandlerMethod> router, final HandlerMethod handlerMethod) {
+    public void addToRouter(final Router<SkyRouteDefinition> router, final HandlerMethod handlerMethod) {
         patterns.forEach(pattern -> {
             for (final RequestMethod method : this.methods) {
-                router.addRoute(method.name(), pattern.getPatternString(), handlerMethod);
+                router.addRoute(method.name(), pattern.getPatternString(), new SkyRouteDefinition(this, handlerMethod));
             }
         });
     }

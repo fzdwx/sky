@@ -9,11 +9,11 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
-import org.springframework.web.method.HandlerMethod;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurationSupport;
 import sky.starter.SkyHandlerMappingContainer;
 import sky.starter.SkyWebServer;
 import sky.starter.SkyWebServerFactory;
+import sky.starter.domain.SkyRouteDefinition;
 import sky.starter.ext.HandlerMappingContainer;
 import sky.starter.ext.SkyBanner;
 import sky.starter.props.SkyHttpServerProps;
@@ -59,7 +59,7 @@ public class SkyHttpServerAutoConfiguration {
      */
     @Bean
     @ConditionalOnMissingBean
-    HandlerMappingContainer<?> container(Router<HandlerMethod> router) {
+    HandlerMappingContainer<?> container(Router<SkyRouteDefinition> router) {
         return new SkyHandlerMappingContainer(skyHttpServerProps, router);
     }
 
@@ -72,7 +72,7 @@ public class SkyHttpServerAutoConfiguration {
     @Bean
     @ConditionalOnMissingBean
     DispatchHandler dispatchHandler(
-            Router<HandlerMethod> router) {
+            Router<SkyRouteDefinition> router) {
         return new DispatchHandler(router);
     }
 
@@ -81,11 +81,11 @@ public class SkyHttpServerAutoConfiguration {
      * <p>
      * Save the processor corresponding to the route.
      *
-     * @return {@link Router }<{@link HandlerMethod }>
+     * @return {@link Router }<{@link SkyRouteDefinition }>
      */
     @Bean
     @ConditionalOnMissingBean
-    Router<HandlerMethod> router() {
+    Router<SkyRouteDefinition> router() {
         return Router.router();
     }
 
