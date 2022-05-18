@@ -7,12 +7,15 @@ import org.springframework.core.annotation.AnnotatedElementUtils;
 import org.springframework.lang.Nullable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.method.HandlerMethod;
+import sky.starter.ext.HandlerMappingContainer;
 import sky.starter.props.SkyHttpServerProps;
 
 import java.lang.reflect.AnnotatedElement;
 import java.lang.reflect.Method;
 
 /**
+ * sky http handler container.
+ *
  * @author <a href="mailto:likelovec@gmail.com">fzdwx</a>
  * @date 2022/5/17 22:04
  */
@@ -20,9 +23,9 @@ public class SkyHandlerMappingContainer extends HandlerMappingContainer<SkyHandl
 
     final Router<HandlerMethod> router;
 
-    public SkyHandlerMappingContainer(final SkyHttpServerProps skyHttpServerProps) {
+    public SkyHandlerMappingContainer(final SkyHttpServerProps skyHttpServerProps, final Router<HandlerMethod> router) {
         super(skyHttpServerProps);
-        this.router = Router.router();
+        this.router = router;
     }
 
     @Override
@@ -46,7 +49,6 @@ public class SkyHandlerMappingContainer extends HandlerMappingContainer<SkyHandl
     protected void registerHandlerMethod(final Object handler, final Method method, final SkyHandlerInfo mapping) {
         final HandlerMethod handlerMethod = createHandlerMethod(handler, method);
         mapping.addToRouter(router, handlerMethod);
-        System.out.println("44");
     }
 
     protected String[] resolveEmbeddedValuesInPatterns(String[] patterns) {

@@ -1,6 +1,5 @@
 package sky.starter;
 
-import io.github.fzdwx.lambada.http.HttpMethod;
 import io.github.fzdwx.lambada.http.Router;
 import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
@@ -96,9 +95,7 @@ public class SkyHandlerInfo {
     public void addToRouter(final Router<HandlerMethod> router, final HandlerMethod handlerMethod) {
         patterns.forEach(pattern -> {
             for (final RequestMethod method : this.methods) {
-                final HttpMethod of = HttpMethod.of(method.name());
-                // TODO: 2022/5/18
-                // router.addRoute(of, pattern, handlerMethod);
+                router.addRoute(method.name(), pattern.getPatternString(), handlerMethod);
             }
         });
     }

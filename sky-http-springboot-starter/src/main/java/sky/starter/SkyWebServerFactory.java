@@ -7,6 +7,7 @@ import org.springframework.boot.web.servlet.ServletContextInitializer;
 import org.springframework.boot.web.servlet.server.AbstractServletWebServerFactory;
 import org.springframework.context.ResourceLoaderAware;
 import org.springframework.core.io.ResourceLoader;
+import sky.starter.props.SkyHttpServerProps;
 
 /**
  * //ServletWebServerFactoryConfiguration
@@ -16,11 +17,17 @@ import org.springframework.core.io.ResourceLoader;
  */
 public class SkyWebServerFactory extends AbstractServletWebServerFactory implements ConfigurableWebServerFactory, ResourceLoaderAware {
 
+    private SkyHttpServerProps skyHttpServerProps;
+    private HttpServer httpServer;
+
     public SkyWebServerFactory() {
+        this.httpServer = HttpServer.create();
     }
 
-    public SkyWebServerFactory(int port) {
+    public SkyWebServerFactory(int port, HttpServer httpServer, SkyHttpServerProps skyHttpServerProps) {
         super(port);
+        this.httpServer = httpServer;
+        this.skyHttpServerProps = skyHttpServerProps;
     }
 
     public SkyWebServerFactory(String contextPath, int port) {
@@ -38,7 +45,7 @@ public class SkyWebServerFactory extends AbstractServletWebServerFactory impleme
     }
 
     private SkyWebServer getSkyWebServer(final ServletContextInitializer[] initializers) {
-        return new SkyWebServer(HttpServer.create(), getPort());
+        return new SkyWebServer(httpServer, getPort(), skyHttpServerProps);
     }
 
 }

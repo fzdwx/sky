@@ -1,4 +1,4 @@
-package sky.starter;
+package sky.starter.ext;
 
 import http.HttpServerRequest;
 import http.ext.HttpHandler;
@@ -12,10 +12,13 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.context.EmbeddedValueResolverAware;
 import org.springframework.core.MethodIntrospector;
+import org.springframework.core.annotation.AnnotatedElementUtils;
 import org.springframework.lang.Nullable;
+import org.springframework.stereotype.Controller;
 import org.springframework.util.ClassUtils;
 import org.springframework.util.StringUtils;
 import org.springframework.util.StringValueResolver;
+import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.method.HandlerMethod;
 import org.springframework.web.servlet.handler.HandlerMethodMappingNamingStrategy;
 import org.springframework.web.util.pattern.PathPatternParser;
@@ -27,7 +30,7 @@ import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-import static sky.starter.Utils.DEBUG_PREFIX;
+import static sky.starter.ext.Utils.DEBUG_PREFIX;
 
 /**
  * http handler mapping container
@@ -93,12 +96,12 @@ public abstract class HandlerMappingContainer<T> implements InitializingBean, Em
             try {
                 beanType = context.getType(beanName);
             } catch (Exception e) {
-                if (skyHttpServerProps.sky.debug) {
+                if (skyHttpServerProps.enableDebug()) {
                     log.info(DEBUG_PREFIX + "could not resolve type for bean {}", beanName, e);
                 }
             }
 
-            if (beanType != null && HandlerChecker.isHandler(beanType)) {
+            if (beanType != null && isHandler(beanType)) {
                 collectHandler(beanName);
             }
         }
@@ -116,7 +119,7 @@ public abstract class HandlerMappingContainer<T> implements InitializingBean, Em
         }
 
         Class<?> userType = ClassUtils.getUserClass(handlerType);
-        if (skyHttpServerProps.sky.debug) {
+        if (skyHttpServerProps.enableDebug()) {
             log.info(DEBUG_PREFIX + "find handler {}", userType);
         }
 
@@ -128,7 +131,7 @@ public abstract class HandlerMappingContainer<T> implements InitializingBean, Em
             }
         });
 
-        if (skyHttpServerProps.sky.debug) {
+        if (skyHttpServerProps.enableDebug()) {
             log.info(DEBUG_PREFIX + formatMappings(userType, methods));
         }
 
@@ -146,5 +149,10 @@ public abstract class HandlerMappingContainer<T> implements InitializingBean, Em
             Method method = e.getKey();
             return e.getValue() + ": " + method.getName() + methodFormatter.apply(method);
         }).collect(Collectors.joining("\n\t", "\n\t" + formattedType + ":" + "\n\t", ""));
+    }
+
+    private boolean isHandler(Class<?> beanType) {
+        return (AnnotatedElementUtils.hasAnnotation(beanType, Controller.class) ||
+                AnnotatedElementUtils.hasAnnotation(beanType, RequestMapping.class));
     }
 }
