@@ -3,6 +3,7 @@ package sky.starter.unsupport;
 import http.HttpServerRequest;
 import http.HttpServerResponse;
 import http.ext.HttpHandler;
+import io.github.fzdwx.lambada.http.HttpPath;
 import io.github.fzdwx.lambada.http.Router;
 import sky.starter.domain.SkyRouteDefinition;
 
@@ -18,7 +19,8 @@ public class DispatchHandler implements HttpHandler {
 
     @Override
     public void handle(final HttpServerRequest request, final HttpServerResponse response) {
-        final Router.Route<SkyRouteDefinition> route = router.match(request.methodType(), request.uri());
+        final String path = HttpPath.format(request.uri());
+        final Router.Route<SkyRouteDefinition> route = router.match(request.methodType(), path);
         response.notFound("404");
     }
 }
