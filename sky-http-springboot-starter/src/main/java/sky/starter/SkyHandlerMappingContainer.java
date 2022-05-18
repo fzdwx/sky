@@ -1,11 +1,10 @@
 package sky.starter;
 
-import http.HttpServerRequest;
-import http.ext.HttpHandler;
 import io.github.fzdwx.lambada.http.Router;
 import org.springframework.core.annotation.AnnotatedElementUtils;
 import org.springframework.lang.Nullable;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.method.HandlerMethod;
 import sky.starter.domain.SkyHandlerInfo;
 import sky.starter.domain.SkyRouteDefinition;
@@ -34,17 +33,17 @@ public class SkyHandlerMappingContainer extends HandlerMappingContainer<SkyHandl
     protected SkyHandlerInfo getMappingForMethod(final Method method, final Class<?> handlerType) {
         var info = createInfo(method);
         if (info != null) {
+            // check is json response
+            info.json(AnnotatedElementUtils.findMergedAnnotation(method, ResponseBody.class));
+
             final var typeInfo = createInfo(handlerType);
             if (typeInfo != null) {
                 info = typeInfo.combine(info);
             }
+
+            info.json(AnnotatedElementUtils.findMergedAnnotation(handlerType, ResponseBody.class));
         }
         return info;
-    }
-
-    @Override
-    protected HttpHandler getHandler(final HttpServerRequest request) {
-        return null;
     }
 
     @Override
@@ -71,6 +70,7 @@ public class SkyHandlerMappingContainer extends HandlerMappingContainer<SkyHandl
         if (requestMapping == null) {
             return null;
         }
+
         return SkyHandlerInfo
                 .paths(patternParser, resolveEmbeddedValuesInPatterns(requestMapping.path()))
                 .methods(requestMapping.method())

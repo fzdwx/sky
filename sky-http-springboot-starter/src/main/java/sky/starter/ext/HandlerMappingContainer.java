@@ -1,7 +1,5 @@
 package sky.starter.ext;
 
-import http.HttpServerRequest;
-import http.ext.HttpHandler;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
@@ -84,8 +82,6 @@ public abstract class HandlerMappingContainer<T> implements InitializingBean, Em
     }
 
     protected abstract T getMappingForMethod(final Method method, final Class<?> userType);
-
-    protected abstract HttpHandler getHandler(HttpServerRequest request);
 
     protected abstract void registerHandlerMethod(final Object handler, final Method method, final T mapping);
 

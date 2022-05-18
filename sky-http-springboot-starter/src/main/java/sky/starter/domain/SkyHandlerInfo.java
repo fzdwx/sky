@@ -4,6 +4,7 @@ import io.github.fzdwx.lambada.http.Router;
 import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.method.HandlerMethod;
 import org.springframework.web.servlet.mvc.method.RequestMappingInfoHandlerMethodMappingNamingStrategy;
 import org.springframework.web.util.pattern.PathPattern;
@@ -30,6 +31,7 @@ public class SkyHandlerInfo {
     private SortedSet<String> headers;
     private SortedSet<String> consumer;
     private SortedSet<String> producer;
+    private ResponseBody json = null;
 
     public SkyHandlerInfo(final PathPatternParser patternParser, final String... path) {
         this(parse(patternParser, path));
@@ -39,9 +41,12 @@ public class SkyHandlerInfo {
         this.patterns = patterns;
     }
 
-    public SkyHandlerInfo(final String name, final Collection<PathPattern> pathPatterns, final Collection<RequestMethod> methods,
+
+    public SkyHandlerInfo(final ResponseBody json, final String name, final Collection<PathPattern> pathPatterns,
+                          final Collection<RequestMethod> methods,
                           final Collection<String> headers, final Collection<String> consumer, final Collection<String> producer) {
         this.name = name;
+        this.json = json;
         this.patterns = new TreeSet<>(pathPatterns);
         this.methods = new TreeSet<>(methods);
         this.headers = new TreeSet<>(headers);
@@ -55,6 +60,14 @@ public class SkyHandlerInfo {
 
     public Set<PathPattern> paths() {
         return patterns;
+    }
+
+    public Boolean enableJson() {
+        return json != null;
+    }
+
+    public ResponseBody responseBody() {
+        return json;
     }
 
     public SkyHandlerInfo methods(final RequestMethod... method) {
@@ -89,7 +102,8 @@ public class SkyHandlerInfo {
         final var headers = combineHeaders(other.headers);
         final var consumer = combineConsumer(other.consumer);
         final var producer = combineProducer(other.producer);
-        return new SkyHandlerInfo(name, pathPatterns, methods, headers, consumer, producer);
+        final var json = combineJson(other.json);
+        return new SkyHandlerInfo(json, name, pathPatterns, methods, headers, consumer, producer);
     }
 
     public void addToRouter(final Router<SkyRouteDefinition> router, final HandlerMethod handlerMethod) {
@@ -98,6 +112,21 @@ public class SkyHandlerInfo {
                 router.addRoute(method.name(), pattern.getPatternString(), new SkyRouteDefinition(this, handlerMethod));
             }
         });
+    }
+
+    public SkyHandlerInfo json(final ResponseBody anno) {
+        if (this.json == null) {
+            this.json = anno;
+        }
+        return this;
+    }
+
+    private ResponseBody combineJson(final ResponseBody other) {
+        if (this.json != null) {
+            return this.json;
+        }
+
+        return other;
     }
 
     private Set<String> combineProducer(final SortedSet<String> other) {

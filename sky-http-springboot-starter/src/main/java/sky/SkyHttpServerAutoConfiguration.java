@@ -8,6 +8,7 @@ import org.springframework.boot.autoconfigure.web.servlet.DispatcherServletPath;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Import;
 import org.springframework.context.annotation.Primary;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurationSupport;
 import sky.starter.SkyHandlerMappingContainer;
@@ -15,13 +16,15 @@ import sky.starter.SkyWebServer;
 import sky.starter.SkyWebServerFactory;
 import sky.starter.domain.SkyRouteDefinition;
 import sky.starter.ext.HandlerMappingContainer;
+import sky.starter.ext.RequestResultHandler;
 import sky.starter.ext.SkyBanner;
 import sky.starter.props.SkyHttpServerProps;
-import sky.starter.unsupport.DispatchHandler;
+import sky.starter.DispatchHandler;
 import sky.starter.unsupport.SkyDispatcherServletPath;
 import sky.starter.unsupport.SkyServletContext;
 
 import javax.servlet.ServletContext;
+import java.util.List;
 
 /**
  * sky http server auto configuration.
@@ -32,12 +35,17 @@ import javax.servlet.ServletContext;
 @Configuration
 @ConditionalOnClass({SkyWebServer.class, SkyWebServerFactory.class})
 @EnableConfigurationProperties(SkyHttpServerProps.class)
+@Import(RequestResultHandlerInject.class)
 public class SkyHttpServerAutoConfiguration {
 
-    private SkyHttpServerProps skyHttpServerProps;
+    private final SkyHttpServerProps skyHttpServerProps;
 
-    public SkyHttpServerAutoConfiguration(final SkyHttpServerProps skyHttpServerProps) {
+    private final List<RequestResultHandler> resultHandlers;
+
+    public SkyHttpServerAutoConfiguration(final SkyHttpServerProps skyHttpServerProps,
+                                          final List<RequestResultHandler> resultHandlers) {
         this.skyHttpServerProps = skyHttpServerProps;
+        this.resultHandlers = resultHandlers;
 
         showBanner();
     }
@@ -55,7 +63,7 @@ public class SkyHttpServerAutoConfiguration {
     }
 
     /**
-     * handler mapping container.
+     * handler mapping container,collect all handler mapping.
      */
     @Bean
     @ConditionalOnMissingBean
@@ -73,7 +81,7 @@ public class SkyHttpServerAutoConfiguration {
     @ConditionalOnMissingBean
     DispatchHandler dispatchHandler(
             Router<SkyRouteDefinition> router) {
-        return new DispatchHandler(router);
+        return new DispatchHandler(router, resultHandlers);
     }
 
     /**

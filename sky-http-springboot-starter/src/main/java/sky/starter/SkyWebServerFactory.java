@@ -41,7 +41,7 @@ public class SkyWebServerFactory extends AbstractServletWebServerFactory impleme
 
     @Override
     public void setResourceLoader(final ResourceLoader resourceLoader) {
-        // todo
+        // todo e.g static file
     }
 
     private SkyWebServer getSkyWebServer(final ServletContextInitializer[] initializers) {
