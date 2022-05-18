@@ -1,8 +1,9 @@
 package sky.starter.props;
 
+import cn.hutool.core.util.RandomUtil;
 import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;
-import sky.starter.ext.SkyBanner;
+import sky.starter.util.SkyBanner;
 
 /**
  * @author <a href="mailto:likelovec@gmail.com">fzdwx</a>
@@ -24,6 +25,13 @@ public class SkyHttpServerProps {
 
     public boolean enableDebug() {
         return this.sky.debug;
+    }
+
+    public int getPort() {
+        if (this.port == 0) {
+            this.port = RandomUtil.randomInt(65535);
+        }
+        return port;
     }
 
     @Data

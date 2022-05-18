@@ -5,10 +5,10 @@ import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
-import org.springframework.web.method.HandlerMethod;
 import org.springframework.web.servlet.mvc.method.RequestMappingInfoHandlerMethodMappingNamingStrategy;
 import org.springframework.web.util.pattern.PathPattern;
 import org.springframework.web.util.pattern.PathPatternParser;
+import sky.starter.ext.SkyHttpMethod;
 
 import java.util.Arrays;
 import java.util.Collection;
@@ -106,7 +106,7 @@ public class SkyHandlerInfo {
         return new SkyHandlerInfo(json, name, pathPatterns, methods, headers, consumer, producer);
     }
 
-    public void addToRouter(final Router<SkyRouteDefinition> router, final HandlerMethod handlerMethod) {
+    public void addToRouter(final Router<SkyRouteDefinition> router, final SkyHttpMethod handlerMethod) {
         patterns.forEach(pattern -> {
             for (final RequestMethod method : this.methods) {
                 router.addRoute(method.name(), pattern.getPatternString(), new SkyRouteDefinition(this, handlerMethod));

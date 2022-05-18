@@ -17,7 +17,6 @@ import org.springframework.util.ClassUtils;
 import org.springframework.util.StringUtils;
 import org.springframework.util.StringValueResolver;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.method.HandlerMethod;
 import org.springframework.web.servlet.handler.HandlerMethodMappingNamingStrategy;
 import org.springframework.web.util.pattern.PathPatternParser;
 import sky.starter.props.SkyHttpServerProps;
@@ -28,7 +27,7 @@ import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-import static sky.starter.ext.Utils.DEBUG_PREFIX;
+import static sky.starter.util.Utils.DEBUG_PREFIX;
 
 /**
  * http handler mapping container
@@ -74,11 +73,15 @@ public abstract class HandlerMappingContainer<T> implements InitializingBean, Em
      * @param method  the target method
      * @return the created HandlerMethod
      */
-    public HandlerMethod createHandlerMethod(Object handler, Method method) {
+    public SkyHttpMethod createHandlerMethod(Object handler, Method method) {
+        final SkyHttpMethod handlerMethod;
         if (handler instanceof String) {
-            return new HandlerMethod((String) handler, context.getAutowireCapableBeanFactory(), context, method);
+            handlerMethod = new SkyHttpMethod((String) handler, context.getAutowireCapableBeanFactory(), context, method);
+        } else {
+            handlerMethod = new SkyHttpMethod(handler, method);
         }
-        return new HandlerMethod(handler, method);
+
+        return handlerMethod;
     }
 
     protected abstract T getMappingForMethod(final Method method, final Class<?> userType);

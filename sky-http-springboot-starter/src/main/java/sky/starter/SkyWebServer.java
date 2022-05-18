@@ -6,7 +6,7 @@ import org.springframework.boot.web.server.WebServer;
 import org.springframework.boot.web.server.WebServerException;
 import sky.starter.props.SkyHttpServerProps;
 
-import static sky.starter.ext.Utils.DEBUG_PREFIX;
+import static sky.starter.util.Utils.DEBUG_PREFIX;
 
 /**
  * @author <a href="mailto:likelovec@gmail.com">fzdwx</a>
@@ -15,14 +15,14 @@ import static sky.starter.ext.Utils.DEBUG_PREFIX;
 @Slf4j
 public class SkyWebServer implements WebServer {
 
-    private final HttpServer server;
     private final int port;
+    private final HttpServer server;
     private final SkyHttpServerProps skyHttpServerProps;
 
-
-    public SkyWebServer(final HttpServer server, final int port, final SkyHttpServerProps skyHttpServerProps) {
+    public SkyWebServer(final HttpServer server,
+                        final SkyHttpServerProps skyHttpServerProps) {
+        this.port = skyHttpServerProps.getPort();
         this.server = server;
-        this.port = port;
         this.skyHttpServerProps = skyHttpServerProps;
     }
 

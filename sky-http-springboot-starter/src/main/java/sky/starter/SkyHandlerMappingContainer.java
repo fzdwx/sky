@@ -5,10 +5,10 @@ import org.springframework.core.annotation.AnnotatedElementUtils;
 import org.springframework.lang.Nullable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
-import org.springframework.web.method.HandlerMethod;
 import sky.starter.domain.SkyHandlerInfo;
 import sky.starter.domain.SkyRouteDefinition;
 import sky.starter.ext.HandlerMappingContainer;
+import sky.starter.ext.SkyHttpMethod;
 import sky.starter.props.SkyHttpServerProps;
 
 import java.lang.reflect.AnnotatedElement;
@@ -48,7 +48,7 @@ public class SkyHandlerMappingContainer extends HandlerMappingContainer<SkyHandl
 
     @Override
     protected void registerHandlerMethod(final Object handler, final Method method, final SkyHandlerInfo skyHandlerInfo) {
-        final HandlerMethod handlerMethod = createHandlerMethod(handler, method);
+        final SkyHttpMethod handlerMethod = createHandlerMethod(handler, method);
         skyHandlerInfo.addToRouter(router, handlerMethod);
     }
 

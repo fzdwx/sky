@@ -17,21 +17,17 @@ import sky.starter.props.SkyHttpServerProps;
  */
 public class SkyWebServerFactory extends AbstractServletWebServerFactory implements ConfigurableWebServerFactory, ResourceLoaderAware {
 
+    private final DispatchHandler dispatchHandler;
     private SkyHttpServerProps skyHttpServerProps;
     private HttpServer httpServer;
 
-    public SkyWebServerFactory() {
-        this.httpServer = HttpServer.create();
-    }
-
-    public SkyWebServerFactory(int port, HttpServer httpServer, SkyHttpServerProps skyHttpServerProps) {
-        super(port);
+    public SkyWebServerFactory(final HttpServer httpServer,
+                               final SkyHttpServerProps skyHttpServerProps,
+                               final DispatchHandler dispatchHandler) {
+        super(skyHttpServerProps.getPort());
         this.httpServer = httpServer;
         this.skyHttpServerProps = skyHttpServerProps;
-    }
-
-    public SkyWebServerFactory(String contextPath, int port) {
-        super(contextPath, port);
+        this.dispatchHandler = dispatchHandler;
     }
 
     @Override
@@ -45,7 +41,9 @@ public class SkyWebServerFactory extends AbstractServletWebServerFactory impleme
     }
 
     private SkyWebServer getSkyWebServer(final ServletContextInitializer[] initializers) {
-        return new SkyWebServer(httpServer, getPort(), skyHttpServerProps);
+        // TODO: 2022/5/18 customize exception handler
+        httpServer.handle(dispatchHandler);
+        return new SkyWebServer(httpServer, skyHttpServerProps);
     }
 
 }

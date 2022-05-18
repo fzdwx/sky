@@ -4,8 +4,8 @@ import io.github.fzdwx.lambada.Collections;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.context.annotation.Bean;
 import sky.starter.ext.RequestResultHandler;
-import sky.starter.resphandler.EveryRequestResultHandler;
-import sky.starter.resphandler.ResponseBodyRequestResultHandler;
+import sky.starter.ext.EveryRequestResultHandler;
+import sky.starter.ext.ResponseBodyRequestResultHandler;
 
 import java.util.List;
 

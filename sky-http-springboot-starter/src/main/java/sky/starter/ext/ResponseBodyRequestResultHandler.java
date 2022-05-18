@@ -1,4 +1,4 @@
-package sky.starter.resphandler;
+package sky.starter.ext;
 
 import http.HttpServerResponse;
 import org.springframework.core.Ordered;
@@ -6,25 +6,25 @@ import sky.starter.domain.SkyRouteDefinition;
 import sky.starter.ext.RequestResultHandler;
 
 /**
- * support every request.
+ * support for {@link org.springframework.web.bind.annotation.ResponseBody}
  *
  * @author <a href="mailto:likelovec@gmail.com">fzdwx</a>
- * @date 2022/5/18 17:43
+ * @date 2022/5/18 17:18
  */
-public class EveryRequestResultHandler implements RequestResultHandler {
+public class ResponseBodyRequestResultHandler implements RequestResultHandler {
 
     @Override
     public boolean support(final Object result, final SkyRouteDefinition definition) {
-        return true;
+        return definition.enableJson();
     }
 
     @Override
     public void apply(final Object result, final SkyRouteDefinition definition, final HttpServerResponse response) {
-        response.end(result.toString());
+        response.json(result);
     }
 
     @Override
     public int getOrder() {
-        return Ordered.LOWEST_PRECEDENCE;
+        return Ordered.HIGHEST_PRECEDENCE;
     }
 }

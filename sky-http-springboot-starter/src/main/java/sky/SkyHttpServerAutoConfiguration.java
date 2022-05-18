@@ -12,15 +12,16 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import org.springframework.context.annotation.Primary;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurationSupport;
+import sky.starter.DispatchHandler;
 import sky.starter.SkyHandlerMappingContainer;
 import sky.starter.SkyWebServer;
 import sky.starter.SkyWebServerFactory;
 import sky.starter.domain.SkyRouteDefinition;
 import sky.starter.ext.HandlerMappingContainer;
+import sky.starter.ext.RequestParamResolver;
 import sky.starter.ext.RequestResultHandler;
-import sky.starter.ext.SkyBanner;
+import sky.starter.util.SkyBanner;
 import sky.starter.props.SkyHttpServerProps;
-import sky.starter.DispatchHandler;
 import sky.starter.unsupport.SkyDispatcherServletPath;
 import sky.starter.unsupport.SkyServletContext;
 
@@ -36,17 +37,20 @@ import java.util.List;
 @Configuration
 @ConditionalOnClass({SkyWebServer.class, SkyWebServerFactory.class})
 @EnableConfigurationProperties(SkyHttpServerProps.class)
-@Import(RequestResultHandlerInject.class)
+@Import({RequestResultHandlerInject.class, RequestParamResolverInject.class})
 public class SkyHttpServerAutoConfiguration {
 
     private final SkyHttpServerProps skyHttpServerProps;
 
     private final List<RequestResultHandler> resultHandlers;
+    private final List<RequestParamResolver> paramResolvers;
 
     public SkyHttpServerAutoConfiguration(final SkyHttpServerProps skyHttpServerProps,
-                                          final List<RequestResultHandler> resultHandlers) {
+                                          final List<RequestResultHandler> resultHandlers,
+                                          final List<RequestParamResolver> paramResolvers) {
         this.skyHttpServerProps = skyHttpServerProps;
-        this.resultHandlers = Seq.sort(resultHandlers,RequestResultHandler.sort);
+        this.resultHandlers = Seq.sort(resultHandlers, RequestResultHandler.sort);
+        this.paramResolvers = paramResolvers;
 
         showBanner();
     }
@@ -58,9 +62,15 @@ public class SkyHttpServerAutoConfiguration {
     @ConditionalOnMissingBean
     SkyWebServerFactory SkyWebServerFactory(
             WebMvcConfigurationSupport webMvcConfigurationSupport,
-            HttpServer httpServer) {
+            HttpServer httpServer,
+            DispatchHandler dispatchHandler) {
+
         webMvcConfigurationSupport.setServletContext(servletContext());
-        return new SkyWebServerFactory(skyHttpServerProps.port, httpServer, skyHttpServerProps);
+
+        return new SkyWebServerFactory(
+                httpServer,
+                skyHttpServerProps,
+                dispatchHandler);
     }
 
     /**
@@ -82,7 +92,7 @@ public class SkyHttpServerAutoConfiguration {
     @ConditionalOnMissingBean
     DispatchHandler dispatchHandler(
             Router<SkyRouteDefinition> router) {
-        return new DispatchHandler(router, resultHandlers);
+        return new DispatchHandler(router, resultHandlers, paramResolvers);
     }
 
     /**
@@ -101,16 +111,12 @@ public class SkyHttpServerAutoConfiguration {
     /**
      * http server
      *
-     * @param dispatchHandler dispatchHandler
      * @return {@link HttpServer }
      */
     @Bean
     @ConditionalOnMissingBean
-    HttpServer httpServer(
-            DispatchHandler dispatchHandler) {
-        // TODO: 2022/5/18 customize exception handler
-        return HttpServer.create()
-                .handle(dispatchHandler);
+    HttpServer httpServer() {
+        return HttpServer.create();
     }
 
     /**

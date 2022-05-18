@@ -8,7 +8,9 @@ import io.github.fzdwx.lambada.http.Router;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.core.MethodParameter;
 import sky.starter.domain.SkyRouteDefinition;
+import sky.starter.ext.RequestParamResolver;
 import sky.starter.ext.RequestResultHandler;
 
 import java.util.List;
@@ -22,13 +24,17 @@ import java.util.List;
 @Slf4j
 public class DispatchHandler implements HttpHandler {
 
+    static Object[] EMPTY_ARGS = new Object[0];
     private final Router<SkyRouteDefinition> router;
     private final List<RequestResultHandler> resultHandlers;
+    private final List<RequestParamResolver> paramResolvers;
 
     public DispatchHandler(final Router<SkyRouteDefinition> router,
-                           final List<RequestResultHandler> resultHandlers) {
+                           final List<RequestResultHandler> resultHandlers,
+                           final List<RequestParamResolver> paramResolvers) {
         this.router = router;
         this.resultHandlers = resultHandlers;
+        this.paramResolvers = paramResolvers;
     }
 
     @SneakyThrows
@@ -46,7 +52,8 @@ public class DispatchHandler implements HttpHandler {
 
         final SkyRouteDefinition definition = route.handler();
 
-        if (!handlerResult(definition.invoke(), definition, response)) {
+        final var arguments = resolveArguments(route, request);
+        if (!handlerResult(definition.invoke(arguments), definition, response)) {
             log.error("not found result handler for {}", definition.method());
 
             // todo 要不要一个默认的处理器？
@@ -62,6 +69,30 @@ public class DispatchHandler implements HttpHandler {
             }
         }
         return false;
+    }
+
+    private Object[] resolveArguments(final Router.Route<SkyRouteDefinition> route, final HttpServerRequest request) {
+        final var definition = route.handler();
+
+        final var methodParameters = definition.getMethodParameters();
+        if (methodParameters.length == 0) {
+            return EMPTY_ARGS;
+        }
+
+        final var arguments = new Object[methodParameters.length];
+        final var pathVal = route.extract(request.uri());
+
+        for (int i = 0; i < methodParameters.length; i++) {
+            final MethodParameter parameter = methodParameters[i];
+            for (final RequestParamResolver paramResolver : this.paramResolvers) {
+                if (paramResolver.support(parameter)) {
+                    arguments[i] = paramResolver.apply(request, parameter, pathVal);
+                    break;
+                }
+            }
+        }
+
+        return arguments;
     }
 
     private void createWithResolvedBean(final Router.Route<SkyRouteDefinition> route) {

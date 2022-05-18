@@ -2,7 +2,8 @@ package sky.starter.domain;
 
 import io.github.fzdwx.lambada.Assert;
 import io.github.fzdwx.lambada.anno.NonNull;
-import org.springframework.web.method.HandlerMethod;
+import org.springframework.core.MethodParameter;
+import sky.starter.ext.SkyHttpMethod;
 
 import java.lang.reflect.InvocationTargetException;
 
@@ -16,9 +17,9 @@ public class SkyRouteDefinition {
 
     private SkyHandlerInfo handlerInfo;
 
-    private HandlerMethod handlerMethod;
+    private SkyHttpMethod handlerMethod;
 
-    public SkyRouteDefinition(@NonNull final SkyHandlerInfo handlerInfo, @NonNull final HandlerMethod handlerMethod) {
+    public SkyRouteDefinition(@NonNull final SkyHandlerInfo handlerInfo, @NonNull final SkyHttpMethod handlerMethod) {
         Assert.nonNull(handlerInfo, "handlerInfo must not be null");
         Assert.nonNull(handlerMethod, "handlerMethod must not be null");
 
@@ -26,7 +27,7 @@ public class SkyRouteDefinition {
         this.handlerMethod = handlerMethod;
     }
 
-    public HandlerMethod method() {
+    public SkyHttpMethod method() {
         return handlerMethod;
     }
 
@@ -40,5 +41,9 @@ public class SkyRouteDefinition {
 
     public Object invoke(Object... args) throws InvocationTargetException, IllegalAccessException {
         return handlerMethod.getMethod().invoke(handlerMethod.getBean(), args);
+    }
+
+    public MethodParameter[] getMethodParameters() {
+        return this.handlerMethod.getMethodParameters();
     }
 }

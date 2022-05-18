@@ -1,4 +1,4 @@
-package sky.starter.ext;
+package sky.starter.util;
 
 import io.github.fzdwx.lambada.Console;
 import lombok.extern.slf4j.Slf4j;

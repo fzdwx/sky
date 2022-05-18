@@ -1,5 +1,9 @@
 package sky.starter.ext;
 
+import http.HttpServerRequest;
+import io.github.fzdwx.lambada.lang.NvMap;
+import org.springframework.core.MethodParameter;
+
 /**
  * request param resolver.
  *
@@ -8,5 +12,7 @@ package sky.starter.ext;
  */
 public interface RequestParamResolver {
 
+    boolean support(MethodParameter parameter);
 
+    Object apply(HttpServerRequest request, MethodParameter parameter, NvMap parVals);
 }

@@ -46,6 +46,8 @@ class HttpServerTest {
             res.redirect("http://www.baidu.com");
         }).GET("/error", (req, resp) -> {
             throw new RuntimeException("json 序列化错误");
+        }).GET("/test/2222", (req, resp) -> {
+            resp.end("eeeeeee");
         });
 
         // 动态添加路由
