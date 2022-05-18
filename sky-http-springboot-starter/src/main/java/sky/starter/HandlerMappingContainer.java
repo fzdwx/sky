@@ -6,8 +6,10 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.aop.support.AopUtils;
+import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.context.ApplicationContext;
+import org.springframework.context.ApplicationContextAware;
 import org.springframework.context.EmbeddedValueResolverAware;
 import org.springframework.core.MethodIntrospector;
 import org.springframework.lang.Nullable;
@@ -17,7 +19,6 @@ import org.springframework.util.StringValueResolver;
 import org.springframework.web.method.HandlerMethod;
 import org.springframework.web.servlet.handler.HandlerMethodMappingNamingStrategy;
 import org.springframework.web.util.pattern.PathPatternParser;
-import sky.starter.ext.MappingRegistry;
 import sky.starter.props.SkyHttpServerProps;
 
 import java.lang.reflect.Method;
@@ -35,11 +36,10 @@ import static sky.starter.Utils.DEBUG_PREFIX;
  * @date 2022/5/17 17:10
  */
 @Slf4j
-public abstract class HandlerMappingContainer<T> implements InitializingBean, EmbeddedValueResolverAware {
+public abstract class HandlerMappingContainer<T> implements InitializingBean, EmbeddedValueResolverAware, ApplicationContextAware {
 
-    protected final ApplicationContext context;
     protected final SkyHttpServerProps skyHttpServerProps;
-    private final MappingRegistry<T> mappingRegistry = new MappingRegistry<>();
+    protected ApplicationContext context;
     protected StringValueResolver stringValueResolver;
     protected PathPatternParser patternParser = new PathPatternParser();
     @Nullable
@@ -47,8 +47,7 @@ public abstract class HandlerMappingContainer<T> implements InitializingBean, Em
     @Setter
     private HandlerMethodMappingNamingStrategy<T> namingStrategy;
 
-    public HandlerMappingContainer(final ApplicationContext context, final SkyHttpServerProps skyHttpServerProps) {
-        this.context = context;
+    public HandlerMappingContainer(final SkyHttpServerProps skyHttpServerProps) {
         this.skyHttpServerProps = skyHttpServerProps;
     }
 
@@ -60,6 +59,11 @@ public abstract class HandlerMappingContainer<T> implements InitializingBean, Em
     @Override
     public void setEmbeddedValueResolver(final StringValueResolver resolver) {
         this.stringValueResolver = resolver;
+    }
+
+    @Override
+    public void setApplicationContext(final ApplicationContext applicationContext) throws BeansException {
+        this.context = applicationContext;
     }
 
     /**
@@ -78,19 +82,9 @@ public abstract class HandlerMappingContainer<T> implements InitializingBean, Em
 
     protected abstract T getMappingForMethod(final Method method, final Class<?> userType);
 
-    protected HttpHandler getHandler(HttpServerRequest request) {
-        // HandlerMethod handlerMethod = lookupHandlerMethod(request.uri(), request);
-        return null;
-    }
+    protected abstract HttpHandler getHandler(HttpServerRequest request);
 
-    /**
-     * register handler
-     *
-     * @param handler maybe is class or entity.
-     */
-    protected void registerHandlerMethod(final Object handler, final Method method, final T mapping) {
-        mappingRegistry.register(mapping, handler, method);
-    }
+    protected abstract void registerHandlerMethod(final Object handler, final Method method, final T mapping);
 
     private void initHandler() {
         final String[] beanNames = context.getBeanNamesForType(Object.class);
@@ -105,7 +99,7 @@ public abstract class HandlerMappingContainer<T> implements InitializingBean, Em
             }
 
             if (beanType != null && HandlerChecker.isHandler(beanType)) {
-                collectHandler(beanType);
+                collectHandler(beanName);
             }
         }
     }
@@ -115,12 +109,10 @@ public abstract class HandlerMappingContainer<T> implements InitializingBean, Em
      */
     private void collectHandler(final Object handler) {
         if (handler == null) return;
-        Class<?> handlerType;
-        if (!(handler instanceof Class<?> ht)) {
-            handlerType = (handler instanceof String ? context.getType((String) handler) : handler.getClass());
-            if (handlerType == null) return;
-        } else {
-            handlerType = ht;
+        Class<?> handlerType = (handler instanceof String ?
+                context.getType((String) handler) : handler.getClass());
+        if (handlerType == null) {
+            return;
         }
 
         Class<?> userType = ClassUtils.getUserClass(handlerType);

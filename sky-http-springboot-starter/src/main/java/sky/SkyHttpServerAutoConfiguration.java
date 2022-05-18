@@ -1,11 +1,9 @@
 package sky;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.web.servlet.DispatcherServletPath;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.web.servlet.server.AbstractServletWebServerFactory;
-import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
@@ -53,8 +51,8 @@ public class SkyHttpServerAutoConfiguration {
      * handler mapping container.
      */
     @Bean
-    HandlerMappingContainer<?> container(@Autowired ApplicationContext applicationContext) {
-        return new SkyHandlerMappingContainer(applicationContext, skyHttpServerProps);
+    HandlerMappingContainer<?> container() {
+        return new SkyHandlerMappingContainer(skyHttpServerProps);
     }
 
     /**

@@ -1,11 +1,7 @@
 package http;
 
 import http.ext.HttpHandler;
-import io.github.fzdwx.lambada.internal.Tuple2;
 import io.github.fzdwx.lambada.http.HttpMethod;
-import io.github.fzdwx.lambada.lang.NvMap;
-
-import java.util.Map;
 
 /**
  * router.
@@ -56,11 +52,7 @@ public class Router {
         return this;
     }
 
-    public Tuple2<HttpHandler, NvMap> match(final HttpServerRequest req) {
+    public io.github.fzdwx.lambada.http.Router.Route<HttpHandler> match(final HttpServerRequest req) {
         return router.match(req.methodType(), req.uri().split("\\?")[0]);
-    }
-
-    public Map<String, HttpHandler> handlers() {
-        return this.router.handlers();
     }
 }

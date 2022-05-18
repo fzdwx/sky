@@ -1,9 +1,12 @@
 package sky.starter;
 
-import org.springframework.context.ApplicationContext;
+import http.HttpServerRequest;
+import http.ext.HttpHandler;
+import io.github.fzdwx.lambada.http.Router;
 import org.springframework.core.annotation.AnnotatedElementUtils;
 import org.springframework.lang.Nullable;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.method.HandlerMethod;
 import sky.starter.props.SkyHttpServerProps;
 
 import java.lang.reflect.AnnotatedElement;
@@ -15,9 +18,11 @@ import java.lang.reflect.Method;
  */
 public class SkyHandlerMappingContainer extends HandlerMappingContainer<SkyHandlerInfo> {
 
-    public SkyHandlerMappingContainer(final ApplicationContext context,
-                                      final SkyHttpServerProps skyHttpServerProps) {
-        super(context, skyHttpServerProps);
+    final Router<HandlerMethod> router;
+
+    public SkyHandlerMappingContainer(final SkyHttpServerProps skyHttpServerProps) {
+        super(skyHttpServerProps);
+        this.router = Router.router();
     }
 
     @Override
@@ -30,6 +35,18 @@ public class SkyHandlerMappingContainer extends HandlerMappingContainer<SkyHandl
             }
         }
         return info;
+    }
+
+    @Override
+    protected HttpHandler getHandler(final HttpServerRequest request) {
+        return null;
+    }
+
+    @Override
+    protected void registerHandlerMethod(final Object handler, final Method method, final SkyHandlerInfo mapping) {
+        final HandlerMethod handlerMethod = createHandlerMethod(handler, method);
+        mapping.addToRouter(router, handlerMethod);
+        System.out.println("44");
     }
 
     protected String[] resolveEmbeddedValuesInPatterns(String[] patterns) {

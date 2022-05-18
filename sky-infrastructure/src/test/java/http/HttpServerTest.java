@@ -7,8 +7,6 @@ import io.github.fzdwx.lambada.Seq;
 import io.github.fzdwx.lambada.Threads;
 import io.github.fzdwx.lambada.http.ContentType;
 import io.github.fzdwx.lambada.http.HttpMethod;
-import io.github.fzdwx.lambada.internal.Tuple2;
-import io.github.fzdwx.lambada.lang.NvMap;
 import org.junit.jupiter.api.Test;
 
 import java.time.Duration;
@@ -67,10 +65,10 @@ class HttpServerTest {
         final int port = 8888;
         HttpServer.create()
                 .handle((req, response) -> {
-                    final Tuple2<HttpHandler, NvMap> t2 = router.match(req);
+                    final io.github.fzdwx.lambada.http.Router.Route<HttpHandler> route = router.match(req);
 
-                    if (t2.v1 != null) {
-                        t2.v1.handle(req, response);
+                    if (route != null) {
+                        route.handler().handle(req, response);
                         return;
                     }
 

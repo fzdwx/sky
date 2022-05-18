@@ -1,9 +1,11 @@
 package sky.starter;
 
-import cn.hutool.core.collection.CollUtil;
+import io.github.fzdwx.lambada.http.HttpMethod;
+import io.github.fzdwx.lambada.http.Router;
 import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.method.HandlerMethod;
 import org.springframework.web.servlet.mvc.method.RequestMappingInfoHandlerMethodMappingNamingStrategy;
 import org.springframework.web.util.pattern.PathPattern;
 import org.springframework.web.util.pattern.PathPatternParser;
@@ -23,8 +25,8 @@ import java.util.TreeSet;
 public class SkyHandlerInfo {
 
     private static final SortedSet<PathPattern> EMPTY_PATH_PATTERN = new TreeSet<>(Collections.singleton(new PathPatternParser().parse("")));
-    private final SortedSet<PathPattern> patterns;
     private String name;
+    private SortedSet<PathPattern> patterns;
     private Set<RequestMethod> methods;
     private SortedSet<String> headers;
     private SortedSet<String> consumer;
@@ -50,6 +52,10 @@ public class SkyHandlerInfo {
 
     public static SkyHandlerInfo paths(final PathPatternParser patternParser, final String... path) {
         return new SkyHandlerInfo(patternParser, path);
+    }
+
+    public Set<PathPattern> paths() {
+        return patterns;
     }
 
     public SkyHandlerInfo methods(final RequestMethod... method) {
@@ -78,13 +84,92 @@ public class SkyHandlerInfo {
     }
 
     public SkyHandlerInfo combine(final SkyHandlerInfo other) {
-        String name = combineNames(other);
-        final var pathPatterns = CollUtil.addAll(this.patterns, other.patterns);
-        final var methods = CollUtil.addAll(this.methods, other.methods);
-        final var headers = CollUtil.addAll(this.headers, other.headers);
-        final var consumer = CollUtil.addAll(this.consumer, other.consumer);
-        final var producer = CollUtil.addAll(this.producer, other.producer);
+        final var name = combineNames(other);
+        final var pathPatterns = combinePatterns(other.patterns);
+        final var methods = combineMethods(other.methods);
+        final var headers = combineHeaders(other.headers);
+        final var consumer = combineConsumer(other.consumer);
+        final var producer = combineProducer(other.producer);
         return new SkyHandlerInfo(name, pathPatterns, methods, headers, consumer, producer);
+    }
+
+    public void addToRouter(final Router<HandlerMethod> router, final HandlerMethod handlerMethod) {
+        patterns.forEach(pattern -> {
+            for (final RequestMethod method : this.methods) {
+                final HttpMethod of = HttpMethod.of(method.name());
+                // TODO: 2022/5/18
+                // router.addRoute(of, pattern, handlerMethod);
+            }
+        });
+    }
+
+    private Set<String> combineProducer(final SortedSet<String> other) {
+        if (other == null || other.isEmpty()) {
+            return this.producer;
+        }
+        if (this.producer == null || this.producer.isEmpty()) {
+            return other;
+        }
+
+        Set<String> set = new LinkedHashSet<>(this.producer);
+        set.addAll(other);
+        return set;
+    }
+
+    private Set<String> combineConsumer(final SortedSet<String> other) {
+        if (other == null || other.isEmpty()) {
+            return this.consumer;
+        }
+        if (this.consumer == null || this.consumer.isEmpty()) {
+            return other;
+        }
+
+        Set<String> set = new LinkedHashSet<>(this.consumer);
+        set.addAll(other);
+        return set;
+    }
+
+    private Set<String> combineHeaders(final SortedSet<String> other) {
+        if (other == null || other.isEmpty()) {
+            return this.headers;
+        }
+        if (this.headers == null || this.headers.isEmpty()) {
+            return other;
+        }
+
+        Set<String> set = new LinkedHashSet<>(this.headers);
+        set.addAll(other);
+        return set;
+    }
+
+    private Set<RequestMethod> combineMethods(final Set<RequestMethod> other) {
+        if (other == null || other.isEmpty()) {
+            return this.methods;
+        }
+        if (this.methods == null || this.methods.isEmpty()) {
+            return other;
+        }
+
+        Set<RequestMethod> set = new LinkedHashSet<>(this.methods);
+        set.addAll(other);
+        return set;
+    }
+
+    private SortedSet<PathPattern> combinePatterns(final SortedSet<PathPattern> other) {
+        if (other == null || other.isEmpty()) {
+            return this.patterns;
+        }
+        if (this.patterns == null || this.patterns.isEmpty()) {
+            return other;
+        }
+
+        SortedSet<PathPattern> combined = new TreeSet<>();
+        for (PathPattern pattern1 : this.patterns) {
+            for (PathPattern pattern2 : other) {
+                combined.add(pattern1.combine(pattern2));
+            }
+        }
+        return combined;
     }
 
     private String combineNames(final SkyHandlerInfo other) {
