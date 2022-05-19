@@ -3,14 +3,15 @@ package sky.starter;
 import http.HttpServerRequest;
 import http.HttpServerResponse;
 import http.ext.HttpHandler;
+import io.github.fzdwx.lambada.Seq;
 import io.github.fzdwx.lambada.http.HttpPath;
 import io.github.fzdwx.lambada.http.Router;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.core.MethodParameter;
+import sky.starter.domain.SkyHttpMethod;
 import sky.starter.domain.SkyRouteDefinition;
-import sky.starter.ext.RequestParamResolver;
+import sky.starter.ext.RequestArgumentResolver;
 import sky.starter.ext.RequestResultHandler;
 
 import java.util.List;
@@ -27,13 +28,13 @@ public class DispatchHandler implements HttpHandler {
     static Object[] EMPTY_ARGS = new Object[0];
     private final Router<SkyRouteDefinition> router;
     private final List<RequestResultHandler> resultHandlers;
-    private final List<RequestParamResolver> paramResolvers;
+    private final List<RequestArgumentResolver> paramResolvers;
 
     public DispatchHandler(final Router<SkyRouteDefinition> router,
                            final List<RequestResultHandler> resultHandlers,
-                           final List<RequestParamResolver> paramResolvers) {
+                           final List<RequestArgumentResolver> paramResolvers) {
         this.router = router;
-        this.resultHandlers = resultHandlers;
+        this.resultHandlers = Seq.sort(resultHandlers, RequestResultHandler.sort);
         this.paramResolvers = paramResolvers;
     }
 
@@ -83,8 +84,8 @@ public class DispatchHandler implements HttpHandler {
         final var pathVal = route.extract(request.uri());
 
         for (int i = 0; i < methodParameters.length; i++) {
-            final MethodParameter parameter = methodParameters[i];
-            for (final RequestParamResolver paramResolver : this.paramResolvers) {
+            final SkyHttpMethod.SkyHttpMethodParameter parameter = methodParameters[i];
+            for (final RequestArgumentResolver paramResolver : this.paramResolvers) {
                 if (paramResolver.support(parameter)) {
                     arguments[i] = paramResolver.apply(request, parameter, pathVal);
                     break;
