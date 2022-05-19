@@ -117,6 +117,17 @@ public final class Netty {
         return params;
     }
 
+    public static int findPathEndIndex(String uri) {
+        int len = uri.length();
+        for (int i = 0; i < len; i++) {
+            char c = uri.charAt(i);
+            if (c == '?' || c == '#') {
+                return i;
+            }
+        }
+        return len;
+    }
+
     public static ChannelPromise promise(final Channel channel) {
         return new DefaultChannelPromise(channel);
     }

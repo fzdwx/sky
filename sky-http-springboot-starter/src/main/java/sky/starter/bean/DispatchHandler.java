@@ -40,7 +40,7 @@ public class DispatchHandler implements HttpHandler {
     @SneakyThrows
     @Override
     public void handle(final HttpServerRequest request, final HttpServerResponse response) {
-        final String path = HttpPath.format(request.uri());
+        final String path = HttpPath.format(request.path());
         final Router.Route<SkyRouteDefinition> route = router.match(request.methodType(), path);
         if (route == null) {
             notFound(request, response);

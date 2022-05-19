@@ -77,6 +77,8 @@ public interface HttpServerRequest {
      */
     String uri();
 
+    String path();
+
     /**
      * request type
      *
