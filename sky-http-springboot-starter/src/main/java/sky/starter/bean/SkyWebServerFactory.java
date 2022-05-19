@@ -1,4 +1,4 @@
-package sky.starter;
+package sky.starter.bean;
 
 import http.HttpServer;
 import org.springframework.boot.web.server.ConfigurableWebServerFactory;
@@ -6,6 +6,7 @@ import org.springframework.boot.web.server.WebServer;
 import org.springframework.boot.web.servlet.ServletContextInitializer;
 import org.springframework.boot.web.servlet.server.AbstractServletWebServerFactory;
 import org.springframework.context.ResourceLoaderAware;
+import org.springframework.context.event.EventListener;
 import org.springframework.core.io.ResourceLoader;
 import sky.starter.props.SkyHttpServerProps;
 
@@ -28,6 +29,16 @@ public class SkyWebServerFactory extends AbstractServletWebServerFactory impleme
         this.httpServer = httpServer;
         this.skyHttpServerProps = skyHttpServerProps;
         this.dispatchHandler = dispatchHandler;
+    }
+
+    @EventListener
+    public void test2(RequestResultHandlerContainer event) {
+        System.out.println(event);
+    }
+
+    @EventListener
+    public void test3(RequestArgumentResolverContainer event) {
+        System.out.println(event);
     }
 
     @Override

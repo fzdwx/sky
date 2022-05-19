@@ -1,9 +1,8 @@
-package sky.starter;
+package sky.starter.bean;
 
 import http.HttpServerRequest;
 import http.HttpServerResponse;
 import http.ext.HttpHandler;
-import io.github.fzdwx.lambada.Seq;
 import io.github.fzdwx.lambada.http.HttpPath;
 import io.github.fzdwx.lambada.http.Router;
 import io.netty.handler.codec.http.HttpResponseStatus;
@@ -14,7 +13,7 @@ import sky.starter.domain.SkyRouteDefinition;
 import sky.starter.ext.RequestArgumentResolver;
 import sky.starter.ext.RequestResultHandler;
 
-import java.util.List;
+import java.util.Collection;
 
 /**
  * dispatch handler.
@@ -27,15 +26,15 @@ public class DispatchHandler implements HttpHandler {
 
     static Object[] EMPTY_ARGS = new Object[0];
     private final Router<SkyRouteDefinition> router;
-    private final List<RequestResultHandler> resultHandlers;
-    private final List<RequestArgumentResolver> argumentResolvers;
+    private final Collection<RequestResultHandler> resultHandlers;
+    private final Collection<RequestArgumentResolver> argumentResolvers;
 
     public DispatchHandler(final Router<SkyRouteDefinition> router,
-                           final List<RequestResultHandler> resultHandlers,
-                           final List<RequestArgumentResolver> argumentResolvers) {
+                           final RequestResultHandlerContainer resultHandlers,
+                           final RequestArgumentResolverContainer argumentResolvers) {
         this.router = router;
-        this.resultHandlers = Seq.sort(resultHandlers, RequestResultHandler.sort);
-        this.argumentResolvers = argumentResolvers;
+        this.resultHandlers = resultHandlers.container();
+        this.argumentResolvers = argumentResolvers.container();
     }
 
     @SneakyThrows

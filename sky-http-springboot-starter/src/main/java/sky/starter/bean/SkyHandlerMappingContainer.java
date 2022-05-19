@@ -1,4 +1,4 @@
-package sky.starter;
+package sky.starter.bean;
 
 import io.github.fzdwx.lambada.http.Router;
 import org.springframework.core.annotation.AnnotatedElementUtils;

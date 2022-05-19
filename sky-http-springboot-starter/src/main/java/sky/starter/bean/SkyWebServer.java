@@ -1,4 +1,4 @@
-package sky.starter;
+package sky.starter.bean;
 
 import http.HttpServer;
 import lombok.extern.slf4j.Slf4j;

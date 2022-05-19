@@ -1,7 +1,6 @@
 package sky;
 
 import http.HttpServer;
-import io.github.fzdwx.lambada.Collections;
 import io.github.fzdwx.lambada.http.Router;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
@@ -11,16 +10,16 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurationSupport;
-import sky.starter.DispatchHandler;
-import sky.starter.SkyHandlerMappingContainer;
-import sky.starter.SkyWebServer;
-import sky.starter.SkyWebServerFactory;
+import sky.starter.bean.DispatchHandler;
+import sky.starter.bean.RequestArgumentResolverContainer;
+import sky.starter.bean.RequestResultHandlerContainer;
+import sky.starter.bean.SkyHandlerMappingContainer;
+import sky.starter.bean.SkyWebServer;
+import sky.starter.bean.SkyWebServerFactory;
 import sky.starter.domain.SkyRouteDefinition;
 import sky.starter.ext.EveryRequestResultHandler;
 import sky.starter.ext.HandlerMappingContainer;
 import sky.starter.ext.PathVariableResolver;
-import sky.starter.ext.RequestArgumentResolver;
-import sky.starter.ext.RequestResultHandler;
 import sky.starter.ext.ResponseBodyRequestResultHandler;
 import sky.starter.props.SkyHttpServerProps;
 import sky.starter.unsupport.SkyDispatcherServletPath;
@@ -28,7 +27,6 @@ import sky.starter.unsupport.SkyServletContext;
 import sky.starter.util.SkyBanner;
 
 import javax.servlet.ServletContext;
-import java.util.List;
 
 /**
  * sky http server auto configuration.
@@ -54,34 +52,25 @@ public class SkyHttpServerAutoConfiguration {
      */
     @Bean
     @ConditionalOnMissingBean
-    SkyWebServerFactory SkyWebServerFactory(
-            WebMvcConfigurationSupport webMvcConfigurationSupport,
-            HttpServer httpServer,
-            DispatchHandler dispatchHandler) {
+    SkyWebServerFactory SkyWebServerFactory(WebMvcConfigurationSupport webMvcConfigurationSupport, HttpServer httpServer,
+                                            DispatchHandler dispatchHandler) {
 
         webMvcConfigurationSupport.setServletContext(servletContext());
 
-        return new SkyWebServerFactory(
-                httpServer,
-                skyHttpServerProps,
-                dispatchHandler);
+        return new SkyWebServerFactory(httpServer, skyHttpServerProps, dispatchHandler);
     }
 
     @Bean
-    @ConditionalOnMissingBean
-    List<RequestResultHandler> resultHandlers() {
-        return Collections.list(
-                new ResponseBodyRequestResultHandler(),
-                new EveryRequestResultHandler()
-        );
+    RequestArgumentResolverContainer requestArgumentResolverContainer() {
+        return new RequestArgumentResolverContainer()
+                .add(new PathVariableResolver());
     }
 
     @Bean
-    @ConditionalOnMissingBean
-    List<RequestArgumentResolver> argumentResolvers() {
-        return Collections.list(
-                new PathVariableResolver()
-        );
+    RequestResultHandlerContainer requestResultHandlerContainer() {
+        return new RequestResultHandlerContainer()
+                .add(new ResponseBodyRequestResultHandler())
+                .add(new EveryRequestResultHandler());
     }
 
     /**
@@ -101,9 +90,10 @@ public class SkyHttpServerAutoConfiguration {
      */
     @Bean
     @ConditionalOnMissingBean
-    DispatchHandler dispatchHandler(
-            Router<SkyRouteDefinition> router) {
-        return new DispatchHandler(router, resultHandlers(), argumentResolvers());
+    DispatchHandler dispatchHandler(Router<SkyRouteDefinition> router, RequestResultHandlerContainer requestResultHandlerContainer,
+                                    RequestArgumentResolverContainer requestArgumentResolverContainer) {
+
+        return new DispatchHandler(router, requestResultHandlerContainer, requestArgumentResolverContainer);
     }
 
     /**
