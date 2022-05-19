@@ -2,6 +2,8 @@ package sky.starter.ext;
 
 import http.HttpServerRequest;
 import io.github.fzdwx.lambada.lang.NvMap;
+import sky.starter.bean.impl.PathVariableResolver;
+import sky.starter.bean.impl.RequestParamResolver;
 import sky.starter.domain.SkyHttpMethod;
 
 /**

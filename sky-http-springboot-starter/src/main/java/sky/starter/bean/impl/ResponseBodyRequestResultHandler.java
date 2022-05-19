@@ -1,8 +1,9 @@
-package sky.starter.ext;
+package sky.starter.bean.impl;
 
 import http.HttpServerResponse;
 import org.springframework.core.Ordered;
 import sky.starter.domain.SkyRouteDefinition;
+import sky.starter.ext.RequestResultHandler;
 
 /**
  * support for {@link org.springframework.web.bind.annotation.ResponseBody}

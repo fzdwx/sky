@@ -575,6 +575,7 @@ public class SkyHttpMethod {
         }
 
         @Override
+        @NonNull
         public String getParameterName() {
             return this.parameterName;
         }
