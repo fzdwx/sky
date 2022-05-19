@@ -19,6 +19,7 @@ import org.springframework.util.StringValueResolver;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.servlet.handler.HandlerMethodMappingNamingStrategy;
 import org.springframework.web.util.pattern.PathPatternParser;
+import sky.starter.domain.SkyHttpMethod;
 import sky.starter.props.SkyHttpServerProps;
 
 import java.lang.reflect.Method;

@@ -2,8 +2,6 @@ package sky.starter.domain;
 
 import io.github.fzdwx.lambada.Assert;
 import io.github.fzdwx.lambada.anno.NonNull;
-import org.springframework.core.MethodParameter;
-import sky.starter.ext.SkyHttpMethod;
 
 import java.lang.reflect.InvocationTargetException;
 
@@ -43,7 +41,7 @@ public class SkyRouteDefinition {
         return handlerMethod.getMethod().invoke(handlerMethod.getBean(), args);
     }
 
-    public MethodParameter[] getMethodParameters() {
+    public SkyHttpMethod.SkyHttpMethodParameter[] getMethodParameters() {
         return this.handlerMethod.getMethodParameters();
     }
 }

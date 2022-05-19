@@ -28,14 +28,14 @@ public class DispatchHandler implements HttpHandler {
     static Object[] EMPTY_ARGS = new Object[0];
     private final Router<SkyRouteDefinition> router;
     private final List<RequestResultHandler> resultHandlers;
-    private final List<RequestArgumentResolver> paramResolvers;
+    private final List<RequestArgumentResolver> argumentResolvers;
 
     public DispatchHandler(final Router<SkyRouteDefinition> router,
                            final List<RequestResultHandler> resultHandlers,
-                           final List<RequestArgumentResolver> paramResolvers) {
+                           final List<RequestArgumentResolver> argumentResolvers) {
         this.router = router;
         this.resultHandlers = Seq.sort(resultHandlers, RequestResultHandler.sort);
-        this.paramResolvers = paramResolvers;
+        this.argumentResolvers = argumentResolvers;
     }
 
     @SneakyThrows
@@ -85,7 +85,7 @@ public class DispatchHandler implements HttpHandler {
 
         for (int i = 0; i < methodParameters.length; i++) {
             final SkyHttpMethod.SkyHttpMethodParameter parameter = methodParameters[i];
-            for (final RequestArgumentResolver paramResolver : this.paramResolvers) {
+            for (final RequestArgumentResolver paramResolver : this.argumentResolvers) {
                 if (paramResolver.support(parameter)) {
                     arguments[i] = paramResolver.apply(request, parameter, pathVal);
                     break;

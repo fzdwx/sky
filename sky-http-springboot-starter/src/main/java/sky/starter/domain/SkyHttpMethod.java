@@ -1,7 +1,9 @@
-package sky.starter.ext;
+package sky.starter.domain;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import io.github.fzdwx.lambada.anno.NonNull;
+import io.github.fzdwx.lambada.anno.Nullable;
+import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.context.MessageSource;
 import org.springframework.context.i18n.LocaleContextHolder;
@@ -10,15 +12,17 @@ import org.springframework.core.DefaultParameterNameDiscoverer;
 import org.springframework.core.MethodParameter;
 import org.springframework.core.ResolvableType;
 import org.springframework.core.annotation.AnnotatedElementUtils;
+import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.core.annotation.SynthesizingMethodParameter;
 import org.springframework.http.HttpStatus;
-import org.springframework.lang.NonNull;
-import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
 import org.springframework.util.ObjectUtils;
 import org.springframework.util.ReflectionUtils;
 import org.springframework.util.StringUtils;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
 import java.lang.annotation.Annotation;
@@ -26,6 +30,7 @@ import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.StringJoiner;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -39,9 +44,8 @@ import java.util.stream.IntStream;
  * </pre>
  * @date 2022/5/18 21:55
  */
+@Slf4j
 public class SkyHttpMethod {
-
-    protected static final Log logger = LogFactory.getLog(SkyHttpMethod.class);
 
     private final Object bean;
 
@@ -57,7 +61,7 @@ public class SkyHttpMethod {
 
     private final Method bridgedMethod;
 
-    private final MethodParameter[] parameters;
+    private final SkyHttpMethodParameter[] parameters;
     private final String description;
     private final DefaultParameterNameDiscoverer parameterNameDiscoverer = new DefaultParameterNameDiscoverer();
     @Nullable
@@ -215,7 +219,7 @@ public class SkyHttpMethod {
     /**
      * Return the method parameters for this handler method.
      */
-    public MethodParameter[] getMethodParameters() {
+    public SkyHttpMethodParameter[] getMethodParameters() {
         return this.parameters;
     }
 
@@ -267,7 +271,7 @@ public class SkyHttpMethod {
      */
     public String getShortLogMessage() {
         return getBeanType().getName() + "#" + this.method.getName() +
-               "[" + this.method.getParameterCount() + " args]";
+                "[" + this.method.getParameterCount() + " args]";
     }
 
     @Override
@@ -343,9 +347,9 @@ public class SkyHttpMethod {
         Class<?> targetBeanClass = targetBean.getClass();
         if (!methodDeclaringClass.isAssignableFrom(targetBeanClass)) {
             String text = "The mapped handler method class '" + methodDeclaringClass.getName() +
-                          "' is not an instance of the actual controller bean class '" +
-                          targetBeanClass.getName() + "'. If the controller requires proxying " +
-                          "(e.g. due to @Transactional), please use class-based proxying.";
+                    "' is not an instance of the actual controller bean class '" +
+                    targetBeanClass.getName() + "'. If the controller requires proxying " +
+                    "(e.g. due to @Transactional), please use class-based proxying.";
             throw new IllegalStateException(formatInvokeError(text, args));
         }
     }
@@ -357,9 +361,9 @@ public class SkyHttpMethod {
                         "[" + i + "] [null]"))
                 .collect(Collectors.joining(",\n", " ", " "));
         return text + "\n" +
-               "Controller [" + getBeanType().getName() + "]\n" +
-               "Method [" + getBridgedMethod().toGenericString() + "] " +
-               "with argument values:\n" + formattedArgs;
+                "Controller [" + getBeanType().getName() + "]\n" +
+                "Method [" + getBridgedMethod().toGenericString() + "] " +
+                "with argument values:\n" + formattedArgs;
     }
 
     @Nullable
@@ -376,12 +380,12 @@ public class SkyHttpMethod {
 
     protected static String formatArgumentError(MethodParameter param, String message) {
         return "Could not resolve parameter [" + param.getParameterIndex() + "] in " +
-               param.getExecutable().toGenericString() + (StringUtils.hasText(message) ? ": " + message : "");
+                param.getExecutable().toGenericString() + (StringUtils.hasText(message) ? ": " + message : "");
     }
 
-    private MethodParameter[] initMethodParameters() {
+    private SkyHttpMethodParameter[] initMethodParameters() {
         int count = this.bridgedMethod.getParameterCount();
-        MethodParameter[] result = new MethodParameter[count];
+        SkyHttpMethodParameter[] result = new SkyHttpMethodParameter[count];
         for (int i = 0; i < count; i++) {
             final var parameter = new SkyHttpMethodParameter(i);
             // ext
@@ -424,7 +428,7 @@ public class SkyHttpMethod {
 
     private boolean isOverrideFor(Method candidate) {
         if (!candidate.getName().equals(this.method.getName()) ||
-            candidate.getParameterCount() != this.method.getParameterCount()) {
+                candidate.getParameterCount() != this.method.getParameterCount()) {
             return false;
         }
         Class<?>[] paramTypes = this.method.getParameterTypes();
@@ -433,7 +437,7 @@ public class SkyHttpMethod {
         }
         for (int i = 0; i < paramTypes.length; i++) {
             if (paramTypes[i] !=
-                ResolvableType.forMethodParameter(candidate, i, this.method.getDeclaringClass()).resolve()) {
+                    ResolvableType.forMethodParameter(candidate, i, this.method.getDeclaringClass()).resolve()) {
                 return false;
             }
         }
@@ -448,16 +452,64 @@ public class SkyHttpMethod {
         return beanType.getName() + "#" + method.getName() + joiner.toString();
     }
 
-    private class SkyHttpMethodParameter extends SynthesizingMethodParameter {
+    public class SkyHttpMethodParameter extends SynthesizingMethodParameter {
 
         private final String parameterName;
         @Nullable
         private volatile Annotation[] combinedAnnotations;
 
+        @Getter
+        @Nullable
+        private PathVariable pathVariable;
+        @Getter
+        @Nullable
+        private Map<String, Object> pathVariableAttrs;
+
+        @Getter
+        @Nullable
+        private RequestBody requestBody;
+        @Getter
+        @Nullable
+        private Map<String, Object> requestBodyAttr;
+
+        @Getter
+        @Nullable
+        private RequestParam requestParam;
+        @Getter
+        @Nullable
+        private Map<String, Object> requestParamAttr;
+
         public SkyHttpMethodParameter(int index) {
             super(SkyHttpMethod.this.bridgedMethod, index);
             initParameterNameDiscovery(parameterNameDiscoverer);
             parameterName = super.getParameterName();
+            initPathVariable();
+            initRequestBody();
+            initRequestParam();
+        }
+
+        private void initRequestParam() {
+            this.requestParam = getParameter().getAnnotation(RequestParam.class);
+            if (this.requestParam == null) {
+                return;
+            }
+            this.requestParamAttr = AnnotationUtils.getAnnotationAttributes(requestParam);
+        }
+
+        private void initRequestBody() {
+            this.requestBody = getParameter().getAnnotation(RequestBody.class);
+            if (this.requestBody == null) {
+                return;
+            }
+            this.requestBodyAttr = AnnotationUtils.getAnnotationAttributes(requestBody);
+        }
+
+        private void initPathVariable() {
+            this.pathVariable = getParameter().getAnnotation(PathVariable.class);
+            if (this.pathVariable == null) {
+                return;
+            }
+            this.pathVariableAttrs = AnnotationUtils.getAnnotationAttributes(pathVariable);
         }
 
         protected SkyHttpMethodParameter(SkyHttpMethodParameter original) {
@@ -533,7 +585,7 @@ public class SkyHttpMethod {
         }
     }
 
-    private class ReturnValueMethodParameter extends SkyHttpMethodParameter {
+    public class ReturnValueMethodParameter extends SkyHttpMethodParameter {
 
         @Nullable
         private final Class<?> returnValueType;

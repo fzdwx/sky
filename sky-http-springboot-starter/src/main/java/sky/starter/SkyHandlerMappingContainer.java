@@ -8,7 +8,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import sky.starter.domain.SkyHandlerInfo;
 import sky.starter.domain.SkyRouteDefinition;
 import sky.starter.ext.HandlerMappingContainer;
-import sky.starter.ext.SkyHttpMethod;
+import sky.starter.domain.SkyHttpMethod;
 import sky.starter.props.SkyHttpServerProps;
 
 import java.lang.reflect.AnnotatedElement;

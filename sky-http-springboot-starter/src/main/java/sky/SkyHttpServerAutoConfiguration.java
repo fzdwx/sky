@@ -78,7 +78,7 @@ public class SkyHttpServerAutoConfiguration {
 
     @Bean
     @ConditionalOnMissingBean
-    List<RequestArgumentResolver> paramResolvers() {
+    List<RequestArgumentResolver> argumentResolvers() {
         return Collections.list(
                 new PathVariableResolver()
         );
@@ -103,7 +103,7 @@ public class SkyHttpServerAutoConfiguration {
     @ConditionalOnMissingBean
     DispatchHandler dispatchHandler(
             Router<SkyRouteDefinition> router) {
-        return new DispatchHandler(router, resultHandlers(), paramResolvers());
+        return new DispatchHandler(router, resultHandlers(), argumentResolvers());
     }
 
     /**

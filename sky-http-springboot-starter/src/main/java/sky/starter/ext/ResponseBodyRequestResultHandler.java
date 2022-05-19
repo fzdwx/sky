@@ -3,7 +3,6 @@ package sky.starter.ext;
 import http.HttpServerResponse;
 import org.springframework.core.Ordered;
 import sky.starter.domain.SkyRouteDefinition;
-import sky.starter.ext.RequestResultHandler;
 
 /**
  * support for {@link org.springframework.web.bind.annotation.ResponseBody}

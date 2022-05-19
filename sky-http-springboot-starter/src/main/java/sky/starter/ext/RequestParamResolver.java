@@ -2,17 +2,21 @@ package sky.starter.ext;
 
 import http.HttpServerRequest;
 import io.github.fzdwx.lambada.lang.NvMap;
-import org.springframework.core.MethodParameter;
+import sky.starter.domain.SkyHttpMethod;
 
 /**
- * request param resolver.
- *
  * @author <a href="mailto:likelovec@gmail.com">fzdwx</a>
- * @date 2022/5/18 17:03
+ * @date 2022/5/19 20:27
  */
-public interface RequestParamResolver {
+public class RequestParamResolver implements RequestArgumentResolver {
 
-    boolean support(MethodParameter parameter);
+    @Override
+    public boolean support(final SkyHttpMethod.SkyHttpMethodParameter parameter) {
+        return parameter.getRequestParam() != null;
+    }
 
-    Object apply(HttpServerRequest request, MethodParameter parameter, NvMap parVals);
+    @Override
+    public Object apply(final HttpServerRequest request, final SkyHttpMethod.SkyHttpMethodParameter parameter, final NvMap parVals) {
+        return null;
+    }
 }
