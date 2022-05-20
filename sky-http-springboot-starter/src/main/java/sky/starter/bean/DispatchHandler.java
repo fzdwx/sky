@@ -47,18 +47,33 @@ public class DispatchHandler implements HttpHandler {
             return;
         }
 
-        // check bean is string ?
-        createWithResolvedBean(route);
+        //TODO
+        // 1. filter
+        // 2. interceptor
+
+        prepareHandle(route);
 
         final SkyRouteDefinition definition = route.handler();
 
+        // step1. resolveArguments
         final var arguments = resolveArguments(route, request);
-        if (!handlerResult(definition.invoke(arguments), definition, response)) {
+
+        // step2. invoke target method
+        final Object result = definition.invoke(arguments);
+
+        // step3. parse result back to client
+        final boolean handled = handlerResult(result, definition, response);
+
+        if (!handled) {
             log.error("not found result handler for {}", definition.method());
 
-            // todo 要不要一个默认的处理器？
             notSupport(request, response);
         }
+    }
+
+    private void prepareHandle(final Router.Route<SkyRouteDefinition> route) {
+        // check bean is string ?
+        createWithResolvedBean(route);
     }
 
     public boolean handlerResult(final Object result, final SkyRouteDefinition definition, final HttpServerResponse response) {
