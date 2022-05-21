@@ -299,7 +299,7 @@ public class HttpServerResponseImpl extends ChannelOutBound implements HttpServe
         this.contentType(ContentType.JSON);
 
         if (obj == null) {
-            return end("null");
+            return end();
         }
 
         // no catch exception
