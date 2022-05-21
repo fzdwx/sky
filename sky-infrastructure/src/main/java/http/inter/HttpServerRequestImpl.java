@@ -219,7 +219,7 @@ public class HttpServerRequestImpl implements HttpServerRequest {
 
     @Override
     public String toString() {
-        return "{\"method\":\"" + methodType + "\", \"uri\":\"" + uri + "\", \"version\":\"" + version + "\"}";
+        return "{\"method\":\"" + methodType + "\", \"uri\":\"" + uri + "\",\"remote\":\"" + remoteAddress() + "\", \"version\":\"" + version + "\"}";
         // return "Http Request{" +
         //         "uri='" + uri + "\n" +
         //         ", method=" + methodType +
