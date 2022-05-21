@@ -29,6 +29,8 @@ import socket.SocketSession;
 import socket.WebSocket;
 import socket.WebSocketHandler;
 
+import java.net.SocketAddress;
+
 import static io.netty.handler.codec.http.websocketx.WebSocketServerHandshakerFactory.sendUnsupportedVersionResponse;
 
 /**
@@ -68,6 +70,11 @@ public class HttpServerRequestImpl implements HttpServerRequest {
         this.uri = request.uri();
         this.httpDataFactory = httpDataFactory;
         this.serializer = serializer;
+    }
+
+    @Override
+    public SocketAddress remoteAddress() {
+        return channel.remoteAddress();
     }
 
     @Override

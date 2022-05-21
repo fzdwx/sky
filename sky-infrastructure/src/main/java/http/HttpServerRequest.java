@@ -18,6 +18,8 @@ import io.netty.handler.codec.http.multipart.HttpDataFactory;
 import serializer.JsonSerializer;
 import socket.WebSocket;
 
+import java.net.SocketAddress;
+
 /**
  * http request.
  *
@@ -34,6 +36,8 @@ public interface HttpServerRequest {
                                     final JsonSerializer serializer) {
         return new HttpServerRequestImpl(ctx, ssl, request, httpDataFactory, serializer);
     }
+
+    SocketAddress remoteAddress();
 
     HttpVersion version();
 
