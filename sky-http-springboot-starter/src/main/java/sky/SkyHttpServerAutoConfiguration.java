@@ -18,10 +18,12 @@ import sky.starter.bean.SkyWebServer;
 import sky.starter.bean.SkyWebServerFactory;
 import sky.starter.bean.impl.EveryRequestResultHandler;
 import sky.starter.bean.impl.PathVariableResolver;
+import sky.starter.bean.impl.RequestBodyResolver;
 import sky.starter.bean.impl.RequestParamResolver;
 import sky.starter.bean.impl.ResponseBodyRequestResultHandler;
 import sky.starter.domain.SkyRouteDefinition;
 import sky.starter.ext.HandlerMappingContainer;
+import sky.starter.bean.impl.ResponseEntityResultHandler;
 import sky.starter.props.SkyHttpServerProps;
 import sky.starter.unsupport.SkyDispatcherServletPath;
 import sky.starter.unsupport.SkyServletContext;
@@ -66,6 +68,7 @@ public class SkyHttpServerAutoConfiguration {
         return new RequestArgumentResolverContainer()
                 .add(new PathVariableResolver())
                 .add(new RequestParamResolver())
+                .add(new RequestBodyResolver())
                 ;
     }
 
@@ -74,6 +77,7 @@ public class SkyHttpServerAutoConfiguration {
         return new RequestResultHandlerContainer()
                 .add(new ResponseBodyRequestResultHandler())
                 .add(new EveryRequestResultHandler())
+                .add(new ResponseEntityResultHandler())
                 ;
     }
 
