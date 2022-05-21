@@ -54,6 +54,7 @@ public class HttpServerRequestImpl implements HttpServerRequest {
     private HttpPostMultipartRequestDecoder bodyDecoder;
     private boolean readBody;
     private NvMap params;
+    private boolean websocketFlag;
 
     public HttpServerRequestImpl(final ChannelHandlerContext ctx, final boolean ssl, final HttpRequest request, final HttpDataFactory httpDataFactory,
                                  final JsonSerializer serializer) {
@@ -158,6 +159,7 @@ public class HttpServerRequestImpl implements HttpServerRequest {
     @Override
     public Result<WebSocket> upgradeToWebSocket() {
         return (h) -> {
+            this.websocketFlag = true;
             //region init websocket and convert to linstener
             String subProtocols = null;
             final var session = SocketSession.create(channel);
@@ -201,6 +203,11 @@ public class HttpServerRequestImpl implements HttpServerRequest {
                 sendUnsupportedVersionResponse(session.channel());
             }
         };
+    }
+
+    @Override
+    public boolean isWebsocket() {
+        return websocketFlag;
     }
 
     @Override

@@ -92,4 +92,6 @@ public interface HttpServerRequest {
     void upgradeToWebSocket(Hooks<WebSocket> h);
 
     Result<WebSocket> upgradeToWebSocket();
+
+    boolean isWebsocket();
 }
