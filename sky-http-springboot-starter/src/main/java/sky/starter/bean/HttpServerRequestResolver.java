@@ -1,4 +1,4 @@
-package sky.starter.bean.impl;
+package sky.starter.bean;
 
 import http.HttpServerRequest;
 import http.HttpServerResponse;
@@ -8,18 +8,18 @@ import sky.starter.ext.RequestArgumentResolver;
 
 /**
  * @author <a href="mailto:likelovec@gmail.com">fzdwx</a>
- * @date 2022/5/21 18:19
+ * @date 2022/5/21 18:18
  */
-public class HttpServerResponseResolver implements RequestArgumentResolver {
+public class HttpServerRequestResolver implements RequestArgumentResolver {
 
     @Override
     public boolean support(final SkyHttpMethod.SkyHttpMethodParameter parameter) {
-        return HttpServerResponse.class.equals(parameter.getParameterType());
+        return HttpServerRequest.class.equals(parameter.getParameterType());
     }
 
     @Override
     public Object apply(final HttpServerRequest request, final HttpServerResponse response, final SkyHttpMethod.SkyHttpMethodParameter parameter,
                         final NvMap parVals) {
-        return response;
+        return request;
     }
 }

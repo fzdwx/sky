@@ -10,22 +10,24 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurationSupport;
+import sky.starter.bean.DefaultValConvertor;
 import sky.starter.bean.DispatchHandler;
+import sky.starter.bean.EveryRequestResultHandler;
+import sky.starter.bean.HttpServerRequestResolver;
+import sky.starter.bean.HttpServerResponseResolver;
+import sky.starter.bean.PathVariableResolver;
 import sky.starter.bean.RequestArgumentResolverContainer;
+import sky.starter.bean.RequestBodyResolver;
+import sky.starter.bean.RequestParamResolver;
 import sky.starter.bean.RequestResultHandlerContainer;
+import sky.starter.bean.ResponseBodyRequestResultHandler;
+import sky.starter.bean.ResponseEntityResultHandler;
 import sky.starter.bean.SkyHandlerMappingContainer;
 import sky.starter.bean.SkyWebServer;
 import sky.starter.bean.SkyWebServerFactory;
-import sky.starter.bean.impl.EveryRequestResultHandler;
-import sky.starter.bean.impl.HttpServerRequestResolver;
-import sky.starter.bean.impl.HttpServerResponseResolver;
-import sky.starter.bean.impl.PathVariableResolver;
-import sky.starter.bean.impl.RequestBodyResolver;
-import sky.starter.bean.impl.RequestParamResolver;
-import sky.starter.bean.impl.ResponseBodyRequestResultHandler;
-import sky.starter.bean.impl.ResponseEntityResultHandler;
 import sky.starter.domain.SkyRouteDefinition;
 import sky.starter.ext.HandlerMappingContainer;
+import sky.starter.ext.ValConvertor;
 import sky.starter.props.SkyHttpServerProps;
 import sky.starter.unsupport.SkyDispatcherServletPath;
 import sky.starter.unsupport.SkyServletContext;
@@ -66,14 +68,20 @@ public class SkyHttpServerAutoConfiguration {
     }
 
     @Bean
-    RequestArgumentResolverContainer requestArgumentResolverContainer() {
+    RequestArgumentResolverContainer requestArgumentResolverContainer(ValConvertor valConvertor) {
         return new RequestArgumentResolverContainer()
                 .add(new PathVariableResolver())
-                .add(new RequestParamResolver())
+                .add(new RequestParamResolver(valConvertor))
                 .add(new RequestBodyResolver())
                 .add(new HttpServerResponseResolver())
                 .add(new HttpServerRequestResolver())
                 ;
+    }
+
+    @Bean
+    @ConditionalOnMissingBean
+    ValConvertor valConvertor() {
+        return new DefaultValConvertor();
     }
 
     @Bean

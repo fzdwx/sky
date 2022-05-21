@@ -1,4 +1,4 @@
-package sky.starter.bean.impl;
+package sky.starter.bean;
 
 import http.HttpServerResponse;
 import io.netty.handler.codec.http.HttpResponseStatus;

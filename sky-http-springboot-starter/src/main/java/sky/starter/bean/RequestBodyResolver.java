@@ -1,4 +1,4 @@
-package sky.starter.bean.impl;
+package sky.starter.bean;
 
 import http.HttpServerRequest;
 import http.HttpServerResponse;
