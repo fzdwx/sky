@@ -1,6 +1,7 @@
 package sky.starter.bean.impl;
 
 import http.HttpServerRequest;
+import http.HttpServerResponse;
 import io.github.fzdwx.lambada.lang.NvMap;
 import sky.starter.domain.SkyHttpMethod;
 import sky.starter.ext.RequestArgumentResolver;
@@ -17,7 +18,7 @@ public class PathVariableResolver implements RequestArgumentResolver {
     }
 
     @Override
-    public Object apply(HttpServerRequest request, SkyHttpMethod.SkyHttpMethodParameter parameter, NvMap parVals) {
+    public Object apply(HttpServerRequest request, final HttpServerResponse response, SkyHttpMethod.SkyHttpMethodParameter parameter, NvMap parVals) {
         final var parameterName = parameter.getParameterName();
         if (parameterName == null) {
             return null;

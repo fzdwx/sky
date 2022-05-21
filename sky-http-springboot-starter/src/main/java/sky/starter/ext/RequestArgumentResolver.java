@@ -1,6 +1,7 @@
 package sky.starter.ext;
 
 import http.HttpServerRequest;
+import http.HttpServerResponse;
 import io.github.fzdwx.lambada.lang.NvMap;
 import sky.starter.bean.impl.PathVariableResolver;
 import sky.starter.bean.impl.RequestParamResolver;
@@ -18,5 +19,5 @@ public interface RequestArgumentResolver {
 
     boolean support(SkyHttpMethod.SkyHttpMethodParameter parameter);
 
-    Object apply(HttpServerRequest request, SkyHttpMethod.SkyHttpMethodParameter parameter, NvMap parVals);
+    Object apply(HttpServerRequest request, final HttpServerResponse response, SkyHttpMethod.SkyHttpMethodParameter parameter, NvMap parVals);
 }

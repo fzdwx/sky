@@ -56,13 +56,13 @@ public class DispatchHandler implements HttpHandler {
         final SkyRouteDefinition definition = route.handler();
 
         // step1. resolveArguments
-        final var arguments = resolveArguments(route, request);
+        final var arguments = resolveArguments(route, request, response);
 
         // step2. invoke target method
         final Object result = definition.invoke(arguments);
 
         // step3. parse result back to client
-        final boolean handled = handlerResult(result, definition, response);
+        final boolean handled = handlerResult(result, definition,request, response);
 
         if (!handled) {
             log.error("not found result handler for {}", definition.method());
@@ -76,17 +76,19 @@ public class DispatchHandler implements HttpHandler {
         createWithResolvedBean(route);
     }
 
-    public boolean handlerResult(final Object result, final SkyRouteDefinition definition, final HttpServerResponse response) {
+    public boolean handlerResult(final Object result, final SkyRouteDefinition definition, final HttpServerRequest request, final HttpServerResponse response) {
         for (RequestResultHandler rh : resultHandlers) {
             if (rh.support(result, definition)) {
-                rh.apply(result, definition, response);
+                rh.handle(result, definition,request, response);
                 return true;
             }
         }
         return false;
     }
 
-    private Object[] resolveArguments(final Router.Route<SkyRouteDefinition> route, final HttpServerRequest request) {
+    private Object[] resolveArguments(final Router.Route<SkyRouteDefinition> route,
+                                      final HttpServerRequest request,
+                                      final HttpServerResponse response) {
         final var definition = route.handler();
 
         final var methodParameters = definition.getMethodParameters();
@@ -101,7 +103,7 @@ public class DispatchHandler implements HttpHandler {
             final SkyHttpMethod.SkyHttpMethodParameter parameter = methodParameters[i];
             for (final RequestArgumentResolver paramResolver : this.argumentResolvers) {
                 if (paramResolver.support(parameter)) {
-                    arguments[i] = paramResolver.apply(request, parameter, pathVal);
+                    arguments[i] = paramResolver.apply(request,response, parameter, pathVal);
                     break;
                 }
             }
