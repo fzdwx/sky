@@ -1,7 +1,7 @@
 package socket.inter;
 
 import core.Netty;
-import socket.SocketSession;
+import socket.Socket;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
 import io.netty.handler.codec.http.websocketx.BinaryWebSocketFrame;
@@ -11,11 +11,11 @@ import io.netty.handler.codec.http.websocketx.TextWebSocketFrame;
  * @author <a href="mailto:likelovec@gmail.com">fzdwx</a>
  * @date 2022/3/18 20:18
  */
-public class SocketSessionImpl implements SocketSession {
+public class SocketImpl implements Socket {
 
     private final Channel channel;
 
-    public SocketSessionImpl(final Channel channel) {
+    public SocketImpl(final Channel channel) {
         this.channel = channel;
     }
 

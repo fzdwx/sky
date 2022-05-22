@@ -25,7 +25,7 @@ import io.netty.handler.codec.http.multipart.InterfaceHttpData;
 import io.netty.handler.codec.http.websocketx.CloseWebSocketFrame;
 import io.netty.handler.codec.http.websocketx.WebSocketServerHandshakerFactory;
 import serializer.JsonSerializer;
-import socket.SocketSession;
+import socket.Socket;
 import socket.WebSocket;
 import socket.WebSocketHandler;
 
@@ -169,7 +169,7 @@ public class HttpServerRequestImpl implements HttpServerRequest {
             this.websocketFlag = true;
             //region init websocket and convert to linstener
             String subProtocols = null;
-            final var session = SocketSession.create(channel);
+            final var session = Socket.create(channel);
             final var webSocket = WebSocket.create(session, this);
             //endregion
 

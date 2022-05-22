@@ -16,7 +16,7 @@ public interface Listener {
      * @param session socket session
      * @throws RuntimeException when verification failed you kan choose throw exception
      */
-    default void beforeHandshake(SocketSession session) throws RuntimeException {
+    default void beforeHandshake(Socket session) throws RuntimeException {
 
     }
 
@@ -25,7 +25,7 @@ public interface Listener {
      *
      * @param session socket session
      */
-    default void onOpen(final SocketSession session) {
+    default void onOpen(final Socket session) {
 
     }
 
@@ -34,7 +34,7 @@ public interface Listener {
      *
      * @param session socket session
      */
-    default void onclose(SocketSession session) {
+    default void onclose(Socket session) {
 
     }
 
@@ -44,13 +44,13 @@ public interface Listener {
      * @param session socket session
      * @param event   event
      */
-    default void onEvent(SocketSession session, Object event) {
+    default void onEvent(Socket session, Object event) {
 
     }
 
-    void onText(SocketSession session, final String text);
+    void onText(Socket session, final String text);
 
-    default void onBinary(SocketSession session, ByteBuf content) {
+    default void onBinary(Socket session, ByteBuf content) {
 
     }
 
@@ -60,7 +60,7 @@ public interface Listener {
      * @param session socket session
      * @param cause   exc
      */
-    default void onError(SocketSession session, Throwable cause) {
+    default void onError(Socket session, Throwable cause) {
 
     }
 }
