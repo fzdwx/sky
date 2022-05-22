@@ -55,7 +55,7 @@ public class WebSocketImpl implements WebSocket {
 
     @Override
     public ChannelFuture send(final String text) {
-        return session.send(text);
+        return send(text.getBytes());
     }
 
     @Override
@@ -77,7 +77,7 @@ public class WebSocketImpl implements WebSocket {
 
     @Override
     public ChannelFuture sendBinary(final byte[] binary) {
-        return channel().write(new BinaryWebSocketFrame(Netty.wrap(channel().alloc(), binary)));
+        return channel().writeAndFlush(new BinaryWebSocketFrame(Netty.wrap(channel().alloc(), binary)));
     }
 
     @Override
