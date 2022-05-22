@@ -29,6 +29,8 @@ public interface SocketGroup<K> extends Comparable<SocketGroup<K>> {
 
     boolean add(K key, Socket socket);
 
+    boolean remove(K key);
+
     /**
      * Writes the specified {@code message} to all {@link Channel}s in this
      * group. If the specified {@code message} is an instance of
