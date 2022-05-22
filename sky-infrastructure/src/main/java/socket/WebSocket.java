@@ -28,6 +28,8 @@ public interface WebSocket extends Listener, Socket {
      */
     WebSocket send(byte[] text, Hooks<ChannelFuture> h);
 
+    ChannelFuture sendBinary(byte[] binary);
+
     /**
      * @since 0.07
      */

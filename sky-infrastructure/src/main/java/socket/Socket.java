@@ -46,11 +46,4 @@ public interface Socket{
      * @since 0.06
      */
     ChannelFuture send(byte[] text);
-
-    /**
-     * send binary(like file) to client.
-     *
-     * @since 0.06
-     */
-    ChannelFuture sendBinary(byte[] binary);
 }

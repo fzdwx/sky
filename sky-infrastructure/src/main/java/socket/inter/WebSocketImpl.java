@@ -1,13 +1,16 @@
 package socket.inter;
 
+import core.Netty;
 import http.HttpServerRequest;
-import socket.WebSocket;
-import socket.Socket;
 import io.github.fzdwx.lambada.fun.Hooks;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
+import io.netty.handler.codec.http.websocketx.BinaryWebSocketFrame;
+import io.netty.handler.codec.http.websocketx.TextWebSocketFrame;
 import lombok.Getter;
+import socket.Socket;
+import socket.WebSocket;
 
 /**
  * default impl websocket.
@@ -56,14 +59,14 @@ public class WebSocketImpl implements WebSocket {
     }
 
     @Override
-    public WebSocket send(final String text, final Hooks<ChannelFuture> h) {
-        h.call(send(text));
-        return this;
+    public ChannelFuture send(final byte[] text) {
+        return this.channel().writeAndFlush(new TextWebSocketFrame(Netty.wrap(channel().alloc(), text)));
     }
 
     @Override
-    public ChannelFuture send(final byte[] text) {
-        return session.send(text);
+    public WebSocket send(final String text, final Hooks<ChannelFuture> h) {
+        h.call(send(text));
+        return this;
     }
 
     @Override
@@ -74,7 +77,7 @@ public class WebSocketImpl implements WebSocket {
 
     @Override
     public ChannelFuture sendBinary(final byte[] binary) {
-        return session.sendBinary(binary);
+        return channel().write(new BinaryWebSocketFrame(Netty.wrap(channel().alloc(), binary)));
     }
 
     @Override
