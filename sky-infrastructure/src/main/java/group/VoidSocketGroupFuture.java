@@ -2,7 +2,6 @@ package group;
 
 import io.github.fzdwx.lambada.Collections;
 import io.netty.channel.ChannelFuture;
-import io.netty.channel.group.ChannelGroupException;
 import io.netty.util.concurrent.Future;
 import io.netty.util.concurrent.GenericFutureListener;
 import socket.Socket;
@@ -38,7 +37,7 @@ public final class VoidSocketGroupFuture<K> implements SocketGroupFuture<K> {
     }
 
     @Override
-    public ChannelGroupException cause() {
+    public SocketGroupException cause() {
         return null;
     }
 

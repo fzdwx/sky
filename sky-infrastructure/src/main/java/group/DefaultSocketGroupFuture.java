@@ -51,7 +51,7 @@ final class DefaultSocketGroupFuture<K> extends DefaultPromise<Void> implements 
                             failed.add(new DefaultEntry<>(Socket.create(f.channel()), f.cause()));
                         }
                     }
-                    setFailure0(new ChannelGroupException(failed));
+                    setFailure0(new SocketGroupException(failed));
                 } else {
                     setSuccess0();
                 }
@@ -156,8 +156,8 @@ final class DefaultSocketGroupFuture<K> extends DefaultPromise<Void> implements 
     }
 
     @Override
-    public ChannelGroupException cause() {
-        return (ChannelGroupException) super.cause();
+    public SocketGroupException cause() {
+        return (SocketGroupException) super.cause();
     }
 
     @Override
@@ -221,7 +221,7 @@ final class DefaultSocketGroupFuture<K> extends DefaultPromise<Void> implements 
         super.setSuccess(null);
     }
 
-    private void setFailure0(ChannelGroupException cause) {
+    private void setFailure0(SocketGroupException cause) {
         super.setFailure(cause);
     }
 

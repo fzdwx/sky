@@ -34,7 +34,7 @@ public interface SocketGroupFuture<K> extends Future<Void>, Iterable<ChannelFutu
     boolean isSuccess();
 
     @Override
-    ChannelGroupException cause();
+    SocketGroupException cause();
 
     @Override
     SocketGroupFuture<K> addListener(GenericFutureListener<? extends Future<? super Void>> listener);

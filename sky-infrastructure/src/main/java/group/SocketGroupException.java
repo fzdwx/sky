@@ -12,12 +12,12 @@ import java.util.Map;
 /**
  * copy from netty
  */
-public class ChannelGroupException extends ChannelException implements Iterable<Map.Entry<Socket, Throwable>> {
+public class SocketGroupException extends ChannelException implements Iterable<Map.Entry<Socket, Throwable>> {
 
     private static final long serialVersionUID = -4093064295562629453L;
     private final Collection<Map.Entry<Socket, Throwable>> failed;
 
-    public ChannelGroupException(Collection<Map.Entry<Socket, Throwable>> causes) {
+    public SocketGroupException(Collection<Map.Entry<Socket, Throwable>> causes) {
         ObjectUtil.checkNonEmpty(causes, "causes");
 
         failed = Collections.unmodifiableCollection(causes);
