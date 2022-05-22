@@ -1,5 +1,6 @@
 package core;
 
+import io.github.fzdwx.lambada.Assert;
 import io.github.fzdwx.lambada.fun.Hooks;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.ChannelFuture;
@@ -14,6 +15,7 @@ import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.handler.logging.LoggingHandler;
 import io.netty.handler.ssl.SslHandler;
 import serializer.JsonSerializer;
+import util.AvailablePort;
 
 import java.net.InetSocketAddress;
 import java.util.HashMap;
@@ -48,6 +50,24 @@ public class Server implements Transport<Server> {
 
     public Server() {
         this.bootstrap = new ServerBootstrap();
+    }
+
+    /**
+     * listen on a random port
+     */
+    public Server listen() {
+        final var port = AvailablePort.random();
+        Assert.nonNull(port, "now don't have available port");
+
+        return listen(port);
+    }
+
+    @Override
+    public Server listen(final int port) {
+        if (port == 0) {
+            return listen();
+        }
+        return Transport.super.listen(port);
     }
 
     @Override
@@ -250,7 +270,7 @@ public class Server implements Transport<Server> {
 
     private void checkStart() {
         if (startFlag) {
-            throw new IllegalStateException("server is already started");
+            throw new IllegalStateException("server is already started,don't support this action!");
         }
     }
 
@@ -275,7 +295,7 @@ public class Server implements Transport<Server> {
 
     private void checkNotStart() {
         if (!startFlag) {
-            throw new IllegalStateException("server is not started");
+            throw new IllegalStateException("server is not started,don't support this action!");
         }
     }
 }

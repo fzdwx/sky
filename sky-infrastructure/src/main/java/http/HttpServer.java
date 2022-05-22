@@ -22,7 +22,7 @@ import io.netty.handler.ssl.SslHandler;
 import io.netty.handler.stream.ChunkedWriteHandler;
 import lombok.extern.slf4j.Slf4j;
 import serializer.JsonSerializer;
-import sky.Utils;
+import util.Utils;
 
 import java.net.InetSocketAddress;
 
@@ -62,10 +62,11 @@ public class HttpServer implements Transport<HttpServer> {
     }
 
     /**
-     * start server
+     *  listen on a random port
      */
-    public HttpServer listen(final int port) {
-        return this.listen(new InetSocketAddress(port));
+    public HttpServer listen() {
+        this.server.listen();
+        return this;
     }
 
     @Override

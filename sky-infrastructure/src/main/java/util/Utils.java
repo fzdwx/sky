@@ -1,4 +1,4 @@
-package sky;
+package util;
 
 import io.github.fzdwx.lambada.Console;
 
@@ -8,5 +8,5 @@ import io.github.fzdwx.lambada.Console;
  */
 public class Utils {
 
-    public static String PREFIX = Console.green("[Sky]: ");
+    public static String PREFIX = Console.green("[Sky] ");
 }

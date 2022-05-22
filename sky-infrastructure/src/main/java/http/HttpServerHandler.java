@@ -12,6 +12,8 @@ import io.netty.util.ReferenceCountUtil;
 import lombok.extern.slf4j.Slf4j;
 import serializer.JsonSerializer;
 
+import java.lang.reflect.InvocationTargetException;
+
 @Slf4j
 public class HttpServerHandler extends ChannelInboundHandlerAdapter {
 
@@ -69,6 +71,9 @@ public class HttpServerHandler extends ChannelInboundHandlerAdapter {
         try {
             httpHandler.handle(httpRequest, response);
         } catch (Exception e) {
+            if (e.getClass().equals(InvocationTargetException.class)) {
+                e = (Exception) e.getCause();
+            }
             exceptionHandler.handler(httpRequest, response, e);
         } finally {
             httpRequest.release();
