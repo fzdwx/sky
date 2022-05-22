@@ -69,6 +69,13 @@ public class HttpServer implements Transport<HttpServer> {
         return this;
     }
 
+    /**
+     * start server
+     */
+    public HttpServer listen(final int port) {
+        return this.listen(new InetSocketAddress(port));
+    }
+
     @Override
     public HttpServer listen(final InetSocketAddress address) {
         this.withServerOptions(ChannelOption.SO_BACKLOG, 1024);
