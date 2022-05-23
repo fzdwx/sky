@@ -9,9 +9,9 @@
 - [ ] Spring boot starter [in development](https://github.com/fzdwx/sky/tree/dev-springboot-starter)
 - [ ] 😙give me some issue!
 
-## Show case
+## Showcase
 
-[click me](https://github.com/fzdwx/sky/blob/main/sky-infrastructure/src/test/java/http/HttpServerTest.java)
+[click me](https://github.com/fzdwx/sky/blob/main/sky-http-springboot-starter/README.md)
 
 ### TCP Server
 
