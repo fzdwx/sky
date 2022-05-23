@@ -130,7 +130,7 @@ public class Client implements Transport<Client> {
     @Override
     public ChannelInitializer<SocketChannel> channelInitializer() {
         checkNotStart();
-        return new ChannelInitializer<>() {
+        return new ChannelInitializer<SocketChannel>() {
             @Override
             protected void initChannel(final SocketChannel ch) throws Exception {
                 if (loggingHandler != null) {
@@ -138,7 +138,10 @@ public class Client implements Transport<Client> {
                 }
 
                 if (sslFlag) {
-                    final SslHandler sslHandler = SslContextBuilder.forClient().trustManager(InsecureTrustManagerFactory.INSTANCE).build().newHandler(ch.alloc(), address.getHostName(), address.getPort());
+                    final SslHandler sslHandler = SslContextBuilder.forClient()
+                            .trustManager(InsecureTrustManagerFactory.INSTANCE).build()
+                            .newHandler(ch.alloc(), address.getHostName(), address.getPort());
+
                     ch.pipeline().addLast(sslHandler);
                 }
 

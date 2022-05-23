@@ -7,19 +7,19 @@
     <groupId>io.github.fzdwx</groupId>
     <artifactId>sky</artifactId>
     <packaging>pom</packaging>
-    <version>0.10.5</version>
+    <version>0.10.6</version>
     <modules>
         <module>sky-infrastructure</module>
         <module>sky-http-springboot-starter</module>
     </modules>
 
     <properties>
-        <maven.compiler.source>17</maven.compiler.source>
-        <maven.compiler.target>17</maven.compiler.target>
+        <maven.compiler.source>1.8</maven.compiler.source>
+        <maven.compiler.target>1.8</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
-        <lambda.version>0.10.4</lambda.version>
-        <sky.version>0.10.5</sky.version>
+        <lambda.version>0.10.5-dev</lambda.version>
+        <sky.version>0.10.6</sky.version>
 
 
         <netty.version>4.1.77.Final</netty.version>
@@ -146,8 +146,8 @@
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
                 <configuration>
-                    <source>17</source>
-                    <target>17</target>
+                    <source>${maven.compiler.source}</source>
+                    <target>${maven.compiler.target}</target>
                 </configuration>
             </plugin>
             <plugin>

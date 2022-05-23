@@ -44,20 +44,28 @@ public class WebSocketHandler extends SimpleChannelInboundHandler<WebSocketFrame
 
     @Override
     protected void channelRead0(final ChannelHandlerContext ctx, final WebSocketFrame msg) throws Exception {
-        if (msg instanceof TextWebSocketFrame text) {
-            listener.onText(session, text.text());
+        if (msg instanceof TextWebSocketFrame) {
+            listener.onText(session, ((TextWebSocketFrame) msg).text());
             return;
         }
+
+        if (msg instanceof BinaryWebSocketFrame) {
+            listener.onBinary(session, msg.content());
+            return;
+        }
+
+        // todo dispatch ping pong
         if (msg instanceof PingWebSocketFrame) {
-            ctx.writeAndFlush(new PongWebSocketFrame(msg.content().retain()));
+            ctx.writeAndFlush(msg.content());
             return;
         }
+        if (msg instanceof PongWebSocketFrame) {
+            ctx.writeAndFlush(msg.content());
+            return;
+        }
+
         if (msg instanceof CloseWebSocketFrame) {
             ctx.writeAndFlush(msg.retainedDuplicate()).addListener(ChannelFutureListener.CLOSE);
-            return;
-        }
-        if (msg instanceof BinaryWebSocketFrame b) {
-            listener.onBinary(session, b.content());
         }
     }
 }

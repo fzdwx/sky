@@ -42,7 +42,7 @@ public abstract class ChannelOutBound implements NettyOutbound {
             return then(ChannelException.beforeSend());
         }
 
-        final var msg = wrapData(data);
+        final Object msg = wrapData(data);
 
         if (flush) {
             return then(this.ch.writeAndFlush(msg));
@@ -75,8 +75,8 @@ public abstract class ChannelOutBound implements NettyOutbound {
      * @see #sendChunk(InputStream, int)
      */
     public ChunkedInput<?> wrapChunkData(final InputStream in, final int chunkSize) {
-        if (in instanceof ReadableByteChannel ins) {
-            return new ChunkedNioStream(ins, chunkSize);
+        if (in instanceof ReadableByteChannel) {
+            return new ChunkedNioStream((ReadableByteChannel) in, chunkSize);
         }
         return new ChunkedStream(in, chunkSize);
     }

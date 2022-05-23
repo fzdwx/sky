@@ -27,8 +27,8 @@ public class AvailablePort {
     }
 
     public static Integer random(int min, int max) {
-        var maxRetryCount = max - min;
-        final var bound = maxRetryCount;
+        int maxRetryCount = max - min;
+        final int bound = maxRetryCount;
         while (maxRetryCount > 0) {
             int port = random.nextInt(bound) + min;
             boolean isUsed = isLocalePortUsing(port);

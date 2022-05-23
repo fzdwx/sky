@@ -28,11 +28,11 @@ public class RequestParamResolver implements RequestArgumentResolver {
     public Object apply(final HttpServerRequest request, final HttpServerResponse response, final SkyHttpMethod.SkyHttpMethodParameter parameter,
                         final NvMap parVals) {
 
-        final var attr = parameter.getRequestParamAttr();
-        final var required = (boolean) attr.get("required");
-        final var name = (String) attr.get("name");
-        final var paramName = Lang.isBlank(name) ? parameter.getParameterName() : name;
-        final var res = request.params().get(paramName);
+        final java.util.Map<String, Object> attr = parameter.getRequestParamAttr();
+        final boolean required = (boolean) attr.get("required");
+        final String name = (String) attr.get("name");
+        final String paramName = Lang.isBlank(name) ? parameter.getParameterName() : name;
+        final String res = request.params().get(paramName);
 
         checkRequired(required, paramName, res);
 

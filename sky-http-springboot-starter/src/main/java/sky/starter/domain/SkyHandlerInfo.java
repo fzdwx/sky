@@ -95,13 +95,13 @@ public class SkyHandlerInfo {
     }
 
     public SkyHandlerInfo combine(final SkyHandlerInfo other) {
-        final var name = combineNames(other);
-        final var pathPatterns = combinePatterns(other.patterns);
-        final var methods = combineMethods(other.methods);
-        final var headers = combineHeaders(other.headers);
-        final var consumer = combineConsumer(other.consumer);
-        final var producer = combineProducer(other.producer);
-        final var json = combineJson(other.json);
+        final String name = combineNames(other);
+        final SortedSet<PathPattern> pathPatterns = combinePatterns(other.patterns);
+        final Set<RequestMethod> methods = combineMethods(other.methods);
+        final Set<String> headers = combineHeaders(other.headers);
+        final Set<String> consumer = combineConsumer(other.consumer);
+        final Set<String> producer = combineProducer(other.producer);
+        final ResponseBody json = combineJson(other.json);
         return new SkyHandlerInfo(json, name, pathPatterns, methods, headers, consumer, producer);
     }
 

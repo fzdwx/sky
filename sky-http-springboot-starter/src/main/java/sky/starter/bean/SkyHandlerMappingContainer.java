@@ -31,12 +31,12 @@ public class SkyHandlerMappingContainer extends HandlerMappingContainer<SkyHandl
 
     @Override
     protected SkyHandlerInfo getMappingForMethod(final Method method, final Class<?> handlerType) {
-        var info = createInfo(method);
+        SkyHandlerInfo info = createInfo(method);
         if (info != null) {
             // check is json response
             info.json(AnnotatedElementUtils.findMergedAnnotation(method, ResponseBody.class));
 
-            final var typeInfo = createInfo(handlerType);
+            final SkyHandlerInfo typeInfo = createInfo(handlerType);
             if (typeInfo != null) {
                 info = typeInfo.combine(info);
             }

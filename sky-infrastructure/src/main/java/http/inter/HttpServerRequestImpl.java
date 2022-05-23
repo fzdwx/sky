@@ -23,6 +23,7 @@ import io.netty.handler.codec.http.multipart.HttpDataFactory;
 import io.netty.handler.codec.http.multipart.HttpPostMultipartRequestDecoder;
 import io.netty.handler.codec.http.multipart.InterfaceHttpData;
 import io.netty.handler.codec.http.websocketx.CloseWebSocketFrame;
+import io.netty.handler.codec.http.websocketx.WebSocketServerHandshaker;
 import io.netty.handler.codec.http.websocketx.WebSocketServerHandshakerFactory;
 import serializer.JsonSerializer;
 import socket.Socket;
@@ -147,7 +148,7 @@ public class HttpServerRequestImpl implements HttpServerRequest {
     @Override
     public String path() {
         if (this.path == null) {
-            final var endIndex = Netty.findPathEndIndex(uri);
+            final int endIndex = Netty.findPathEndIndex(uri);
             this.path = StrUtil.sub(uri, 0, endIndex);
         }
         return this.path;
@@ -169,8 +170,8 @@ public class HttpServerRequestImpl implements HttpServerRequest {
             this.websocketFlag = true;
             //region init websocket and convert to linstener
             String subProtocols = null;
-            final var session = Socket.create(channel);
-            final var webSocket = WebSocket.create(session, this);
+            final Socket session = Socket.create(channel);
+            final WebSocket webSocket = WebSocket.create(session, this);
             //endregion
 
             // mount hooks
@@ -185,7 +186,9 @@ public class HttpServerRequestImpl implements HttpServerRequest {
             }
             //endregion
 
-            final var handShaker = new WebSocketServerHandshakerFactory(getWebSocketLocation(ssl, request), subProtocols, true).newHandshaker(request);
+            final WebSocketServerHandshaker handShaker =
+                    new WebSocketServerHandshakerFactory(getWebSocketLocation(ssl, request), subProtocols, true).newHandshaker(request);
+
             if (handShaker != null) {
                 final ChannelPipeline pipeline = ctx.pipeline();
                 pipeline.remove(ctx.name());
