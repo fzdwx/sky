@@ -11,53 +11,39 @@
 
 ## Showcase
 
-[click me](https://github.com/fzdwx/sky/blob/main/sky-http-springboot-starter/README.md)
-
-### TCP Server
-
-```java
- new Server()
-        .withGroup(0,0)
-        .withLog(LogLevel.INFO)
-        .withInitChannel(ch->{
-        // add your handler
-        })
-        .listen(8888)
-        .dispose();
+```xml
+<dependency>
+  <groupId>io.github.fzdwx</groupId>
+  <artifactId>sky-http-springboot-starter</artifactId>
+  <version>0.10.5</version>
+</dependency>
 ```
 
-### HTTP Server
-
 ```java
-HttpServer.create()
-        .handle((request,response)->{
-        response.json("hello world")
-        })
-        .listen(port)
-        .dispose();
-```
+import http.HttpServerRequest;
 
-### WebSocket Server
+@SpringBootApplication
+@RestController
+public class BurstServerApplication {
 
-```java
-public class Test {
-
-    void test() {
-        HttpServer.create()
-                .handle((request, response) -> {
-                    request.upgradeToWebSocket(ws -> {
-                        ws.mountOpen(h -> {
-                            // client connect
-                        });
-                        ws.mountBinary(b -> {
-                            // client send binary data
-                        });
-                        // ...
-                    });
-                })
-                .listen(port)
-                .dispose();
+    public static void main(String[] args) {
+        final ConfigurableApplicationContext run = SpringApplication.run(BurstServerApplication.class);
     }
 
+    // normal request
+    @GetMapping("hello")
+    public String hello(@RequestParam String name) {
+        return "Hello " + name;
+    }
+
+    // upgrade to websocket
+    @GetMapping("connect")
+    public void connect(@RequestParam String name, HttpServerRequest request) {
+        request.upgradeToWebSocket(ws->{
+            ws.mountOpen(h -> {
+                ws.send("Hello " + name);
+            });
+        });
+    }
 }
 ```
