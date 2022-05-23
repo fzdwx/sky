@@ -1,14 +1,63 @@
-# Sky
-Netty Based Transport Tool Kit.
+# Sky | Netty Based Transport Tool Kit.
 
-使用Netty写的一些小demo。
+🚀 Use sky you can quickly create an http service or websocket service
 
 ## Features
 
 - [x] Http Server
 - [x] Websocket Server
-- [ ] Spring boot starter 🚀[in development](https://github.com/fzdwx/sky/tree/dev-springboot-starter)
+- [ ] Spring boot starter [in development](https://github.com/fzdwx/sky/tree/dev-springboot-starter)
 - [ ] 😙give me some issue!
 
 ## Show case
+
 [click me](https://github.com/fzdwx/sky/blob/main/sky-infrastructure/src/test/java/http/HttpServerTest.java)
+
+### TCP Server
+
+```java
+ new Server()
+        .withGroup(0,0)
+        .withLog(LogLevel.INFO)
+        .withInitChannel(ch->{
+        // add your handler
+        })
+        .listen(8888)
+        .dispose();
+```
+
+### HTTP Server
+
+```java
+HttpServer.create()
+        .handle((request,response)->{
+        response.json("hello world")
+        })
+        .listen(port)
+        .dispose();
+```
+
+### WebSocket Server
+
+```java
+public class Test {
+
+    void test() {
+        HttpServer.create()
+                .handle((request, response) -> {
+                    request.upgradeToWebSocket(ws -> {
+                        ws.mountOpen(h -> {
+                            // client connect
+                        });
+                        ws.mountBinary(b -> {
+                            // client send binary data
+                        });
+                        // ...
+                    });
+                })
+                .listen(port)
+                .dispose();
+    }
+
+}
+```
