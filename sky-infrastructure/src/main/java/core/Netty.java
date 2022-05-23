@@ -53,7 +53,7 @@ public final class Netty {
     }
 
     public static byte[] readBytes(ByteBuf buf) {
-        final var dest = new byte[buf.readableBytes()];
+        final byte[] dest = new byte[buf.readableBytes()];
 
         buf.readBytes(dest);
 
@@ -106,7 +106,7 @@ public final class Netty {
 
     public static NvMap params(final String uri) {
         QueryStringDecoder queryStringDecoder = new QueryStringDecoder(uri);
-        final var parameters = queryStringDecoder.parameters();
+        final Map<String, List<String>> parameters = queryStringDecoder.parameters();
 
         NvMap params = NvMap.create();
         if (!parameters.isEmpty()) {

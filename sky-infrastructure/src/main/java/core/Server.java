@@ -56,7 +56,7 @@ public class Server implements Transport<Server> {
      * listen on a random port
      */
     public Server listen() {
-        final var port = AvailablePort.random();
+        final Integer port = AvailablePort.random();
         Assert.nonNull(port, "now don't have available port");
 
         return listen(port);
@@ -149,7 +149,7 @@ public class Server implements Transport<Server> {
     @Override
     public ChannelInitializer<SocketChannel> channelInitializer() {
         checkNotStart();
-        return new ChannelInitializer<>() {
+        return new ChannelInitializer<SocketChannel>() {
             @Override
             protected void initChannel(final SocketChannel ch) throws Exception {
                 if (loggingHandler != null) {

@@ -35,8 +35,8 @@ public class HttpServerHandler extends ChannelInboundHandlerAdapter {
     @Override
     public void channelRead(final ChannelHandlerContext ctx, final Object msg) throws Exception {
         try {
-            if (msg instanceof FullHttpRequest request) {
-                handleRequest(ctx, request);
+            if (msg instanceof FullHttpRequest) {
+                handleRequest(ctx, ((FullHttpRequest) msg));
             } else {
                 ctx.writeAndFlush("Unsupported message type: " + msg.getClass().getName()).addListener(Netty.close);
             }
@@ -65,8 +65,8 @@ public class HttpServerHandler extends ChannelInboundHandlerAdapter {
      */
     public void handleRequest(final ChannelHandlerContext ctx, final FullHttpRequest request) {
 
-        final var httpRequest = HttpServerRequest.create(ctx, ssl, request, httpDataFactory, serializer);
-        final var response = HttpServerResponse.create(ctx.channel(), httpRequest);
+        final HttpServerRequest httpRequest = HttpServerRequest.create(ctx, ssl, request, httpDataFactory, serializer);
+        final HttpServerResponse response = HttpServerResponse.create(ctx.channel(), httpRequest);
 
         try {
             httpHandler.handle(httpRequest, response);

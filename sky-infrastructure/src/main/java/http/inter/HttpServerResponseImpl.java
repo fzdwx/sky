@@ -156,8 +156,8 @@ public class HttpServerResponseImpl extends ChannelOutBound implements HttpServe
 
     @Override
     public ChunkedInput<?> wrapChunkData(final InputStream in, final int chunkSize) {
-        if (in instanceof ReadableByteChannel ins) {
-            return new HttpChunkedInput(new ChunkedNioStream(ins, chunkSize));
+        if (in instanceof ReadableByteChannel) {
+            return new HttpChunkedInput(new ChunkedNioStream((ReadableByteChannel) in, chunkSize));
         }
         return new HttpChunkedInput(new ChunkedStream(in, chunkSize));
     }
@@ -314,7 +314,7 @@ public class HttpServerResponseImpl extends ChannelOutBound implements HttpServe
 
     @Override
     public ChannelFuture end(final ByteBuf buf) {
-        final var promise = channel.newPromise();
+        final ChannelPromise promise = channel.newPromise();
         end(buf, promise);
         return promise;
     }

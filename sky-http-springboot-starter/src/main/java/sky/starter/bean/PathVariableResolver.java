@@ -19,7 +19,7 @@ public class PathVariableResolver implements RequestArgumentResolver {
 
     @Override
     public Object apply(HttpServerRequest request, final HttpServerResponse response, SkyHttpMethod.SkyHttpMethodParameter parameter, NvMap parVals) {
-        final var parameterName = parameter.getParameterName();
+        final String parameterName = parameter.getParameterName();
         if (parameterName == null) {
             return null;
         }

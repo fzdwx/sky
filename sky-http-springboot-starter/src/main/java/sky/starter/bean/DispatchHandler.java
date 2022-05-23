@@ -5,6 +5,7 @@ import http.HttpServerResponse;
 import http.ext.HttpHandler;
 import io.github.fzdwx.lambada.http.HttpPath;
 import io.github.fzdwx.lambada.http.Router;
+import io.github.fzdwx.lambada.lang.NvMap;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
@@ -56,7 +57,7 @@ public class DispatchHandler implements HttpHandler {
         final SkyRouteDefinition definition = route.handler();
 
         // step1. resolveArguments
-        final var arguments = resolveArguments(route, request, response);
+        final Object[] arguments = resolveArguments(route, request, response);
 
         // step2. invoke target method
         final Object result = definition.invoke(arguments);
@@ -89,15 +90,15 @@ public class DispatchHandler implements HttpHandler {
     private Object[] resolveArguments(final Router.Route<SkyRouteDefinition> route,
                                       final HttpServerRequest request,
                                       final HttpServerResponse response) {
-        final var definition = route.handler();
+        final SkyRouteDefinition definition = route.handler();
 
-        final var methodParameters = definition.getMethodParameters();
+        final SkyHttpMethod.SkyHttpMethodParameter[] methodParameters = definition.getMethodParameters();
         if (methodParameters.length == 0) {
             return EMPTY_ARGS;
         }
 
-        final var arguments = new Object[methodParameters.length];
-        final var pathVal = route.extract(request.uri());
+        final Object[] arguments = new Object[methodParameters.length];
+        final NvMap pathVal = route.extract(request.uri());
 
         for (int i = 0; i < methodParameters.length; i++) {
             final SkyHttpMethod.SkyHttpMethodParameter parameter = methodParameters[i];

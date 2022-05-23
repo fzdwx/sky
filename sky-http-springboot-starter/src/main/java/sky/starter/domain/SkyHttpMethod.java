@@ -387,7 +387,7 @@ public class SkyHttpMethod {
         int count = this.bridgedMethod.getParameterCount();
         SkyHttpMethodParameter[] result = new SkyHttpMethodParameter[count];
         for (int i = 0; i < count; i++) {
-            final var parameter = new SkyHttpMethodParameter(i);
+            final SkyHttpMethodParameter parameter = new SkyHttpMethodParameter(i);
             // ext
             result[i] = parameter;
         }
