@@ -13,5 +13,11 @@ import http.HttpServerResponse;
 @FunctionalInterface
 public interface HttpHandler {
 
-    void handle(HttpServerRequest request, final HttpServerResponse resp);
+    /**
+     * Process the given request, generating some data write to response.
+     *
+     * @param request  http request
+     * @param response http response
+     */
+    void handle(HttpServerRequest request, final HttpServerResponse response);
 }

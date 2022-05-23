@@ -1,5 +1,6 @@
 package http.inter;
 
+import cn.hutool.core.util.StrUtil;
 import core.Netty;
 import http.HttpServerRequest;
 import io.github.fzdwx.lambada.Seq;
@@ -24,9 +25,11 @@ import io.netty.handler.codec.http.multipart.InterfaceHttpData;
 import io.netty.handler.codec.http.websocketx.CloseWebSocketFrame;
 import io.netty.handler.codec.http.websocketx.WebSocketServerHandshakerFactory;
 import serializer.JsonSerializer;
-import socket.SocketSession;
+import socket.Socket;
 import socket.WebSocket;
 import socket.WebSocketHandler;
+
+import java.net.SocketAddress;
 
 import static io.netty.handler.codec.http.websocketx.WebSocketServerHandshakerFactory.sendUnsupportedVersionResponse;
 
@@ -48,15 +51,14 @@ public class HttpServerRequestImpl implements HttpServerRequest {
     private final JsonSerializer serializer;
     private final boolean ssl;
     private final HttpDataFactory httpDataFactory;
+    private final String uri;
+    private String path;
     private HttpPostMultipartRequestDecoder bodyDecoder;
     private boolean readBody;
     private NvMap params;
-    private final String uri;
+    private boolean websocketFlag;
 
-    public HttpServerRequestImpl(final ChannelHandlerContext ctx,
-                                 final boolean ssl,
-                                 final HttpRequest request,
-                                 final HttpDataFactory httpDataFactory,
+    public HttpServerRequestImpl(final ChannelHandlerContext ctx, final boolean ssl, final HttpRequest request, final HttpDataFactory httpDataFactory,
                                  final JsonSerializer serializer) {
         this.ctx = ctx;
         this.channel = ctx.channel();
@@ -68,6 +70,11 @@ public class HttpServerRequestImpl implements HttpServerRequest {
         this.uri = request.uri();
         this.httpDataFactory = httpDataFactory;
         this.serializer = serializer;
+    }
+
+    @Override
+    public SocketAddress remoteAddress() {
+        return channel.remoteAddress();
     }
 
     @Override
@@ -129,14 +136,21 @@ public class HttpServerRequestImpl implements HttpServerRequest {
     public Seq<FileUpload> readFiles() {
         initBody();
 
-        return Seq.of(bodyDecoder.getBodyHttpDatas())
-                .filter(d -> d.getHttpDataType().equals(InterfaceHttpData.HttpDataType.FileUpload))
-                .typeOf(FileUpload.class);
+        return Seq.of(bodyDecoder.getBodyHttpDatas()).filter(d -> d.getHttpDataType().equals(InterfaceHttpData.HttpDataType.FileUpload)).typeOf(FileUpload.class);
     }
 
     @Override
     public String uri() {
         return uri;
+    }
+
+    @Override
+    public String path() {
+        if (this.path == null) {
+            final var endIndex = Netty.findPathEndIndex(uri);
+            this.path = StrUtil.sub(uri, 0, endIndex);
+        }
+        return this.path;
     }
 
     @Override
@@ -152,9 +166,10 @@ public class HttpServerRequestImpl implements HttpServerRequest {
     @Override
     public Result<WebSocket> upgradeToWebSocket() {
         return (h) -> {
+            this.websocketFlag = true;
             //region init websocket and convert to linstener
             String subProtocols = null;
-            final var session = SocketSession.create(channel);
+            final var session = Socket.create(channel);
             final var webSocket = WebSocket.create(session, this);
             //endregion
 
@@ -170,8 +185,7 @@ public class HttpServerRequestImpl implements HttpServerRequest {
             }
             //endregion
 
-            final var handShaker = new WebSocketServerHandshakerFactory(getWebSocketLocation(ssl, request), subProtocols, true)
-                    .newHandshaker(request);
+            final var handShaker = new WebSocketServerHandshakerFactory(getWebSocketLocation(ssl, request), subProtocols, true).newHandshaker(request);
             if (handShaker != null) {
                 final ChannelPipeline pipeline = ctx.pipeline();
                 pipeline.remove(ctx.name());
@@ -198,10 +212,21 @@ public class HttpServerRequestImpl implements HttpServerRequest {
         };
     }
 
-    private static String getWebSocketLocation(final boolean ssl, final HttpRequest req) {
-        String scheme = ssl ? "wss" : "ws";
+    @Override
+    public boolean isWebsocket() {
+        return websocketFlag;
+    }
 
-        return scheme + "://" + req.headers().get(HttpHeaderNames.HOST) + req.uri();
+    @Override
+    public String toString() {
+        return "{\"method\":\"" + methodType + "\", \"uri\":\"" + uri + "\",\"remote\":\"" + remoteAddress() + "\", \"version\":\"" + version + "\"}";
+        // return "Http Request{" +
+        //         "uri='" + uri + "\n" +
+        //         ", method=" + methodType +
+        //         ", ssl=" + ssl +
+        //         ", httpVersion=" + this.request.protocolVersion() +
+        //         ", headers=" + this.headers +
+        //         '}';
     }
 
     private void initBody() {
@@ -211,15 +236,9 @@ public class HttpServerRequestImpl implements HttpServerRequest {
         }
     }
 
-    @Override
-    public String toString() {
-        return "{\"method\":\"" + methodType + "\", \"uri\":\"" + uri + "\", \"version\":\"" + version + "\"}";
-        // return "Http Request{" +
-        //         "uri='" + uri + "\n" +
-        //         ", method=" + methodType +
-        //         ", ssl=" + ssl +
-        //         ", httpVersion=" + this.request.protocolVersion() +
-        //         ", headers=" + this.headers +
-        //         '}';
+    private static String getWebSocketLocation(final boolean ssl, final HttpRequest req) {
+        String scheme = ssl ? "wss" : "ws";
+
+        return scheme + "://" + req.headers().get(HttpHeaderNames.HOST) + req.uri();
     }
 }

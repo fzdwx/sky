@@ -23,4 +23,9 @@ public class FasJsonSerializerSerializer implements JsonSerializer {
     public <T> T deserialize(final Class<T> clazz, final byte[] data) {
         return JSON.parseObject(data, clazz);
     }
+
+    @Override
+    public <T> T toBean(final String json, final Class<T> targetClass) {
+        return JSON.parseObject(json, targetClass);
+    }
 }

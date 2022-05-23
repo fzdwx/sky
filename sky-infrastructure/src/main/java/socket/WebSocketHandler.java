@@ -20,9 +20,9 @@ import io.netty.handler.codec.http.websocketx.WebSocketFrame;
 public class WebSocketHandler extends SimpleChannelInboundHandler<WebSocketFrame> {
 
     private final Listener listener;
-    private final SocketSession session;
+    private final Socket session;
 
-    public WebSocketHandler(final Listener listener, final SocketSession session) {
+    public WebSocketHandler(final Listener listener, final Socket session) {
         this.listener = listener;
         this.session = session;
     }

@@ -1,8 +1,8 @@
 package socket;
 
-import socket.inter.SocketSessionImpl;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
+import socket.inter.SocketImpl;
 
 /**
  * session.
@@ -11,12 +11,12 @@ import io.netty.channel.ChannelFuture;
  * @date 2022/3/18 13:11
  * @since 0.06
  */
-public interface SocketSession {
+public interface Socket{
 
     Channel channel();
 
-    static SocketSession create(Channel channel) {
-        return new SocketSessionImpl(channel);
+    static Socket create(Channel channel) {
+        return new SocketImpl(channel);
     }
 
     /**
@@ -46,11 +46,4 @@ public interface SocketSession {
      * @since 0.06
      */
     ChannelFuture send(byte[] text);
-
-    /**
-     * send binary(like file) to client.
-     *
-     * @since 0.06
-     */
-    ChannelFuture sendBinary(byte[] binary);
 }

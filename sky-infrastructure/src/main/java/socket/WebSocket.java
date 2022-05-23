@@ -1,47 +1,27 @@
 package socket;
 
 import http.HttpServerRequest;
-import socket.inter.WebSocketImpl;
 import io.github.fzdwx.lambada.fun.Hooks;
 import io.netty.buffer.ByteBuf;
-import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
+import socket.inter.WebSocketImpl;
 
 /**
  * @author <a href="mailto:likelovec@gmail.com">fzdwx</a>
  * @date 2022/3/19 16:07
  * @since 0.06
  */
-public interface WebSocket extends Listener {
+public interface WebSocket extends Listener, Socket {
 
-    static WebSocket create(SocketSession session, final HttpServerRequest httpServerRequest) {
+    static WebSocket create(Socket session, final HttpServerRequest httpServerRequest) {
         return new WebSocketImpl(session, httpServerRequest);
     }
 
-    Channel channel();
-
-    /**
-     * reject connection.
-     *
-     * @since 0.07
-     */
-    ChannelFuture reject();
-
-    /**
-     * reject connection.
-     *
-     * @since 0.07
-     */
-    ChannelFuture reject(String text);
-
-    ChannelFuture send(String text);
 
     /**
      * @since 0.07
      */
     WebSocket send(String text, Hooks<ChannelFuture> h);
-
-    ChannelFuture send(byte[] text);
 
     /**
      * @since 0.07
@@ -96,43 +76,41 @@ public interface WebSocket extends Listener {
      * @deprecated
      */
     @Override
-    void beforeHandshake(final SocketSession session) throws RuntimeException;
+    void beforeHandshake(final Socket session) throws RuntimeException;
 
     /**
      * @deprecated
      */
     @Override
-    void onOpen(final SocketSession session);
+    void onOpen(final Socket session);
 
     /**
      * @deprecated
      */
     @Override
-    void onclose(final SocketSession session);
+    void onclose(final Socket session);
 
     /**
      * @deprecated
      */
     @Override
-    void onEvent(final SocketSession session, final Object event);
+    void onEvent(final Socket session, final Object event);
 
     /**
      * @deprecated
      */
     @Override
-    void onText(final SocketSession session, final String text);
+    void onText(final Socket session, final String text);
 
     /**
      * @deprecated
      */
     @Override
-    void onBinary(final SocketSession session, final ByteBuf content);
+    void onBinary(final Socket session, final ByteBuf content);
 
     /**
      * @deprecated
      */
     @Override
-    void onError(final SocketSession session, final Throwable cause);
-
-    void close();
+    void onError(final Socket session, final Throwable cause);
 }

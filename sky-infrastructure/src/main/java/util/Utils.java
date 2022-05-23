@@ -1,4 +1,6 @@
-package sky;
+package util;
+
+import io.github.fzdwx.lambada.Console;
 
 /**
  * @author <a href="mailto:likelovec@gmail.com">fzdwx</a>
@@ -6,5 +8,5 @@ package sky;
  */
 public class Utils {
 
-    public static String PREFIX = "[Sky]: ";
+    public static String PREFIX = Console.green("[Sky] ");
 }

@@ -1,13 +1,16 @@
 package socket.inter;
 
+import core.Netty;
 import http.HttpServerRequest;
-import socket.WebSocket;
-import socket.SocketSession;
 import io.github.fzdwx.lambada.fun.Hooks;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
+import io.netty.handler.codec.http.websocketx.BinaryWebSocketFrame;
+import io.netty.handler.codec.http.websocketx.TextWebSocketFrame;
 import lombok.Getter;
+import socket.Socket;
+import socket.WebSocket;
 
 /**
  * default impl websocket.
@@ -20,7 +23,7 @@ import lombok.Getter;
 @Getter
 public class WebSocketImpl implements WebSocket {
 
-    private final SocketSession session;
+    private final Socket session;
     private final HttpServerRequest httpServerRequest;
     private Hooks<String> textHooks;
     private Hooks<Void> beforeHandshakeHooks;
@@ -30,7 +33,7 @@ public class WebSocketImpl implements WebSocket {
     private Hooks<Void> closeHooks;
     private Hooks<Throwable> errorHooks;
 
-    public WebSocketImpl(SocketSession session, final HttpServerRequest httpServerRequest) {
+    public WebSocketImpl(Socket session, final HttpServerRequest httpServerRequest) {
         this.session = session;
         this.httpServerRequest = httpServerRequest;
     }
@@ -52,18 +55,18 @@ public class WebSocketImpl implements WebSocket {
 
     @Override
     public ChannelFuture send(final String text) {
-        return session.send(text);
+        return send(text.getBytes());
+    }
+
+    @Override
+    public ChannelFuture send(final byte[] text) {
+        return this.channel().writeAndFlush(new TextWebSocketFrame(Netty.wrap(channel().alloc(), text)));
     }
 
     @Override
     public WebSocket send(final String text, final Hooks<ChannelFuture> h) {
         h.call(send(text));
         return this;
-    }
-
-    @Override
-    public ChannelFuture send(final byte[] text) {
-        return session.send(text);
     }
 
     @Override
@@ -74,7 +77,7 @@ public class WebSocketImpl implements WebSocket {
 
     @Override
     public ChannelFuture sendBinary(final byte[] binary) {
-        return session.sendBinary(binary);
+        return channel().writeAndFlush(new BinaryWebSocketFrame(Netty.wrap(channel().alloc(), binary)));
     }
 
     @Override
@@ -126,58 +129,51 @@ public class WebSocketImpl implements WebSocket {
 
 
     @Override
-    public void beforeHandshake(final SocketSession session) throws RuntimeException {
+    public void beforeHandshake(final Socket session) throws RuntimeException {
         if (beforeHandshakeHooks != null) {
             beforeHandshakeHooks.call(null);
         }
     }
 
     @Override
-    public void onOpen(final SocketSession session) {
+    public void onOpen(final Socket session) {
         if (openHooks != null) {
             openHooks.call(null);
         }
     }
 
     @Override
-    public void onclose(final SocketSession session) {
+    public void onclose(final Socket session) {
         if (closeHooks != null) {
             closeHooks.call(null);
         }
     }
 
     @Override
-    public void onEvent(final SocketSession session, final Object event) {
+    public void onEvent(final Socket session, final Object event) {
         if (eventHooks != null) {
             eventHooks.call(event);
         }
     }
 
     @Override
-    public void onText(final SocketSession session, final String text) {
+    public void onText(final Socket session, final String text) {
         if (textHooks != null) {
             textHooks.call(text);
         }
     }
 
     @Override
-    public void onBinary(final SocketSession session, final ByteBuf content) {
+    public void onBinary(final Socket session, final ByteBuf content) {
         if (binaryHooks != null) {
             binaryHooks.call(content);
         }
     }
 
     @Override
-    public void onError(final SocketSession session, final Throwable cause) {
+    public void onError(final Socket session, final Throwable cause) {
         if (errorHooks != null) {
             errorHooks.call(cause);
-        }
-    }
-
-    @Override
-    public void close() {
-        if (session.channel().isActive() || session.channel().isOpen()) {
-            session.channel().close();
         }
     }
 }

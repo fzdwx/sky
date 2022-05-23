@@ -1,7 +1,7 @@
 package core;
 
-import io.github.fzdwx.lambada.Lang;
 import io.github.fzdwx.lambada.Seq;
+import io.github.fzdwx.lambada.Threads;
 import io.netty.buffer.ByteBufAllocator;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
@@ -29,7 +29,7 @@ class ServerTest {
                             Seq.range(2)
                                     .forEach(i -> {
                                         ctx.writeAndFlush(Netty.wrap(alloc, i + ""));
-                                        Lang.sleep(Duration.ofMillis(100));
+                                        Threads.sleep(Duration.ofMillis(100));
                                     });
                         }
                     });

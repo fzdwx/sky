@@ -1,21 +1,19 @@
 package socket.inter;
 
 import core.Netty;
-import socket.SocketSession;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
-import io.netty.handler.codec.http.websocketx.BinaryWebSocketFrame;
-import io.netty.handler.codec.http.websocketx.TextWebSocketFrame;
+import socket.Socket;
 
 /**
  * @author <a href="mailto:likelovec@gmail.com">fzdwx</a>
  * @date 2022/3/18 20:18
  */
-public class SocketSessionImpl implements SocketSession {
+public class SocketImpl implements Socket {
 
     private final Channel channel;
 
-    public SocketSessionImpl(final Channel channel) {
+    public SocketImpl(final Channel channel) {
         this.channel = channel;
     }
 
@@ -36,16 +34,11 @@ public class SocketSessionImpl implements SocketSession {
 
     @Override
     public ChannelFuture send(final String text) {
-        return this.channel.writeAndFlush(new TextWebSocketFrame(text));
+        return this.channel.writeAndFlush(text.getBytes());
     }
 
     @Override
     public ChannelFuture send(final byte[] text) {
-        return this.channel.writeAndFlush(new TextWebSocketFrame(Netty.wrap(channel.alloc(), text)));
-    }
-
-    @Override
-    public ChannelFuture sendBinary(final byte[] binary) {
-        return this.channel.writeAndFlush(new BinaryWebSocketFrame(Netty.wrap(channel.alloc(), binary)));
+        return this.channel.writeAndFlush(Netty.wrap(channel.alloc(), text));
     }
 }
