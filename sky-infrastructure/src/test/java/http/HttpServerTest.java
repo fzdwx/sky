@@ -7,6 +7,7 @@ import io.github.fzdwx.lambada.Seq;
 import io.github.fzdwx.lambada.Threads;
 import io.github.fzdwx.lambada.http.ContentType;
 import io.github.fzdwx.lambada.http.HttpMethod;
+import io.github.fzdwx.lambada.http.Route;
 import org.junit.jupiter.api.Test;
 
 import java.time.Duration;
@@ -58,7 +59,7 @@ class HttpServerTest {
             final String text = jsonObject.getString("text");
             final String method = jsonObject.getString("method");
 
-            router.add(HttpMethod.of(method), path, (req1, res1) -> {
+            router.addRoute(HttpMethod.of(method), path, (req1, res1) -> {
                 res1.end(text);
             });
             res.end();
@@ -67,7 +68,7 @@ class HttpServerTest {
         final int port = 8888;
         HttpServer.create()
                 .handle((req, response) -> {
-                    final io.github.fzdwx.lambada.http.Router.Route<HttpHandler> route = router.match(req);
+                    final Route<HttpHandler> route = router.match(req);
 
                     if (route != null) {
                         route.handler().handle(req, response);

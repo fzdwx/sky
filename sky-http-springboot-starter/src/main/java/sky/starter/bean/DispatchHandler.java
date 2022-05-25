@@ -4,6 +4,7 @@ import http.HttpServerRequest;
 import http.HttpServerResponse;
 import http.ext.HttpHandler;
 import io.github.fzdwx.lambada.http.HttpPath;
+import io.github.fzdwx.lambada.http.Route;
 import io.github.fzdwx.lambada.http.Router;
 import io.github.fzdwx.lambada.lang.NvMap;
 import io.netty.handler.codec.http.HttpResponseStatus;
@@ -42,7 +43,7 @@ public class DispatchHandler implements HttpHandler {
     @Override
     public void handle(final HttpServerRequest request, final HttpServerResponse response) {
         final String path = HttpPath.format(request.path());
-        final Router.Route<SkyRouteDefinition> route = router.match(request.methodType(), path);
+        final Route<SkyRouteDefinition> route = router.match(request.methodType(), path);
         if (route == null) {
             notFound(request, response);
             return;
@@ -63,7 +64,7 @@ public class DispatchHandler implements HttpHandler {
         final Object result = definition.invoke(arguments);
 
         // step3. parse result back to client
-        final boolean handled = handlerResult(result, definition,request, response);
+        final boolean handled = handlerResult(result, definition, request, response);
 
         if (!handled) {
             log.error("not found result handler for {}", definition.method());
@@ -72,22 +73,23 @@ public class DispatchHandler implements HttpHandler {
         }
     }
 
-    private void prepareHandle(final Router.Route<SkyRouteDefinition> route) {
+    private void prepareHandle(final Route<SkyRouteDefinition> route) {
         // check bean is string ?
         createWithResolvedBean(route);
     }
 
-    public boolean handlerResult(final Object result, final SkyRouteDefinition definition, final HttpServerRequest request, final HttpServerResponse response) {
+    public boolean handlerResult(final Object result, final SkyRouteDefinition definition, final HttpServerRequest request,
+                                 final HttpServerResponse response) {
         for (RequestResultHandler rh : resultHandlers) {
             if (rh.support(result, definition)) {
-                rh.handle(result, definition,request, response);
+                rh.handle(result, definition, request, response);
                 return true;
             }
         }
         return false;
     }
 
-    private Object[] resolveArguments(final Router.Route<SkyRouteDefinition> route,
+    private Object[] resolveArguments(final Route<SkyRouteDefinition> route,
                                       final HttpServerRequest request,
                                       final HttpServerResponse response) {
         final SkyRouteDefinition definition = route.handler();
@@ -104,7 +106,7 @@ public class DispatchHandler implements HttpHandler {
             final SkyHttpMethod.SkyHttpMethodParameter parameter = methodParameters[i];
             for (final RequestArgumentResolver paramResolver : this.argumentResolvers) {
                 if (paramResolver.support(parameter)) {
-                    arguments[i] = paramResolver.apply(request,response, parameter, pathVal);
+                    arguments[i] = paramResolver.apply(request, response, parameter, pathVal);
                     break;
                 }
             }
@@ -113,7 +115,7 @@ public class DispatchHandler implements HttpHandler {
         return arguments;
     }
 
-    private void createWithResolvedBean(final Router.Route<SkyRouteDefinition> route) {
+    private void createWithResolvedBean(final Route<SkyRouteDefinition> route) {
         final SkyRouteDefinition definition = route.handler();
         if (route.handler().method().getBean() instanceof String) {
             definition.createWithResolvedBean();

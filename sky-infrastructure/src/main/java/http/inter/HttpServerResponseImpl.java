@@ -319,18 +319,6 @@ public class HttpServerResponseImpl extends ChannelOutBound implements HttpServe
         return promise;
     }
 
-    @Override
-    public void close() {
-        if (!closed) {
-            if (headWritten()) {
-                channel.writeAndFlush(Netty.empty).addListener(Netty.close);
-            } else {
-                channel.close();
-            }
-            closed = true;
-        }
-    }
-
     boolean headWritten() {
         return headWritten > 0;
     }
