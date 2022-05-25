@@ -2,6 +2,16 @@
 
 It encapsulates a layer on netty, which is easier to use
 
+## Install
+
+```xml
+<dependency>
+  <groupId>io.github.fzdwx</groupId>
+  <artifactId>sky-infrastructure</artifactId>
+  <version>0.10.6</version>
+</dependency>
+```
+
 ## Showcase
 
 
