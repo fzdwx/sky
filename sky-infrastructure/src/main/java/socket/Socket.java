@@ -2,6 +2,7 @@ package socket;
 
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
+import io.netty.util.AttributeKey;
 import socket.inter.SocketImpl;
 
 /**
@@ -11,7 +12,7 @@ import socket.inter.SocketImpl;
  * @date 2022/3/18 13:11
  * @since 0.06
  */
-public interface Socket{
+public interface Socket {
 
     Channel channel();
 
@@ -46,4 +47,30 @@ public interface Socket{
      * @since 0.06
      */
     ChannelFuture send(byte[] text);
+
+    default <T> Socket attr(String key, T value) {
+        channel().attr(AttributeKey.<T>valueOf(key)).set(value);
+        return this;
+    }
+
+    default <T> Socket attr(AttributeKey<T> key, T value) {
+        channel().attr(key).set(value);
+        return this;
+    }
+
+    default <T> T attr(String key) {
+        return channel().attr(AttributeKey.<T>valueOf(key)).get();
+    }
+
+    default <T> T attr(AttributeKey<T> key) {
+        return channel().attr(key).get();
+    }
+
+    default boolean hasAttr(String key) {
+        return channel().hasAttr(AttributeKey.valueOf(key));
+    }
+
+    default boolean hasAttr(AttributeKey<?> key) {
+        return channel().hasAttr(key);
+    }
 }
