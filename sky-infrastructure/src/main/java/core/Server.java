@@ -24,6 +24,8 @@ import java.util.Map;
 import java.util.Objects;
 
 /**
+ * server.
+ *
  * @author <a href="mailto:likelovec@gmail.com">韦朕</a>
  * @date 2022/5/6 14:35
  */
@@ -158,7 +160,10 @@ public class Server implements Transport<Server> {
                 if (sslHandler != null) {
                     ch.pipeline().addLast(sslHandler);
                 }
-                socketChannelInitHooks.call(ch);
+
+                if (socketChannelInitHooks != null) {
+                    socketChannelInitHooks.call(ch);
+                }
             }
         };
     }
@@ -169,7 +174,7 @@ public class Server implements Transport<Server> {
     }
 
     @Override
-    public void close() {
+    public void shutdown() {
         checkNotStart();
         if (!this.worker.isShutdown()) {
             this.worker.shutdownGracefully();
@@ -177,6 +182,11 @@ public class Server implements Transport<Server> {
         if (!this.boss.isShutdown()) {
             this.boss.shutdownGracefully();
         }
+    }
+
+    @Override
+    public ChannelFuture close() {
+        return startFuture.channel().close();
     }
 
     @Override

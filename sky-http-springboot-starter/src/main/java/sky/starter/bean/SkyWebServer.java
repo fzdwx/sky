@@ -39,7 +39,7 @@ public class SkyWebServer implements WebServer {
         if (skyHttpServerProps.enableDebug()) {
             log.info(DEBUG_PREFIX + "stop SkyHttpServer");
         }
-        server.close();
+        server.shutdown();
     }
 
     @Override

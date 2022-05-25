@@ -160,9 +160,14 @@ public class Client implements Transport<Client> {
     }
 
     @Override
-    public void close() {
+    public void shutdown() {
         checkNotStart();
         this.worker.shutdownGracefully();
+    }
+
+    @Override
+    public ChannelFuture close() {
+        return startFuture.channel().close();
     }
 
     @Override

@@ -45,7 +45,9 @@ public interface Transport<IMPL> {
 
     ChannelFuture dispose();
 
-    void close();
+    void shutdown();
+
+    ChannelFuture close();
 
     boolean sslFlag();
 
