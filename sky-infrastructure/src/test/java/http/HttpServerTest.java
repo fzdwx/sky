@@ -22,9 +22,17 @@ class HttpServerTest {
     void test_http() {
         final Router router = Router.router().GET("/ws", (req, res) -> {
             req.upgradeToWebSocket().then(ws -> {
+
+                ws.enableIdleState();
+
                 ws.mountOpen((h) -> {
                     ws.send("hello");
                 });
+
+                ws.mountEvent(h -> {
+                    System.out.println(h);
+                });
+
             });
         }).GET("/post", (req, res) -> {
             res.contentType(ContentType.STREAM_JSON);
