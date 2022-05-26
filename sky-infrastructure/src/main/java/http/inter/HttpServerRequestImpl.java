@@ -137,7 +137,9 @@ public class HttpServerRequestImpl implements HttpServerRequest {
     public Seq<FileUpload> readFiles() {
         initBody();
 
-        return Seq.of(bodyDecoder.getBodyHttpDatas()).filter(d -> d.getHttpDataType().equals(InterfaceHttpData.HttpDataType.FileUpload)).typeOf(FileUpload.class);
+        return Seq.of(bodyDecoder.getBodyHttpDatas())
+                .filter(d -> d.getHttpDataType().equals(InterfaceHttpData.HttpDataType.FileUpload))
+                .typeOf(FileUpload.class);
     }
 
     @Override
@@ -187,7 +189,7 @@ public class HttpServerRequestImpl implements HttpServerRequest {
             //endregion
 
             final WebSocketServerHandshaker handShaker =
-                    new WebSocketServerHandshakerFactory(getWebSocketLocation(ssl, request), subProtocols, true).newHandshaker(request);
+                    new WebSocketServerHandshakerFactory(getWebSocketLocation(webSocket, request), subProtocols, true).newHandshaker(request);
 
             if (handShaker != null) {
                 final ChannelPipeline pipeline = ctx.pipeline();
@@ -243,9 +245,7 @@ public class HttpServerRequestImpl implements HttpServerRequest {
         }
     }
 
-    private static String getWebSocketLocation(final boolean ssl, final HttpRequest req) {
-        String scheme = ssl ? "wss" : "ws";
-
-        return scheme + "://" + req.headers().get(HttpHeaderNames.HOST) + req.uri();
+    private static String getWebSocketLocation(final WebSocket ws, final HttpRequest req) {
+        return ws.scheme().name() + "://" + req.headers().get(HttpHeaderNames.HOST) + req.uri();
     }
 }

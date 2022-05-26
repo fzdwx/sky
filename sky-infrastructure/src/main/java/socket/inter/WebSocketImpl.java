@@ -10,6 +10,7 @@ import io.netty.handler.codec.http.websocketx.BinaryWebSocketFrame;
 import io.netty.handler.codec.http.websocketx.PingWebSocketFrame;
 import io.netty.handler.codec.http.websocketx.PongWebSocketFrame;
 import io.netty.handler.codec.http.websocketx.TextWebSocketFrame;
+import io.netty.handler.codec.http.websocketx.WebSocketScheme;
 import io.netty.handler.codec.http.websocketx.extensions.compression.WebSocketServerCompressionHandler;
 import io.netty.handler.timeout.IdleStateHandler;
 import io.netty.util.AttributeKey;
@@ -41,10 +42,12 @@ public class WebSocketImpl implements WebSocket {
     private Hooks<Throwable> errorHooks;
     private WebSocketServerCompressionHandler compressionHandler;
     private IdleStateHandler idleStateHandler;
+    private WebSocketScheme scheme;
 
     public WebSocketImpl(Socket socket, final HttpServerRequest httpServerRequest) {
         this.socket = socket;
         this.httpServerRequest = httpServerRequest;
+        this.scheme = httpServerRequest.ssl() ? WebSocketScheme.WSS : WebSocketScheme.WS;
     }
 
     @Override
@@ -70,6 +73,11 @@ public class WebSocketImpl implements WebSocket {
     @Override
     public ChannelFuture send(final byte[] text) {
         return this.channel().writeAndFlush(new TextWebSocketFrame(Netty.wrap(channel().alloc(), text)));
+    }
+
+    @Override
+    public WebSocketScheme scheme() {
+        return scheme;
     }
 
     @Override

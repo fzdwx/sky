@@ -8,6 +8,7 @@ import io.netty.handler.codec.http.websocketx.BinaryWebSocketFrame;
 import io.netty.handler.codec.http.websocketx.PingWebSocketFrame;
 import io.netty.handler.codec.http.websocketx.PongWebSocketFrame;
 import io.netty.handler.codec.http.websocketx.TextWebSocketFrame;
+import io.netty.handler.codec.http.websocketx.WebSocketScheme;
 import io.netty.handler.codec.http.websocketx.extensions.compression.WebSocketServerCompressionHandler;
 import io.netty.handler.timeout.IdleStateHandler;
 import io.netty.util.AttributeKey;
@@ -27,6 +28,11 @@ public interface WebSocket extends Listener, Socket {
     static WebSocket create(Socket socket, final HttpServerRequest httpServerRequest) {
         return new WebSocketImpl(socket, httpServerRequest);
     }
+
+    /**
+     * ret scheme
+     */
+    WebSocketScheme scheme();
 
     /**
      * enable {@link IdleStateHandler},default read idle 10s,write idle 10s.

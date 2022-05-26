@@ -12,6 +12,8 @@ public class Main {
         HttpServer.create().handle((req, resp) -> {
                     req.upgradeToWebSocket(ws -> {
 
+                        System.out.println(ws.scheme());
+
                         ws.mountOpen(h -> {
                             ws.send("hello world");
                         });
