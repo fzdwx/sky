@@ -194,10 +194,14 @@ public class HttpServerRequestImpl implements HttpServerRequest {
                 pipeline.remove(ctx.name());
 
                 // heart beat
-                // pipeline.addLast(new IdleStateHandler(5, 0, 0, TimeUnit.SECONDS));
+                if (webSocket.idleStateHandler() != null) {
+                    pipeline.addLast(webSocket.idleStateHandler());
+                }
 
                 // websocket compress
-                // pipeline.addLast(new WebSocketServerCompressionHandler());
+                if (webSocket.compressionHandler() != null) {
+                    pipeline.addLast(webSocket.compressionHandler());
+                }
 
                 // add handler
                 pipeline.addLast(new WebSocketHandler(webSocket, session));

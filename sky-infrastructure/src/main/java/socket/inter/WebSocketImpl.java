@@ -10,6 +10,8 @@ import io.netty.handler.codec.http.websocketx.BinaryWebSocketFrame;
 import io.netty.handler.codec.http.websocketx.PingWebSocketFrame;
 import io.netty.handler.codec.http.websocketx.PongWebSocketFrame;
 import io.netty.handler.codec.http.websocketx.TextWebSocketFrame;
+import io.netty.handler.codec.http.websocketx.extensions.compression.WebSocketServerCompressionHandler;
+import io.netty.handler.timeout.IdleStateHandler;
 import io.netty.util.AttributeKey;
 import lombok.Getter;
 import socket.Socket;
@@ -37,6 +39,8 @@ public class WebSocketImpl implements WebSocket {
     private Hooks<ByteBuf> pongHooks;
     private Hooks<Void> closeHooks;
     private Hooks<Throwable> errorHooks;
+    private WebSocketServerCompressionHandler compressionHandler;
+    private IdleStateHandler idleStateHandler;
 
     public WebSocketImpl(Socket socket, final HttpServerRequest httpServerRequest) {
         this.socket = socket;
@@ -66,6 +70,28 @@ public class WebSocketImpl implements WebSocket {
     @Override
     public ChannelFuture send(final byte[] text) {
         return this.channel().writeAndFlush(new TextWebSocketFrame(Netty.wrap(channel().alloc(), text)));
+    }
+
+    @Override
+    public WebSocket enableIdleState(final IdleStateHandler handler) {
+        this.idleStateHandler = handler;
+        return this;
+    }
+
+    @Override
+    public IdleStateHandler idleStateHandler() {
+        return this.idleStateHandler;
+    }
+
+    @Override
+    public WebSocket enableCompression(final WebSocketServerCompressionHandler handler) {
+        this.compressionHandler = handler;
+        return this;
+    }
+
+    @Override
+    public WebSocketServerCompressionHandler compressionHandler() {
+        return this.compressionHandler;
     }
 
     @Override

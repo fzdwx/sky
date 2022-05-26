@@ -8,19 +8,67 @@ import io.netty.handler.codec.http.websocketx.BinaryWebSocketFrame;
 import io.netty.handler.codec.http.websocketx.PingWebSocketFrame;
 import io.netty.handler.codec.http.websocketx.PongWebSocketFrame;
 import io.netty.handler.codec.http.websocketx.TextWebSocketFrame;
+import io.netty.handler.codec.http.websocketx.extensions.compression.WebSocketServerCompressionHandler;
+import io.netty.handler.timeout.IdleStateHandler;
 import io.netty.util.AttributeKey;
 import socket.inter.WebSocketImpl;
 
+import java.util.concurrent.TimeUnit;
+
 /**
+ * websocket channel.
+ *
  * @author <a href="mailto:likelovec@gmail.com">fzdwx</a>
  * @date 2022/3/19 16:07
  * @since 0.06
  */
 public interface WebSocket extends Listener, Socket {
 
-    static WebSocket create(Socket session, final HttpServerRequest httpServerRequest) {
-        return new WebSocketImpl(session, httpServerRequest);
+    static WebSocket create(Socket socket, final HttpServerRequest httpServerRequest) {
+        return new WebSocketImpl(socket, httpServerRequest);
     }
+
+    /**
+     * enable {@link IdleStateHandler},default read idle 10s,write idle 10s.
+     *
+     * @return {@link WebSocket }
+     */
+    default WebSocket enableIdleState() {
+        return enableIdleState(new IdleStateHandler(10, 10, 0, TimeUnit.SECONDS));
+    }
+
+    /**
+     * enable IdleState
+     *
+     * @return {@link WebSocket }
+     */
+    WebSocket enableIdleState(IdleStateHandler handler);
+
+    /**
+     * get {@link IdleStateHandler}
+     */
+    IdleStateHandler idleStateHandler();
+
+    /**
+     * enable compression,off by default.
+     *
+     * @see WebSocketServerCompressionHandler
+     */
+    default WebSocket enableCompression() {
+        return enableCompression(new WebSocketServerCompressionHandler());
+    }
+
+    /**
+     * enable compression
+     *
+     * @see WebSocketServerCompressionHandler
+     */
+    WebSocket enableCompression(WebSocketServerCompressionHandler handler);
+
+    /**
+     * get {@link WebSocketServerCompressionHandler}.
+     */
+    WebSocketServerCompressionHandler compressionHandler();
 
     /**
      * @since 0.07
