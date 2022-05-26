@@ -26,11 +26,13 @@ public class WebSocketImpl implements WebSocket {
 
     private final Socket socket;
     private final HttpServerRequest httpServerRequest;
-    private Hooks<String> textHooks;
     private Hooks<Void> beforeHandshakeHooks;
     private Hooks<Void> openHooks;
     private Hooks<Object> eventHooks;
+    private Hooks<String> textHooks;
     private Hooks<ByteBuf> binaryHooks;
+    private Hooks<ByteBuf> pingHooks;
+    private Hooks<ByteBuf> pongHooks;
     private Hooks<Void> closeHooks;
     private Hooks<Throwable> errorHooks;
 
@@ -113,6 +115,18 @@ public class WebSocketImpl implements WebSocket {
     @Override
     public WebSocket mountBinary(final Hooks<ByteBuf> h) {
         this.binaryHooks = h;
+        return this;
+    }
+
+    @Override
+    public WebSocket mountPing(final Hooks<ByteBuf> p) {
+        this.pingHooks = p;
+        return this;
+    }
+
+    @Override
+    public WebSocket mountPong(final Hooks<ByteBuf> p) {
+        this.pongHooks = p;
         return this;
     }
 
@@ -200,6 +214,20 @@ public class WebSocketImpl implements WebSocket {
     public void onBinary(final Socket session, final ByteBuf content) {
         if (binaryHooks != null) {
             binaryHooks.call(content);
+        }
+    }
+
+    @Override
+    public void onPing(final ByteBuf ping) {
+        if (pingHooks != null) {
+            pingHooks.call(ping);
+        }
+    }
+
+    @Override
+    public void onPong(final ByteBuf pong) {
+        if (pongHooks != null) {
+            pongHooks.call(pong);
         }
     }
 

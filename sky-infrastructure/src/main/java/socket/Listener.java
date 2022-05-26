@@ -54,6 +54,14 @@ public interface Listener {
 
     }
 
+    default void onPing(ByteBuf ping) {
+
+    }
+
+    default void onPong(ByteBuf pong) {
+
+    }
+
     /**
      * Gets called if a {@link Throwable} was thrown.
      *
