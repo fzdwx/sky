@@ -48,28 +48,46 @@ public interface Socket {
      */
     ChannelFuture send(byte[] text);
 
+    /**
+     * set attr to value
+     */
     default <T> Socket attr(String key, T value) {
         channel().attr(AttributeKey.<T>valueOf(key)).set(value);
         return this;
     }
 
+    /**
+     * set attr to value
+     */
     default <T> Socket attr(AttributeKey<T> key, T value) {
         channel().attr(key).set(value);
         return this;
     }
 
+    /**
+     * get attr
+     */
     default <T> T attr(String key) {
         return channel().attr(AttributeKey.<T>valueOf(key)).get();
     }
 
+    /**
+     * get attr
+     */
     default <T> T attr(AttributeKey<T> key) {
         return channel().attr(key).get();
     }
 
+    /**
+     * has Attr?
+     */
     default boolean hasAttr(String key) {
         return channel().hasAttr(AttributeKey.valueOf(key));
     }
 
+    /**
+     * has Attr?
+     */
     default boolean hasAttr(AttributeKey<?> key) {
         return channel().hasAttr(key);
     }

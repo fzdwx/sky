@@ -4,6 +4,7 @@ import http.HttpServerRequest;
 import io.github.fzdwx.lambada.fun.Hooks;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelFuture;
+import io.netty.util.AttributeKey;
 import socket.inter.WebSocketImpl;
 
 /**
@@ -16,7 +17,6 @@ public interface WebSocket extends Listener, Socket {
     static WebSocket create(Socket session, final HttpServerRequest httpServerRequest) {
         return new WebSocketImpl(session, httpServerRequest);
     }
-
 
     /**
      * @since 0.07
@@ -72,44 +72,62 @@ public interface WebSocket extends Listener, Socket {
      */
     WebSocket mountError(Hooks<Throwable> h);
 
+    @Override
+    <T> WebSocket attr(String key, T value);
+
+    @Override
+    <T> Socket attr(AttributeKey<T> key, T value);
+
+    @Override
+    <T> T attr(String key);
+
+    @Override
+    <T> T attr(AttributeKey<T> key);
+
+    @Override
+    boolean hasAttr(String key);
+
+    @Override
+    boolean hasAttr(AttributeKey<?> key);
+
     /**
-     * @deprecated
+     * @deprecated External calls are not recommended
      */
     @Override
     void beforeHandshake(final Socket session) throws RuntimeException;
 
     /**
-     * @deprecated
+     * @deprecated External calls are not recommended
      */
     @Override
     void onOpen(final Socket session);
 
     /**
-     * @deprecated
+     * @deprecated External calls are not recommended
      */
     @Override
     void onclose(final Socket session);
 
     /**
-     * @deprecated
+     * @deprecated External calls are not recommended
      */
     @Override
     void onEvent(final Socket session, final Object event);
 
     /**
-     * @deprecated
+     * @deprecated External calls are not recommended
      */
     @Override
     void onText(final Socket session, final String text);
 
     /**
-     * @deprecated
+     * @deprecated External calls are not recommended
      */
     @Override
     void onBinary(final Socket session, final ByteBuf content);
 
     /**
-     * @deprecated
+     * @deprecated External calls are not recommended
      */
     @Override
     void onError(final Socket session, final Throwable cause);

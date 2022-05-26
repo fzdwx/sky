@@ -8,6 +8,7 @@ import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
 import io.netty.handler.codec.http.websocketx.BinaryWebSocketFrame;
 import io.netty.handler.codec.http.websocketx.TextWebSocketFrame;
+import io.netty.util.AttributeKey;
 import lombok.Getter;
 import socket.Socket;
 import socket.WebSocket;
@@ -23,7 +24,7 @@ import socket.WebSocket;
 @Getter
 public class WebSocketImpl implements WebSocket {
 
-    private final Socket session;
+    private final Socket socket;
     private final HttpServerRequest httpServerRequest;
     private Hooks<String> textHooks;
     private Hooks<Void> beforeHandshakeHooks;
@@ -33,24 +34,24 @@ public class WebSocketImpl implements WebSocket {
     private Hooks<Void> closeHooks;
     private Hooks<Throwable> errorHooks;
 
-    public WebSocketImpl(Socket session, final HttpServerRequest httpServerRequest) {
-        this.session = session;
+    public WebSocketImpl(Socket socket, final HttpServerRequest httpServerRequest) {
+        this.socket = socket;
         this.httpServerRequest = httpServerRequest;
     }
 
     @Override
     public Channel channel() {
-        return this.session.channel();
+        return this.socket.channel();
     }
 
     @Override
     public ChannelFuture reject() {
-        return session.reject();
+        return socket.reject();
     }
 
     @Override
     public ChannelFuture reject(final String text) {
-        return session.reject(text);
+        return socket.reject(text);
     }
 
     @Override
@@ -125,6 +126,38 @@ public class WebSocketImpl implements WebSocket {
     public WebSocket mountError(final Hooks<Throwable> h) {
         this.errorHooks = h;
         return this;
+    }
+
+    @Override
+    public <T> WebSocket attr(final String key, final T value) {
+        this.socket.attr(key, value);
+        return this;
+    }
+
+    @Override
+    public <T> Socket attr(final AttributeKey<T> key, final T value) {
+        this.socket.attr(key, value);
+        return this;
+    }
+
+    @Override
+    public <T> T attr(final String key) {
+        return this.socket.attr(key);
+    }
+
+    @Override
+    public <T> T attr(final AttributeKey<T> key) {
+        return this.socket.attr(key);
+    }
+
+    @Override
+    public boolean hasAttr(final String key) {
+        return this.socket.hasAttr(key);
+    }
+
+    @Override
+    public boolean hasAttr(final AttributeKey<?> key) {
+        return this.socket.hasAttr(key);
     }
 
 
