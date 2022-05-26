@@ -7,6 +7,8 @@ import io.netty.buffer.ByteBuf;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
 import io.netty.handler.codec.http.websocketx.BinaryWebSocketFrame;
+import io.netty.handler.codec.http.websocketx.PingWebSocketFrame;
+import io.netty.handler.codec.http.websocketx.PongWebSocketFrame;
 import io.netty.handler.codec.http.websocketx.TextWebSocketFrame;
 import io.netty.util.AttributeKey;
 import lombok.Getter;
@@ -87,6 +89,30 @@ public class WebSocketImpl implements WebSocket {
     public WebSocket sendBinary(final byte[] binary, final Hooks<ChannelFuture> h) {
         h.call(sendBinary(binary));
 
+        return this;
+    }
+
+    @Override
+    public ChannelFuture sendPing(final byte[] binary) {
+        final Channel channel = channel();
+        return channel.writeAndFlush(new PingWebSocketFrame(Netty.wrap(channel.alloc(), binary)));
+    }
+
+    @Override
+    public WebSocket sendPing(final byte[] binary, final Hooks<ChannelFuture> h) {
+        h.call(sendPing(binary));
+        return this;
+    }
+
+    @Override
+    public ChannelFuture sendPong(final byte[] binary) {
+        final Channel channel = channel();
+        return channel.writeAndFlush(new PongWebSocketFrame(Netty.wrap(channel.alloc(), binary)));
+    }
+
+    @Override
+    public WebSocket sendPong(final byte[] binary, final Hooks<ChannelFuture> h) {
+        h.call(sendPong(binary));
         return this;
     }
 

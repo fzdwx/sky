@@ -39,6 +39,14 @@ public interface WebSocket extends Listener, Socket {
      */
     WebSocket sendBinary(byte[] binary, Hooks<ChannelFuture> h);
 
+    ChannelFuture sendPing(byte[] binary);
+
+    WebSocket sendPing(byte[] binary, Hooks<ChannelFuture> h);
+
+    ChannelFuture sendPong(byte[] binary);
+
+    WebSocket sendPong(byte[] binary, Hooks<ChannelFuture> h);
+
     /**
      * before handshake.
      */
