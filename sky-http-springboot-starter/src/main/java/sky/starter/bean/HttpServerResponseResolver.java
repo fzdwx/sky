@@ -7,6 +7,8 @@ import sky.starter.domain.SkyHttpMethod;
 import sky.starter.ext.RequestArgumentResolver;
 
 /**
+ * support {@link HttpServerResponse}.
+ *
  * @author <a href="mailto:likelovec@gmail.com">fzdwx</a>
  * @date 2022/5/21 18:19
  */

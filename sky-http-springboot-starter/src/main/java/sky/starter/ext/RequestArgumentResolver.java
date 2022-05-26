@@ -17,7 +17,13 @@ import sky.starter.domain.SkyHttpMethod;
  */
 public interface RequestArgumentResolver {
 
+    /**
+     * support current resolve parameter?
+     */
     boolean support(SkyHttpMethod.SkyHttpMethodParameter parameter);
 
+    /**
+     * do resolve
+     */
     Object apply(HttpServerRequest request, final HttpServerResponse response, SkyHttpMethod.SkyHttpMethodParameter parameter, NvMap parVals);
 }

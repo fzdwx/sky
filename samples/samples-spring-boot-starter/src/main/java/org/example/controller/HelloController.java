@@ -22,8 +22,14 @@ public class HelloController {
     @GetMapping("/connect")
     public void connect(HttpServerRequest request, @RequestParam String name) {
         request.upgradeToWebSocket(ws -> {
+
+            ws.attr("key", "like");
+
             ws.mountOpen(h -> {
                 ws.send("hello " + name);
+
+                final Object key = ws.attr("key");
+                System.out.println(key);
             });
         });
     }

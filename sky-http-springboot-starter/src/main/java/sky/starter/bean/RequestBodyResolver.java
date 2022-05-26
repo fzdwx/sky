@@ -3,11 +3,12 @@ package sky.starter.bean;
 import http.HttpServerRequest;
 import http.HttpServerResponse;
 import io.github.fzdwx.lambada.lang.NvMap;
+import org.springframework.web.bind.annotation.RequestBody;
 import sky.starter.domain.SkyHttpMethod;
 import sky.starter.ext.RequestArgumentResolver;
 
 /**
- * support {@link org.springframework.web.bind.annotation.RequestBody}
+ * support {@link RequestBody}
  *
  * @author <a href="mailto:likelovec@gmail.com">fzdwx</a>
  * @date 2022/5/21 17:31

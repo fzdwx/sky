@@ -6,7 +6,7 @@ import sky.starter.domain.SkyRouteDefinition;
 import sky.starter.ext.RequestResultHandler;
 
 /**
- * support every request.
+ * support every response result.
  *
  * @author <a href="mailto:likelovec@gmail.com">fzdwx</a>
  * @date 2022/5/18 17:43

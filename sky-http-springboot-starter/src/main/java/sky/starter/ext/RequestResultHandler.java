@@ -18,8 +18,14 @@ public interface RequestResultHandler extends Comparable<RequestResultHandler>, 
 
     Comparator<? super RequestResultHandler> sort = Comparator.comparingInt(RequestResultHandler::getOrder);
 
+    /**
+     * support current result?
+     */
     boolean support(Object result, SkyRouteDefinition definition);
 
+    /**
+     * Pre handle result ,used to detect common cases where return value handling is not required.
+     */
     default void handle(Object result, SkyRouteDefinition definition, final HttpServerRequest request, HttpServerResponse response) {
         if (request.isWebsocket()) {
             return;
@@ -31,6 +37,9 @@ public interface RequestResultHandler extends Comparable<RequestResultHandler>, 
         apply(result, definition, response);
     }
 
+    /**
+     * apply current result to client
+     */
     void apply(Object result, SkyRouteDefinition definition, HttpServerResponse response);
 
     @Override
