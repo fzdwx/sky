@@ -8,6 +8,8 @@ import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelOption;
 import io.netty.channel.EventLoopGroup;
+import io.netty.channel.epoll.Epoll;
+import io.netty.channel.epoll.EpollEventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
@@ -53,9 +55,11 @@ public class Client implements Transport<Client> {
     private Hooks<ChannelFuture> afterListen;
     private Hooks<Client> onSuccessHooks;
     private Hooks<Throwable> onFailureHooks;
+    private boolean enableEpoll;
 
     public Client() {
         this.bootstrap = new Bootstrap();
+        this.enableEpoll = Epoll.isAvailable();
     }
 
     @Override
@@ -186,9 +190,9 @@ public class Client implements Transport<Client> {
     }
 
     @Override
-    public Client withWorker(final EventLoopGroup worker) {
+    public Client withWorker(final int worker) {
         checkStart();
-        this.worker = worker;
+        this.worker = createWorker(worker);
         return this;
     }
 
@@ -332,6 +336,16 @@ public class Client implements Transport<Client> {
         if (this.serializer == null) {
             this.serializer = JsonSerializer.codec;
         }
+    }
+
+    private EventLoopGroup createWorker(final int workerCnt) {
+        EventLoopGroup group;
+        if (this.enableEpoll) {
+            group = new EpollEventLoopGroup(workerCnt, new SkyThreadFactory("Epoll-Sky-Server-Boss"));
+        } else {
+            group = new NioEventLoopGroup(workerCnt, new SkyThreadFactory("NIO-Sky-Server-Boss"));
+        }
+        return group;
     }
 
 }

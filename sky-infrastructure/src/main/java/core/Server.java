@@ -10,6 +10,7 @@ import io.netty.channel.ChannelOption;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.ServerChannel;
 import io.netty.channel.epoll.Epoll;
+import io.netty.channel.epoll.EpollEventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
@@ -43,7 +44,6 @@ public class Server implements Transport<Server> {
     private Hooks<ChannelFuture> afterListen;
     private Hooks<Server> onSuccessHooks;
     private Hooks<Throwable> onFailureHooks;
-    private EventLoopGroup boss;
     private EventLoopGroup worker;
     private ServerBootstrap bootstrap;
     private boolean sslFlag;
@@ -55,6 +55,7 @@ public class Server implements Transport<Server> {
     private AtomicBoolean startFlag = new AtomicBoolean(false);
     private final boolean enableEpoll;
     private Class<? extends ServerChannel> channelType = NioServerSocketChannel.class;
+    private EventLoopGroup boss;
 
     public Server() {
         this.bootstrap = new ServerBootstrap();
@@ -203,9 +204,9 @@ public class Server implements Transport<Server> {
     }
 
     @Override
-    public Server withWorker(final EventLoopGroup worker) {
+    public Server withWorker(final int worker) {
         checkStart();
-        this.worker = worker;
+        this.worker = createWorker(worker);
         return this;
     }
 
@@ -213,20 +214,6 @@ public class Server implements Transport<Server> {
     public Server withLog(final LoggingHandler loggingHandler) {
         checkStart();
         this.loggingHandler = loggingHandler;
-        return this;
-    }
-
-    public Server withGroup(final int bossCount, final int workerCount) {
-        checkStart();
-        this.boss = new NioEventLoopGroup(bossCount);
-        this.worker = new NioEventLoopGroup(workerCount);
-        return this;
-    }
-
-    public Server withGroup(final EventLoopGroup boss, final EventLoopGroup worker) {
-        checkStart();
-        this.boss = boss;
-        this.worker = worker;
         return this;
     }
 
@@ -261,17 +248,6 @@ public class Server implements Transport<Server> {
         return this;
     }
 
-    public Server withBoss(final int bossCount) {
-        checkStart();
-        return withBoss(new NioEventLoopGroup(bossCount));
-    }
-
-    public Server withBoss(final EventLoopGroup boss) {
-        checkStart();
-        this.worker = boss;
-        return this;
-    }
-
     public int port() {
         return this.address.getPort();
     }
@@ -282,7 +258,7 @@ public class Server implements Transport<Server> {
         }
     }
 
-    public void preStart(final InetSocketAddress address) {
+    private void preStart(final InetSocketAddress address) {
         if (!startFlag.compareAndSet(false, true)) {
             return;
         }
@@ -291,12 +267,10 @@ public class Server implements Transport<Server> {
         Objects.requireNonNull(channelType, "channelType is null");
         this.address = address;
 
-        if (this.boss == null) {
-            this.boss = new NioEventLoopGroup();
-        }
+        this.boss = createBoss(1);
 
         if (this.worker == null) {
-            this.worker = new NioEventLoopGroup();
+            this.worker = createWorker(0);
         }
 
         if (this.serializer == null) {
@@ -320,5 +294,25 @@ public class Server implements Transport<Server> {
         if (!startFlag.get()) {
             throw new IllegalStateException("server is not started,don't support this action!");
         }
+    }
+
+    private EventLoopGroup createBoss(final int bossCount) {
+        EventLoopGroup group;
+        if (this.enableEpoll) {
+            group = new EpollEventLoopGroup(bossCount, new SkyThreadFactory("Epoll-Sky-Server-Boss"));
+        } else {
+            group = new NioEventLoopGroup(bossCount, new SkyThreadFactory("NIO-Sky-Server-Boss"));
+        }
+        return group;
+    }
+
+    private EventLoopGroup createWorker(final int workerCnt) {
+        EventLoopGroup group;
+        if (this.enableEpoll) {
+            group = new EpollEventLoopGroup(workerCnt, new SkyThreadFactory("Epoll-Sky-Server-Boss"));
+        } else {
+            group = new NioEventLoopGroup(workerCnt, new SkyThreadFactory("NIO-Sky-Server-Boss"));
+        }
+        return group;
     }
 }

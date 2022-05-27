@@ -3,8 +3,6 @@ package core;
 import io.github.fzdwx.lambada.fun.Hooks;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelInitializer;
-import io.netty.channel.EventLoopGroup;
-import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.handler.logging.LogLevel;
 import io.netty.handler.logging.LoggingHandler;
@@ -53,16 +51,9 @@ public interface Transport<IMPL> {
 
     JsonSerializer serializer();
 
-    /**
-     * @return this
-     */
     IMPL impl();
 
-    default IMPL withWorker(int workerCount) {
-        return withWorker(new NioEventLoopGroup(workerCount));
-    }
-
-    IMPL withWorker(EventLoopGroup worker);
+    IMPL withWorker(int workerCount);
 
     /**
      * set child log handler

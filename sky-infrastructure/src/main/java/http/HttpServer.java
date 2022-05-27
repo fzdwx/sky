@@ -10,7 +10,6 @@ import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelOption;
-import io.netty.channel.EventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.handler.codec.http.HttpContentDecompressor;
 import io.netty.handler.codec.http.HttpServerCodec;
@@ -177,7 +176,7 @@ public class HttpServer implements Transport<HttpServer> {
     }
 
     @Override
-    public HttpServer withWorker(final EventLoopGroup worker) {
+    public HttpServer withWorker(final int worker) {
         this.server.withWorker(worker);
         return this;
     }
@@ -210,22 +209,6 @@ public class HttpServer implements Transport<HttpServer> {
      */
     public <T> HttpServer withChildOptions(ChannelOption<T> option, T t) {
         this.server.withChildOptions(option, t);
-        return this;
-    }
-
-    /**
-     * @see #withGroup(EventLoopGroup, EventLoopGroup)
-     */
-    public HttpServer withGroup(final int bossCount, final int workerCount) {
-        this.server.withGroup(bossCount, workerCount);
-        return this;
-    }
-
-    /**
-     * set event loop group
-     */
-    public HttpServer withGroup(final EventLoopGroup boss, final EventLoopGroup worker) {
-        this.server.withGroup(boss, worker);
         return this;
     }
 
