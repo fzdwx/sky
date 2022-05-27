@@ -53,7 +53,7 @@ public class HttpServerHandler extends ChannelInboundHandlerAdapter {
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
         log.info("http server handler exceptionCaught: {}", cause.getMessage());
-        // TODO: 2022/5/10 日志级别
+
         super.exceptionCaught(ctx, cause);
     }
 

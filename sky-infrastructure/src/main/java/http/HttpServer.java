@@ -12,7 +12,7 @@ import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelOption;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
-import io.netty.handler.codec.http.HttpObjectAggregator;
+import io.netty.handler.codec.http.HttpContentDecompressor;
 import io.netty.handler.codec.http.HttpServerCodec;
 import io.netty.handler.codec.http.HttpServerExpectContinueHandler;
 import io.netty.handler.codec.http.multipart.HttpDataFactory;
@@ -90,12 +90,15 @@ public class HttpServer implements Transport<HttpServer> {
             if (this.afterListenHooks != null) {
                 this.afterListenHooks.call(f);
             }
+
         });
 
         this.server.withInitChannel(channel -> {
             channel.pipeline()
+                    .addLast(new HttpContentDecompressor(false))
                     .addLast(new HttpServerCodec())
-                    .addLast(new HttpObjectAggregator(1024 * 1024))
+                    // .addLast(new HttpContentCompressor())
+                    // .addLast(new HttpObjectAggregator(1024 * 1024))
                     .addLast(new ChunkedWriteHandler())
                     .addLast(new HttpServerExpectContinueHandler())
                     .addLast(new HttpServerHandler(httpHandler, exceptionHandler, sslFlag, httpDataFactory, serializer()));
