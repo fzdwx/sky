@@ -8,6 +8,10 @@ import sky.starter.domain.SkyRouteDefinition;
 import sky.starter.ext.RequestResultHandler;
 
 /**
+ * support {@link ResponseEntity}
+ * <p>
+ * 1. currently it simply treats the return value as json...
+ *
  * @author <a href="mailto:likelovec@gmail.com">fzdwx</a>
  * @date 2022/5/21 17:59
  */

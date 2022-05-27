@@ -56,12 +56,10 @@ public class WebSocketHandler extends SimpleChannelInboundHandler<WebSocketFrame
 
         // todo dispatch ping pong
         if (msg instanceof PingWebSocketFrame) {
-            ctx.writeAndFlush(msg.content());
-            return;
+            listener.onPing(msg.content());
         }
         if (msg instanceof PongWebSocketFrame) {
-            ctx.writeAndFlush(msg.content());
-            return;
+            listener.onPong(msg.content());
         }
 
         if (msg instanceof CloseWebSocketFrame) {

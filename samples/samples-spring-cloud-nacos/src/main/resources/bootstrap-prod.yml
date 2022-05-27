@@ -1,0 +1,16 @@
+spring:
+  application:
+    name: sky-samples
+  cloud:
+    nacos:
+      discovery:
+        username: nacos
+        password: 9e34e9d3-0507-49ef-a6da-168d2816712f
+        server-addr: 172.16.11.249:8848
+        group: prod
+        namespace: 56ad1e6f-cd88-4201-8e1b-f9fd3252b7a6
+      config:
+        file-extension: yaml
+        server-addr: 172.16.11.249:8848
+        namespace: 56ad1e6f-cd88-4201-8e1b-f9fd3252b7a6
+        group: prod

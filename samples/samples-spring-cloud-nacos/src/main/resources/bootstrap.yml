@@ -1,0 +1,14 @@
+spring:
+  application:
+    name: sky-samples
+  profiles:
+    #    active: dev
+    active: @profiles.active@
+  cloud:
+    nacos:
+      discovery:
+        username: nacos
+        password: nacos
+        server-addr: 192.168.1.228:8848
+        group: DEFAULT_GROUP
+        namespace: 9e34e9d3-0507-49ef-a6da-168d2816712f

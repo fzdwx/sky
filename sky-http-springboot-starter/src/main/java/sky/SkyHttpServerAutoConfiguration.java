@@ -67,6 +67,12 @@ public class SkyHttpServerAutoConfiguration {
         return new SkyWebServerFactory(httpServer, skyHttpServerProps, dispatchHandler);
     }
 
+    /**
+     * 请求参数解析器容器
+     *
+     * @param valConvertor value Convertor
+     * @return {@link RequestArgumentResolverContainer }
+     */
     @Bean
     RequestArgumentResolverContainer requestArgumentResolverContainer(ValConvertor valConvertor) {
         return new RequestArgumentResolverContainer()

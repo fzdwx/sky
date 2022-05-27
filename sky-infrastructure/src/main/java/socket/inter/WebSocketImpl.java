@@ -7,7 +7,13 @@ import io.netty.buffer.ByteBuf;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
 import io.netty.handler.codec.http.websocketx.BinaryWebSocketFrame;
+import io.netty.handler.codec.http.websocketx.PingWebSocketFrame;
+import io.netty.handler.codec.http.websocketx.PongWebSocketFrame;
 import io.netty.handler.codec.http.websocketx.TextWebSocketFrame;
+import io.netty.handler.codec.http.websocketx.WebSocketScheme;
+import io.netty.handler.codec.http.websocketx.extensions.compression.WebSocketServerCompressionHandler;
+import io.netty.handler.timeout.IdleStateHandler;
+import io.netty.util.AttributeKey;
 import lombok.Getter;
 import socket.Socket;
 import socket.WebSocket;
@@ -23,34 +29,40 @@ import socket.WebSocket;
 @Getter
 public class WebSocketImpl implements WebSocket {
 
-    private final Socket session;
+    private final Socket socket;
     private final HttpServerRequest httpServerRequest;
-    private Hooks<String> textHooks;
     private Hooks<Void> beforeHandshakeHooks;
     private Hooks<Void> openHooks;
     private Hooks<Object> eventHooks;
+    private Hooks<String> textHooks;
     private Hooks<ByteBuf> binaryHooks;
+    private Hooks<ByteBuf> pingHooks;
+    private Hooks<ByteBuf> pongHooks;
     private Hooks<Void> closeHooks;
     private Hooks<Throwable> errorHooks;
+    private WebSocketServerCompressionHandler compressionHandler;
+    private IdleStateHandler idleStateHandler;
+    private WebSocketScheme scheme;
 
-    public WebSocketImpl(Socket session, final HttpServerRequest httpServerRequest) {
-        this.session = session;
+    public WebSocketImpl(Socket socket, final HttpServerRequest httpServerRequest) {
+        this.socket = socket;
         this.httpServerRequest = httpServerRequest;
+        this.scheme = httpServerRequest.ssl() ? WebSocketScheme.WSS : WebSocketScheme.WS;
     }
 
     @Override
     public Channel channel() {
-        return this.session.channel();
+        return this.socket.channel();
     }
 
     @Override
     public ChannelFuture reject() {
-        return session.reject();
+        return socket.reject();
     }
 
     @Override
     public ChannelFuture reject(final String text) {
-        return session.reject(text);
+        return socket.reject(text);
     }
 
     @Override
@@ -61,6 +73,33 @@ public class WebSocketImpl implements WebSocket {
     @Override
     public ChannelFuture send(final byte[] text) {
         return this.channel().writeAndFlush(new TextWebSocketFrame(Netty.wrap(channel().alloc(), text)));
+    }
+
+    @Override
+    public WebSocketScheme scheme() {
+        return scheme;
+    }
+
+    @Override
+    public WebSocket enableIdleState(final IdleStateHandler handler) {
+        this.idleStateHandler = handler;
+        return this;
+    }
+
+    @Override
+    public IdleStateHandler idleStateHandler() {
+        return this.idleStateHandler;
+    }
+
+    @Override
+    public WebSocket enableCompression(final WebSocketServerCompressionHandler handler) {
+        this.compressionHandler = handler;
+        return this;
+    }
+
+    @Override
+    public WebSocketServerCompressionHandler compressionHandler() {
+        return this.compressionHandler;
     }
 
     @Override
@@ -84,6 +123,30 @@ public class WebSocketImpl implements WebSocket {
     public WebSocket sendBinary(final byte[] binary, final Hooks<ChannelFuture> h) {
         h.call(sendBinary(binary));
 
+        return this;
+    }
+
+    @Override
+    public ChannelFuture sendPing(final byte[] binary) {
+        final Channel channel = channel();
+        return channel.writeAndFlush(new PingWebSocketFrame(Netty.wrap(channel.alloc(), binary)));
+    }
+
+    @Override
+    public WebSocket sendPing(final byte[] binary, final Hooks<ChannelFuture> h) {
+        h.call(sendPing(binary));
+        return this;
+    }
+
+    @Override
+    public ChannelFuture sendPong(final byte[] binary) {
+        final Channel channel = channel();
+        return channel.writeAndFlush(new PongWebSocketFrame(Netty.wrap(channel.alloc(), binary)));
+    }
+
+    @Override
+    public WebSocket sendPong(final byte[] binary, final Hooks<ChannelFuture> h) {
+        h.call(sendPong(binary));
         return this;
     }
 
@@ -116,6 +179,18 @@ public class WebSocketImpl implements WebSocket {
     }
 
     @Override
+    public WebSocket mountPing(final Hooks<ByteBuf> p) {
+        this.pingHooks = p;
+        return this;
+    }
+
+    @Override
+    public WebSocket mountPong(final Hooks<ByteBuf> p) {
+        this.pongHooks = p;
+        return this;
+    }
+
+    @Override
     public WebSocket mountClose(final Hooks<Void> h) {
         this.closeHooks = h;
         return this;
@@ -125,6 +200,38 @@ public class WebSocketImpl implements WebSocket {
     public WebSocket mountError(final Hooks<Throwable> h) {
         this.errorHooks = h;
         return this;
+    }
+
+    @Override
+    public <T> WebSocket attr(final String key, final T value) {
+        this.socket.attr(key, value);
+        return this;
+    }
+
+    @Override
+    public <T> WebSocket attr(final AttributeKey<T> key, final T value) {
+        this.socket.attr(key, value);
+        return this;
+    }
+
+    @Override
+    public <T> T attr(final String key) {
+        return this.socket.attr(key);
+    }
+
+    @Override
+    public <T> T attr(final AttributeKey<T> key) {
+        return this.socket.attr(key);
+    }
+
+    @Override
+    public boolean hasAttr(final String key) {
+        return this.socket.hasAttr(key);
+    }
+
+    @Override
+    public boolean hasAttr(final AttributeKey<?> key) {
+        return this.socket.hasAttr(key);
     }
 
 
@@ -167,6 +274,20 @@ public class WebSocketImpl implements WebSocket {
     public void onBinary(final Socket session, final ByteBuf content) {
         if (binaryHooks != null) {
             binaryHooks.call(content);
+        }
+    }
+
+    @Override
+    public void onPing(final ByteBuf ping) {
+        if (pingHooks != null) {
+            pingHooks.call(ping);
+        }
+    }
+
+    @Override
+    public void onPong(final ByteBuf pong) {
+        if (pongHooks != null) {
+            pongHooks.call(pong);
         }
     }
 

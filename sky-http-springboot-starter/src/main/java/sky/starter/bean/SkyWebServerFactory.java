@@ -11,7 +11,7 @@ import org.springframework.core.io.ResourceLoader;
 import sky.starter.props.SkyHttpServerProps;
 
 /**
- * //ServletWebServerFactoryConfiguration
+ * Sky webServer builder.
  *
  * @author <a href="mailto:likelovec@gmail.com">fzdwx</a>
  * @date 2022/5/16 21:02

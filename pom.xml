@@ -7,7 +7,7 @@
     <groupId>io.github.fzdwx</groupId>
     <artifactId>sky</artifactId>
     <packaging>pom</packaging>
-    <version>0.10.6</version>
+    <version>0.10.7-dev</version>
     <modules>
         <module>sky-infrastructure</module>
         <module>sky-http-springboot-starter</module>
@@ -18,8 +18,8 @@
         <maven.compiler.target>1.8</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
-        <lambda.version>0.10.4</lambda.version>
-        <sky.version>0.10.6</sky.version>
+        <lambda.version>0.10.5-dev</lambda.version>
+        <sky.version>0.10.7-dev</sky.version>
 
 
         <netty.version>4.1.77.Final</netty.version>
@@ -182,20 +182,20 @@
                     </execution>
                 </executions>
             </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-gpg-plugin</artifactId>
-                <version>1.5</version>
-                <executions>
-                    <execution>
-                        <id>sign-artifacts</id>
-                        <phase>verify</phase>
-                        <goals>
-                            <goal>sign</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
+<!--            <plugin>-->
+<!--                <groupId>org.apache.maven.plugins</groupId>-->
+<!--                <artifactId>maven-gpg-plugin</artifactId>-->
+<!--                <version>1.5</version>-->
+<!--                <executions>-->
+<!--                    <execution>-->
+<!--                        <id>sign-artifacts</id>-->
+<!--                        <phase>verify</phase>-->
+<!--                        <goals>-->
+<!--                            <goal>sign</goal>-->
+<!--                        </goals>-->
+<!--                    </execution>-->
+<!--                </executions>-->
+<!--            </plugin>-->
         </plugins>
     </build>
 

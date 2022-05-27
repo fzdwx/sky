@@ -49,20 +49,46 @@ public interface HttpServerResponse extends NettyOutbound {
      */
     HttpVersion version();
 
+    /**
+     * set  {@link  HttpResponseStatus}
+     */
     HttpServerResponse status(HttpResponseStatus status);
 
+    /**
+     * add header keep-alive
+     */
     HttpServerResponse keepAlive(boolean keepAlive);
 
+    /**
+     * add header contentType
+     *
+     * @see ContentType
+     */
     HttpServerResponse contentType(final String contentType);
 
+    /**
+     * add header contentType
+     *
+     * @see ContentType
+     */
     HttpServerResponse contentType(final ContentType contentType);
 
-    HttpServerResponse contentDisposition(final String contentDisposition);
+    /**
+     * add header contentDisposition(attachment; filename=${fileName})
+     *
+     * @apiNote application scenario: return files to the client
+     */
+    HttpServerResponse contentDisposition(final String fileName);
 
+    /**
+     * add header contentDisposition(full)
+     *
+     * @apiNote application scenario: return files to the client
+     */
     HttpServerResponse contentDispositionFull(String contentDisposition);
 
     /**
-     * mount 当消息体发送完毕时会回调.
+     * Mount the callback when the response is written...
      *
      * @param endH end handler
      * @return {@link HttpServerResponse }
@@ -70,25 +96,28 @@ public interface HttpServerResponse extends NettyOutbound {
     HttpServerResponse mountBodyEnd(Hooks<Void> endH);
 
     /**
-     * 如果chunked为true ，则此响应将使用 HTTP 分块编码，并且每次写入正文的调用都将对应于在线发送的新 HTTP 块。
-     * 如果使用分块编码，则 HTTP 标头Transfer-Encoding的值为Chunked将自动插入响应中。
-     * 如果chunked为false ，则此响应将不使用 HTTP 分块编码，因此写入响应正文中的任何数据的总大小必须在任何数据写出之前在Content-Length标头中设置。
-     * 当您预先不知道请求正文的总大小时，通常会使用 HTTP 分块响应。
+     * add header  {@code transfer-encoding} : chunked
      */
     HttpServerResponse chunked();
 
     /**
-     * {@link #chunked()}
+     * remove header {@code transfer-encoding}
      */
     HttpServerResponse unChunked();
 
     boolean isChunked();
 
+    /**
+     * return 404 response and write message
+     */
     default ChannelFuture notFound(final String message) {
         return this.status(HttpResponseStatus.NOT_FOUND)
                 .end(message);
     }
 
+    /**
+     * return 404 response
+     */
     default ChannelFuture notFound() {
         return this.status(HttpResponseStatus.NOT_FOUND)
                 .end();
@@ -104,10 +133,16 @@ public interface HttpServerResponse extends NettyOutbound {
      */
     HttpServerResponse cookie(String key, String val);
 
+    /**
+     * reject request
+     *
+     * @apiNote just close channel
+     */
     ChannelFuture reject();
 
     /**
-     * @return
+     * redirect to the specified url
+     *
      * @since 0.07
      */
     ChannelFuture redirect(String url);
@@ -124,32 +159,49 @@ public interface HttpServerResponse extends NettyOutbound {
      */
     ChannelFuture html(String html);
 
+    /**
+     * end of the request.
+     */
     ChannelFuture end(ByteBuf buf);
 
-    void close();
-
+    /**
+     * @see #end(ByteBuf)
+     */
     default ChannelFuture end(byte[] bytes) {
         return end(Netty.wrap(alloc(), bytes));
     }
 
+    /**
+     * @see #end(ByteBuf)
+     */
     default ChannelFuture end() {
         return end(Unpooled.EMPTY_BUFFER);
     }
 
+    /**
+     * @see #end(ByteBuf)
+     */
     default ChannelFuture end(String s) {
         return end(Netty.wrap(alloc(), s.getBytes()));
     }
 
+    /**
+     * @see #end(ByteBuf)
+     */
     default HttpServerResponse end(String s, Hooks<ChannelFuture> h) {
         h.call(end(Netty.wrap(alloc(), s.getBytes())));
         return this;
     }
 
+    /**
+     * @see #json(Object)
+     */
     default void json(final Object obj, Hooks<ChannelFuture> h) {
         h.call(json(obj));
     }
 
     /**
+     * @see #html(String)
      * @since 0.07
      */
     default void html(String html, Hooks<ChannelFuture> h) {

@@ -62,7 +62,7 @@ public class HttpServer implements Transport<HttpServer> {
     }
 
     /**
-     *  listen on a random port
+     * listen on a random port
      */
     public HttpServer listen() {
         this.server.listen();
@@ -150,8 +150,13 @@ public class HttpServer implements Transport<HttpServer> {
     }
 
     @Override
-    public void close() {
-        this.server.close();
+    public void shutdown() {
+        this.server.shutdown();
+    }
+
+    @Override
+    public ChannelFuture close() {
+        return server.close();
     }
 
     @Override
@@ -260,10 +265,6 @@ public class HttpServer implements Transport<HttpServer> {
     public HttpServer exceptionHandle(HttpExceptionHandler h) {
         this.exceptionHandler = h;
         return this;
-    }
-
-    public void shutdown() {
-        this.server.close();
     }
 
     public String scheme() {

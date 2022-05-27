@@ -6,11 +6,14 @@ import io.github.fzdwx.lambada.Assert;
 import io.github.fzdwx.lambada.Lang;
 import io.github.fzdwx.lambada.lang.NvMap;
 import lombok.RequiredArgsConstructor;
+import org.springframework.web.bind.annotation.RequestParam;
 import sky.starter.domain.SkyHttpMethod;
 import sky.starter.ext.RequestArgumentResolver;
 import sky.starter.ext.ValConvertor;
 
 /**
+ * support {@link  RequestParam}.
+ *
  * @author <a href="mailto:likelovec@gmail.com">fzdwx</a>
  * @date 2022/5/19 20:27
  */

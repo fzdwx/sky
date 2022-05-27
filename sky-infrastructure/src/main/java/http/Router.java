@@ -10,7 +10,7 @@ import io.github.fzdwx.lambada.http.HttpMethod;
  * @date 2022/3/18 11:40
  * @since 0.06
  */
-public class Router {
+public class Router implements io.github.fzdwx.lambada.http.Router<HttpHandler> {
 
     String FAVICON_ICO = "/favicon.ico";
 
@@ -37,6 +37,23 @@ public class Router {
         return this;
     }
 
+    @Override
+    public Router addRoute(final HttpMethod method, final String path, final HttpHandler handler) {
+        router.addRoute(method, path, handler);
+        return this;
+    }
+
+    @Override
+    public Route match(final HttpMethod method, final String path) {
+        final io.github.fzdwx.lambada.http.Route<HttpHandler> source = router.match(method, path);
+        return Route.from(source);
+    }
+
+    public Route match(final HttpServerRequest req) {
+        final io.github.fzdwx.lambada.http.Route<HttpHandler> source = router.match(req.methodType(), req.uri().split("\\?")[0]);
+        return Route.from(source);
+    }
+
     public Router GET(final String path, final HttpHandler handler) {
         router.GET(path, handler);
         return this;
@@ -50,9 +67,5 @@ public class Router {
     public Router add(final HttpMethod method, String path, final HttpHandler handler) {
         router.addRoute(method, path, handler);
         return this;
-    }
-
-    public io.github.fzdwx.lambada.http.Router.Route<HttpHandler> match(final HttpServerRequest req) {
-        return router.match(req.methodType(), req.uri().split("\\?")[0]);
     }
 }
