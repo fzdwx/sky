@@ -10,7 +10,7 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class SkyBanner {
 
-    private final static String version = "0.10.7";
+    private final static String version = "0.11-dev";
 
     public static void print() {
         log.info(Console.banner() + Console.cyan("  [ Sky Starter ]  ") + Console.ANSI_RESET + "                             (v{})", version);
