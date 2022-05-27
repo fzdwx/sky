@@ -6,7 +6,7 @@
 
 - [x] Http Server
 - [x] Websocket Server
-- [ ] Spring boot starter [in development](https://github.com/fzdwx/sky/tree/dev-springboot-starter)
+- [ ] Spring boot starter [in development](https://github.com/fzdwx/sky/tree/dev-springboot-starter) （已经基本可用）
 - [ ] 😙give me some issue!
 
 ## Showcase
@@ -15,7 +15,7 @@
 <dependency>
   <groupId>io.github.fzdwx</groupId>
   <artifactId>sky-http-springboot-starter</artifactId>
-  <version>0.10.5</version>
+  <version>0.10.6</version>
 </dependency>
 ```
 
