@@ -209,7 +209,7 @@ public class WebSocketImpl implements WebSocket {
     }
 
     @Override
-    public <T> Socket attr(final AttributeKey<T> key, final T value) {
+    public <T> WebSocket attr(final AttributeKey<T> key, final T value) {
         this.socket.attr(key, value);
         return this;
     }

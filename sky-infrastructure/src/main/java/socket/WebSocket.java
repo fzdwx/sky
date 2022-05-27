@@ -1,5 +1,6 @@
 package socket;
 
+import core.Netty;
 import http.HttpServerRequest;
 import io.github.fzdwx.lambada.fun.Hooks;
 import io.netty.buffer.ByteBuf;
@@ -33,6 +34,25 @@ public interface WebSocket extends Listener, Socket {
      * ret scheme
      */
     WebSocketScheme scheme();
+
+    /**
+     * set subProtocols
+     *
+     * @param subProtocols CSV of supported protocols. Null if sub protocols not supported.
+     * @return {@link WebSocket }
+     */
+    default WebSocket subProtocols(String subProtocols) {
+        return attr(Netty.SubProtocolAttrKey, subProtocols);
+    }
+
+    /**
+     * get subProtocols.
+     *
+     * @return {@link String }
+     */
+    default String subProtocols() {
+        return attr(Netty.SubProtocolAttrKey);
+    }
 
     /**
      * enable {@link IdleStateHandler},default read idle 10s,write idle 10s.
@@ -152,7 +172,7 @@ public interface WebSocket extends Listener, Socket {
     <T> WebSocket attr(String key, T value);
 
     @Override
-    <T> Socket attr(AttributeKey<T> key, T value);
+    <T> WebSocket attr(AttributeKey<T> key, T value);
 
     @Override
     <T> T attr(String key);

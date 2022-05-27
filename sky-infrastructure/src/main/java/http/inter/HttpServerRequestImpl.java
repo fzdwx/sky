@@ -3,6 +3,7 @@ package http.inter;
 import cn.hutool.core.util.StrUtil;
 import core.Netty;
 import http.HttpServerRequest;
+import io.github.fzdwx.lambada.Lang;
 import io.github.fzdwx.lambada.Seq;
 import io.github.fzdwx.lambada.fun.Hooks;
 import io.github.fzdwx.lambada.http.HttpMethod;
@@ -176,8 +177,8 @@ public class HttpServerRequestImpl implements HttpServerRequest {
         webSocket.beforeHandshake(session);
 
         //region parse subProtocol
-        if (session.channel().hasAttr(Netty.SubProtocolAttrKey)) {
-            subProtocols = session.channel().attr(Netty.SubProtocolAttrKey).get();
+        if (Lang.isNotBlank(webSocket.subProtocols())) {
+            subProtocols = webSocket.subProtocols();
         }
         //endregion
 
