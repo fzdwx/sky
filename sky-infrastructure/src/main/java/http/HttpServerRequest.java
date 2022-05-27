@@ -4,7 +4,6 @@ import core.Netty;
 import http.inter.HttpServerRequestImpl;
 import io.github.fzdwx.lambada.Seq;
 import io.github.fzdwx.lambada.fun.Hooks;
-import io.github.fzdwx.lambada.fun.Result;
 import io.github.fzdwx.lambada.http.HttpMethod;
 import io.github.fzdwx.lambada.lang.NvMap;
 import io.netty.buffer.ByteBuf;
@@ -94,8 +93,6 @@ public interface HttpServerRequest {
      * accept websocket.
      */
     void upgradeToWebSocket(Hooks<WebSocket> h);
-
-    Result<WebSocket> upgradeToWebSocket();
 
     boolean isWebsocket();
 }

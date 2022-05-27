@@ -5,7 +5,6 @@ import core.Netty;
 import http.HttpServerRequest;
 import io.github.fzdwx.lambada.Seq;
 import io.github.fzdwx.lambada.fun.Hooks;
-import io.github.fzdwx.lambada.fun.Result;
 import io.github.fzdwx.lambada.http.HttpMethod;
 import io.github.fzdwx.lambada.lang.NvMap;
 import io.netty.buffer.ByteBuf;
@@ -163,62 +162,55 @@ public class HttpServerRequestImpl implements HttpServerRequest {
 
     @Override
     public void upgradeToWebSocket(Hooks<WebSocket> h) {
-        upgradeToWebSocket().then(h);
-    }
+        this.websocketFlag = true;
+        //region init websocket and convert to linstener
+        String subProtocols = null;
+        final Socket session = Socket.create(channel);
+        final WebSocket webSocket = WebSocket.create(session, this);
+        //endregion
 
-    @Override
-    public Result<WebSocket> upgradeToWebSocket() {
-        return (h) -> {
-            this.websocketFlag = true;
-            //region init websocket and convert to linstener
-            String subProtocols = null;
-            final Socket session = Socket.create(channel);
-            final WebSocket webSocket = WebSocket.create(session, this);
-            //endregion
+        // mount hooks
+        h.call(webSocket);
 
-            // mount hooks
-            h.call(webSocket);
+        // handshake
+        webSocket.beforeHandshake(session);
 
-            // handshake
-            webSocket.beforeHandshake(session);
+        //region parse subProtocol
+        if (session.channel().hasAttr(Netty.SubProtocolAttrKey)) {
+            subProtocols = session.channel().attr(Netty.SubProtocolAttrKey).get();
+        }
+        //endregion
 
-            //region parse subProtocol
-            if (session.channel().hasAttr(Netty.SubProtocolAttrKey)) {
-                subProtocols = session.channel().attr(Netty.SubProtocolAttrKey).get();
+        final WebSocketServerHandshaker handShaker =
+                new WebSocketServerHandshakerFactory(getWebSocketLocation(webSocket, request), subProtocols, true).newHandshaker(request);
+
+        if (handShaker != null) {
+            final ChannelPipeline pipeline = ctx.pipeline();
+            pipeline.remove(ctx.name());
+
+            // heart beat
+            if (webSocket.idleStateHandler() != null) {
+                pipeline.addLast(webSocket.idleStateHandler());
             }
-            //endregion
 
-            final WebSocketServerHandshaker handShaker =
-                    new WebSocketServerHandshakerFactory(getWebSocketLocation(webSocket, request), subProtocols, true).newHandshaker(request);
-
-            if (handShaker != null) {
-                final ChannelPipeline pipeline = ctx.pipeline();
-                pipeline.remove(ctx.name());
-
-                // heart beat
-                if (webSocket.idleStateHandler() != null) {
-                    pipeline.addLast(webSocket.idleStateHandler());
-                }
-
-                // websocket compress
-                if (webSocket.compressionHandler() != null) {
-                    pipeline.addLast(webSocket.compressionHandler());
-                }
-
-                // add handler
-                pipeline.addLast(new WebSocketHandler(webSocket, session));
-
-                handShaker.handshake(session.channel(), request).addListener(future -> {
-                    if (future.isSuccess()) {
-                        webSocket.onOpen(session);
-                    } else {
-                        handShaker.close(session.channel(), new CloseWebSocketFrame());
-                    }
-                });
-            } else {
-                sendUnsupportedVersionResponse(session.channel());
+            // websocket compress
+            if (webSocket.compressionHandler() != null) {
+                pipeline.addLast(webSocket.compressionHandler());
             }
-        };
+
+            // add handler
+            pipeline.addLast(new WebSocketHandler(webSocket, session));
+
+            handShaker.handshake(session.channel(), request).addListener(future -> {
+                if (future.isSuccess()) {
+                    webSocket.onOpen(session);
+                } else {
+                    handShaker.close(session.channel(), new CloseWebSocketFrame());
+                }
+            });
+        } else {
+            sendUnsupportedVersionResponse(session.channel());
+        }
     }
 
     @Override
