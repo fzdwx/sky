@@ -11,6 +11,7 @@ import io.netty.channel.EventLoopGroup;
 import io.netty.channel.ServerChannel;
 import io.netty.channel.epoll.Epoll;
 import io.netty.channel.epoll.EpollEventLoopGroup;
+import io.netty.channel.epoll.EpollServerSocketChannel;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
@@ -54,14 +55,19 @@ public class Server implements Transport<Server> {
     private JsonSerializer serializer;
     private AtomicBoolean startFlag = new AtomicBoolean(false);
     private final boolean enableEpoll;
-    private Class<? extends ServerChannel> channelType = NioServerSocketChannel.class;
+    private Class<? extends ServerChannel> channelType;
     private EventLoopGroup boss;
 
     public Server() {
         this.bootstrap = new ServerBootstrap();
         this.enableEpoll = Epoll.isAvailable();
+
         if (enableEpoll) {
+            this.channelType = EpollServerSocketChannel.class;
             log.info(Utils.PREFIX + " use epoll");
+        } else {
+            this.channelType = NioServerSocketChannel.class;
+            log.info(Utils.PREFIX + " use nio");
         }
     }
 
