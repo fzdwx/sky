@@ -21,7 +21,7 @@ class HttpServerTest {
     @Test
     void test_http() {
         final Router router = Router.router().GET("/ws", (req, res) -> {
-            req.upgradeToWebSocket().then(ws -> {
+            req.upgradeToWebSocket((ws -> {
 
                 ws.enableIdleState();
 
@@ -33,7 +33,7 @@ class HttpServerTest {
                     System.out.println(h);
                 });
 
-            });
+            }));
         }).GET("/post", (req, res) -> {
             res.contentType(ContentType.STREAM_JSON);
             res.writeFlush("123123123\n");
