@@ -1,4 +1,4 @@
-package core.impl;
+package core.common;
 
 import core.NettyOutbound;
 import io.netty.buffer.ByteBuf;

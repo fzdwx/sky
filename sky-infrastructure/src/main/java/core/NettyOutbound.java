@@ -1,6 +1,6 @@
 package core;
 
-import core.impl.CopyNettyOutbound;
+import core.common.CopyNettyOutbound;
 import io.github.fzdwx.lambada.fun.Hooks;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufAllocator;
