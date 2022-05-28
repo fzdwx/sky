@@ -1,4 +1,4 @@
-package core;
+package util;
 
 import io.github.fzdwx.lambada.lang.NvMap;
 import io.netty.buffer.ByteBuf;

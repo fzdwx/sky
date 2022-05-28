@@ -1,6 +1,6 @@
 package serializer;
 
-import core.Netty;
+import util.Netty;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufAllocator;
 

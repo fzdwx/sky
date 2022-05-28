@@ -1,6 +1,6 @@
 package socket.inter;
 
-import core.Netty;
+import util.Netty;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
 import socket.Socket;

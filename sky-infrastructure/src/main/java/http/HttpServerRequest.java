@@ -1,6 +1,6 @@
 package http;
 
-import core.Netty;
+import util.Netty;
 import http.inter.HttpServerRequestImpl;
 import io.github.fzdwx.lambada.Seq;
 import io.github.fzdwx.lambada.fun.Hooks;

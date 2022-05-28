@@ -1,4 +1,4 @@
-package core;
+package thread;
 
 import io.netty.util.concurrent.DefaultThreadFactory;
 

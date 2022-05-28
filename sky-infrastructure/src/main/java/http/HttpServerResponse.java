@@ -1,6 +1,6 @@
 package http;
 
-import core.Netty;
+import util.Netty;
 import core.NettyOutbound;
 import http.inter.HttpServerResponseImpl;
 import io.github.fzdwx.lambada.Lang;

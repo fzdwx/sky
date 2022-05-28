@@ -1,7 +1,7 @@
 package http.inter;
 
 import core.ChannelOutBound;
-import core.Netty;
+import util.Netty;
 import core.NettyOutbound;
 import exception.ChannelException;
 import io.github.fzdwx.lambada.http.ContentType;

@@ -1,7 +1,7 @@
 package core;
 
+import core.impl.Server;
 import io.github.fzdwx.lambada.Console;
-import io.netty.channel.nio.NioEventLoopGroup;
 import org.jline.reader.LineReader;
 
 import java.util.Objects;
@@ -13,13 +13,9 @@ import java.util.Objects;
 public class TestDisbind {
 
     public static void main(String[] args) {
-        final NioEventLoopGroup boss = new NioEventLoopGroup();
-        final NioEventLoopGroup work = new NioEventLoopGroup();
         final Server listen = new Server()
-                .withGroup(boss, work)
                 .listen(10010);
         new Server()
-                .withGroup(boss, work)
                 .listen(7777);
 
         final LineReader lineReader = Console.defaultLineReader();

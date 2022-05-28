@@ -1,5 +1,6 @@
-package core;
+package core.impl;
 
+import core.NettyOutbound;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufAllocator;
 import io.netty.channel.Channel;
