@@ -25,6 +25,7 @@ import io.netty.handler.codec.http.multipart.FileUpload;
 import io.netty.handler.codec.http.multipart.HttpDataFactory;
 import io.netty.handler.codec.http.multipart.HttpPostMultipartRequestDecoder;
 import io.netty.handler.codec.http.multipart.InterfaceHttpData;
+import io.netty.handler.codec.http.multipart.InterfaceHttpPostRequestDecoder;
 import io.netty.handler.codec.http.websocketx.CloseWebSocketFrame;
 import io.netty.handler.codec.http.websocketx.WebSocketServerHandshaker;
 import io.netty.handler.codec.http.websocketx.WebSocketServerHandshakerFactory;
@@ -46,32 +47,58 @@ public class HttpServerRequestImpl implements HttpServerRequest {
     private final ChannelHandlerContext ctx;
     private final Channel channel;
     private final FullHttpRequest nettyRequest;
-    private final HttpMethod methodType;
-    private final HttpVersion version;
-    private final HttpHeaders headers;
+    private HttpMethod methodType;
+    private HttpVersion version;
+    private HttpHeaders headers;
     private final JsonSerializer serializer;
     private final boolean ssl;
-    private final HttpDataFactory httpDataFactory;
-    private final String uri;
+    private HttpDataFactory httpDataFactory;
+    private String uri;
     private String path;
-    private HttpPostMultipartRequestDecoder bodyDecoder;
+    private InterfaceHttpPostRequestDecoder bodyDecoder;
     private boolean readBody;
     private NvMap params;
     private boolean websocketFlag;
 
-    public HttpServerRequestImpl(final ChannelHandlerContext ctx, final boolean ssl, final FullHttpRequest nettyRequest,
+    private boolean multipartFlag;
+    private boolean formUrlEncoderFlag = false;
+
+    public HttpServerRequestImpl(final ChannelHandlerContext ctx,
+                                 final boolean ssl,
+                                 final FullHttpRequest nettyRequest,
                                  final HttpDataFactory httpDataFactory,
                                  final JsonSerializer serializer) {
         this.ctx = ctx;
         this.channel = ctx.channel();
         this.nettyRequest = nettyRequest;
-        this.methodType = HttpMethod.of(nettyRequest.method().name());
-        this.version = nettyRequest.protocolVersion();
-        this.headers = nettyRequest.headers();
         this.ssl = ssl;
-        this.uri = nettyRequest.uri();
         this.httpDataFactory = httpDataFactory;
         this.serializer = serializer;
+    }
+
+    public HttpServerRequestImpl(final ChannelHandlerContext ctx,
+                                 final boolean ssl,
+                                 final AggHttpServerRequest msg,
+                                 final JsonSerializer serializer) {
+        this.ctx = ctx;
+        this.channel = ctx.channel();
+        this.nettyRequest = msg;
+        this.ssl = ssl;
+        this.serializer = serializer;
+        this.bodyDecoder = msg.bodyDecoder();
+        this.readBody = true;
+        this.multipartFlag = msg.multipart();
+        this.formUrlEncoderFlag = msg.formUrlEncoder();
+    }
+
+    @Override
+    public boolean multipart() {
+        return multipartFlag;
+    }
+
+    @Override
+    public boolean formUrlEncoder() {
+        return formUrlEncoderFlag;
     }
 
     @Override
@@ -81,19 +108,12 @@ public class HttpServerRequestImpl implements HttpServerRequest {
 
     @Override
     public HttpVersion version() {
-        return version;
+        return nettyRequest.protocolVersion();
     }
 
     @Override
     public HttpHeaders headers() {
-        return headers;
-    }
-
-    @Override
-    public void release() {
-        if (readBody) {
-            bodyDecoder.destroy();
-        }
+        return nettyRequest.headers();
     }
 
     @Override
@@ -145,7 +165,7 @@ public class HttpServerRequestImpl implements HttpServerRequest {
 
     @Override
     public String uri() {
-        return uri;
+        return nettyRequest.uri();
     }
 
     @Override
@@ -159,6 +179,9 @@ public class HttpServerRequestImpl implements HttpServerRequest {
 
     @Override
     public HttpMethod methodType() {
+        if (this.methodType == null) {
+            this.methodType = HttpMethod.of(nettyRequest.method().name());
+        }
         return this.methodType;
     }
 
@@ -218,6 +241,16 @@ public class HttpServerRequestImpl implements HttpServerRequest {
     @Override
     public boolean isWebsocket() {
         return websocketFlag;
+    }
+
+    @Override
+    public HttpRequest nettyRequest() {
+        return this.nettyRequest;
+    }
+
+    @Override
+    public String contentType() {
+        return nettyRequest.headers().get(HttpHeaderNames.CONTENT_TYPE);
     }
 
     @Override

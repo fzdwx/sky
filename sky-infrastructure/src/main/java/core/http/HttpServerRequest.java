@@ -1,5 +1,6 @@
 package core.http;
 
+import core.http.inter.AggHttpServerRequest;
 import core.http.inter.HttpServerRequestImpl;
 import core.serializer.JsonSerializer;
 import core.socket.WebSocket;
@@ -11,6 +12,7 @@ import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.http.FullHttpRequest;
 import io.netty.handler.codec.http.HttpHeaders;
+import io.netty.handler.codec.http.HttpRequest;
 import io.netty.handler.codec.http.HttpVersion;
 import io.netty.handler.codec.http.multipart.Attribute;
 import io.netty.handler.codec.http.multipart.FileUpload;
@@ -29,20 +31,22 @@ import java.net.SocketAddress;
 public interface HttpServerRequest {
 
     static HttpServerRequestImpl create(final ChannelHandlerContext ctx,
-                                    final boolean ssl,
-                                    final FullHttpRequest nettyRequest,
-                                    final HttpDataFactory httpDataFactory,
-                                    final JsonSerializer serializer) {
+                                        final boolean ssl,
+                                        final FullHttpRequest nettyRequest,
+                                        final HttpDataFactory httpDataFactory,
+                                        final JsonSerializer serializer) {
         return new HttpServerRequestImpl(ctx, ssl, nettyRequest, httpDataFactory, serializer);
     }
+
+    boolean multipart();
+
+    boolean formUrlEncoder();
 
     SocketAddress remoteAddress();
 
     HttpVersion version();
 
     HttpHeaders headers();
-
-    void release();
 
     NvMap params();
 
@@ -95,4 +99,12 @@ public interface HttpServerRequest {
     void upgradeToWebSocket(Hooks<WebSocket> h);
 
     boolean isWebsocket();
+
+    HttpRequest nettyRequest();
+
+    String contentType();
+
+    static HttpServerRequest from(final ChannelHandlerContext ctx, final boolean ssl, AggHttpServerRequest msg, final JsonSerializer serializer) {
+        return new HttpServerRequestImpl(ctx, ssl, msg, serializer);
+    }
 }
