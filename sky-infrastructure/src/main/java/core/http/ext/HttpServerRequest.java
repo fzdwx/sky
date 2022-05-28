@@ -10,13 +10,11 @@ import io.github.fzdwx.lambada.http.HttpMethod;
 import io.github.fzdwx.lambada.lang.NvMap;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
-import io.netty.handler.codec.http.FullHttpRequest;
 import io.netty.handler.codec.http.HttpHeaders;
 import io.netty.handler.codec.http.HttpRequest;
 import io.netty.handler.codec.http.HttpVersion;
 import io.netty.handler.codec.http.multipart.Attribute;
 import io.netty.handler.codec.http.multipart.FileUpload;
-import io.netty.handler.codec.http.multipart.HttpDataFactory;
 import util.Netty;
 
 import java.net.SocketAddress;
@@ -30,13 +28,7 @@ import java.net.SocketAddress;
  */
 public interface HttpServerRequest {
 
-    static HttpServerRequestImpl create(final ChannelHandlerContext ctx,
-                                        final boolean ssl,
-                                        final FullHttpRequest nettyRequest,
-                                        final HttpDataFactory httpDataFactory,
-                                        final JsonSerializer serializer) {
-        return new HttpServerRequestImpl(ctx, ssl, nettyRequest, httpDataFactory, serializer);
-    }
+    void destroy();
 
     boolean multipart();
 
@@ -104,7 +96,7 @@ public interface HttpServerRequest {
 
     String contentType();
 
-    static HttpServerRequest from(final ChannelHandlerContext ctx, final boolean ssl, AggHttpServerRequest msg, final JsonSerializer serializer) {
+    static HttpServerRequest create(final ChannelHandlerContext ctx, final boolean ssl, AggHttpServerRequest msg, final JsonSerializer serializer) {
         return new HttpServerRequestImpl(ctx, ssl, msg, serializer);
     }
 }

@@ -1,7 +1,7 @@
 package core.http.ext;
 
 import util.Netty;
-import core.NettyOutbound;
+import core.common.NettyOutbound;
 import core.http.inter.HttpServerResponseImpl;
 import io.github.fzdwx.lambada.Lang;
 import io.github.fzdwx.lambada.fun.Hooks;

@@ -1,13 +1,13 @@
 package core.http.inter;
 
-import core.ChannelOutBound;
+import core.common.ChannelOutBound;
+import core.common.NettyOutbound;
 import core.http.ext.HttpServerRequest;
 import core.http.ext.HttpServerResponse;
-import util.Netty;
-import core.NettyOutbound;
+import core.serializer.JsonSerializer;
 import exception.ChannelException;
-import io.github.fzdwx.lambada.http.ContentType;
 import io.github.fzdwx.lambada.fun.Hooks;
+import io.github.fzdwx.lambada.http.ContentType;
 import io.github.fzdwx.lambada.http.HttpMethod;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufHolder;
@@ -35,7 +35,7 @@ import io.netty.handler.stream.ChunkedInput;
 import io.netty.handler.stream.ChunkedNioStream;
 import io.netty.handler.stream.ChunkedStream;
 import lombok.extern.slf4j.Slf4j;
-import core.serializer.JsonSerializer;
+import util.Netty;
 
 import java.io.InputStream;
 import java.nio.channels.ReadableByteChannel;
@@ -71,7 +71,6 @@ public class HttpServerResponseImpl extends ChannelOutBound implements HttpServe
             ctx.fireChannelRead(msg);
         }
     });
-    private final Channel channel;
     private final HttpHeaders headers;
     private final HttpHeaders trailingHeaders = EmptyHttpHeaders.INSTANCE;
     private final HttpVersion version;
@@ -97,11 +96,12 @@ public class HttpServerResponseImpl extends ChannelOutBound implements HttpServe
      */
     private long bytesWritten;
     private boolean closed;
+    private HttpServerRequest request;
 
 
-    public HttpServerResponseImpl(final Channel channel, final HttpServerRequest httpRequest) {
-        super(channel);
-        this.channel = channel;
+    public HttpServerResponseImpl(final Channel ch, final HttpServerRequest httpRequest) {
+        super(ch);
+        this.request = httpRequest;
         this.headers = new DefaultHttpHeaders();
         this.version = httpRequest.version();
         this.status = HttpResponseStatus.OK;
@@ -111,13 +111,8 @@ public class HttpServerResponseImpl extends ChannelOutBound implements HttpServe
     }
 
     @Override
-    public Channel channel() {
-        return channel;
-    }
-
-    @Override
     public NettyOutbound send(final ByteBuf data, final boolean flush) {
-        if (!channel().isActive()) {
+        if (!ch.isActive()) {
             return then(ChannelException.beforeSend());
         }
 
@@ -164,17 +159,17 @@ public class HttpServerResponseImpl extends ChannelOutBound implements HttpServe
 
     @Override
     public ChannelFuture then() {
-        if (!channel.isActive()) {
-            return channel.newFailedFuture(ChannelException.beforeSend());
+        if (!ch.isActive()) {
+            return ch.newFailedFuture(ChannelException.beforeSend());
         }
 
         final ChannelFuture ff;
         if (!headWritten()) {
             prepareHeaders(-1);
-            ff = channel.writeAndFlush(new AssembledHttpResponse(head, version, status, headers, Netty.empty));
+            ff = ch.writeAndFlush(new AssembledHttpResponse(head, version, status, headers, Netty.empty));
         } else if (!endWritten()) {
             ff = end(Netty.empty);
-        } else return channel.newSucceededFuture();
+        } else return ch.newSucceededFuture();
 
         return ff;
     }
@@ -283,7 +278,7 @@ public class HttpServerResponseImpl extends ChannelOutBound implements HttpServe
 
     @Override
     public ChannelFuture reject() {
-        return channel.close();
+        return ch.close();
     }
 
     @Override
@@ -291,7 +286,7 @@ public class HttpServerResponseImpl extends ChannelOutBound implements HttpServe
         this.status(HttpResponseStatus.FOUND);
         this.contentType(ContentType.TEXT_HTML);
         this.headers.set(HttpHeaderNames.LOCATION, url);
-        return channel.write(end());
+        return ch.write(end());
     }
 
     @Override
@@ -314,7 +309,7 @@ public class HttpServerResponseImpl extends ChannelOutBound implements HttpServe
 
     @Override
     public ChannelFuture end(final ByteBuf buf) {
-        final ChannelPromise promise = channel.newPromise();
+        final ChannelPromise promise = ch.newPromise();
         end(buf, promise);
         return promise;
     }
@@ -349,15 +344,17 @@ public class HttpServerResponseImpl extends ChannelOutBound implements HttpServe
             return;
         }
 
+        promise.addListener(f -> this.request.destroy());
+
         if (bodyEndHooks != null) {
             bodyEndHooks.call(null);
         }
 
         if (!keepAlive) {
             this.closed = true;
-            this.channel.writeAndFlush(msg, promise).addListener(Netty.close);
+            this.ch.writeAndFlush(msg, promise).addListener(Netty.close);
         } else {
-            this.channel.write(msg, promise);
+            this.ch.write(msg, promise);
         }
     }
 

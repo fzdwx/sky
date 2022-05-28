@@ -22,8 +22,6 @@ import io.netty.handler.codec.http.HttpRequest;
 import io.netty.handler.codec.http.HttpVersion;
 import io.netty.handler.codec.http.multipart.Attribute;
 import io.netty.handler.codec.http.multipart.FileUpload;
-import io.netty.handler.codec.http.multipart.HttpDataFactory;
-import io.netty.handler.codec.http.multipart.HttpPostMultipartRequestDecoder;
 import io.netty.handler.codec.http.multipart.InterfaceHttpData;
 import io.netty.handler.codec.http.multipart.InterfaceHttpPostRequestDecoder;
 import io.netty.handler.codec.http.websocketx.CloseWebSocketFrame;
@@ -47,13 +45,9 @@ public class HttpServerRequestImpl implements HttpServerRequest {
     private final ChannelHandlerContext ctx;
     private final Channel channel;
     private final FullHttpRequest nettyRequest;
-    private HttpMethod methodType;
-    private HttpVersion version;
-    private HttpHeaders headers;
     private final JsonSerializer serializer;
     private final boolean ssl;
-    private HttpDataFactory httpDataFactory;
-    private String uri;
+    private HttpMethod methodType;
     private String path;
     private InterfaceHttpPostRequestDecoder bodyDecoder;
     private boolean readBody;
@@ -61,20 +55,7 @@ public class HttpServerRequestImpl implements HttpServerRequest {
     private boolean websocketFlag;
 
     private boolean multipartFlag;
-    private boolean formUrlEncoderFlag = false;
-
-    public HttpServerRequestImpl(final ChannelHandlerContext ctx,
-                                 final boolean ssl,
-                                 final FullHttpRequest nettyRequest,
-                                 final HttpDataFactory httpDataFactory,
-                                 final JsonSerializer serializer) {
-        this.ctx = ctx;
-        this.channel = ctx.channel();
-        this.nettyRequest = nettyRequest;
-        this.ssl = ssl;
-        this.httpDataFactory = httpDataFactory;
-        this.serializer = serializer;
-    }
+    private boolean formUrlEncoderFlag;
 
     public HttpServerRequestImpl(final ChannelHandlerContext ctx,
                                  final boolean ssl,
@@ -89,6 +70,15 @@ public class HttpServerRequestImpl implements HttpServerRequest {
         this.readBody = true;
         this.multipartFlag = msg.multipart();
         this.formUrlEncoderFlag = msg.formUrlEncoder();
+    }
+
+    @Override
+    public void destroy() {
+        this.nettyRequest.release();
+        if (this.bodyDecoder != null) {
+            this.bodyDecoder.destroy();
+            this.bodyDecoder = null;
+        }
     }
 
     @Override
@@ -119,7 +109,7 @@ public class HttpServerRequestImpl implements HttpServerRequest {
     @Override
     public NvMap params() {
         if (params == null) {
-            params = Netty.params(uri);
+            params = Netty.params(uri());
         }
 
         return params;
@@ -137,27 +127,21 @@ public class HttpServerRequestImpl implements HttpServerRequest {
 
     @Override
     public ByteBuf readJson() {
-        return ((FullHttpRequest) this.nettyRequest).content();
+        return this.nettyRequest.content();
     }
 
     @Override
     public Attribute readBody(final String key) {
-        initBody();
-
         return (Attribute) bodyDecoder.getBodyHttpData(key);
     }
 
     @Override
     public FileUpload readFile(String key) {
-        initBody();
-
         return (FileUpload) bodyDecoder.getBodyHttpData(key);
     }
 
     @Override
     public Seq<FileUpload> readFiles() {
-        initBody();
-
         return Seq.of(bodyDecoder.getBodyHttpDatas())
                 .filter(d -> d.getHttpDataType().equals(InterfaceHttpData.HttpDataType.FileUpload))
                 .typeOf(FileUpload.class);
@@ -171,8 +155,8 @@ public class HttpServerRequestImpl implements HttpServerRequest {
     @Override
     public String path() {
         if (this.path == null) {
-            final int endIndex = Netty.findPathEndIndex(uri);
-            this.path = StrUtil.sub(uri, 0, endIndex);
+            final int endIndex = Netty.findPathEndIndex(uri());
+            this.path = StrUtil.sub(uri(), 0, endIndex);
         }
         return this.path;
     }
@@ -255,7 +239,7 @@ public class HttpServerRequestImpl implements HttpServerRequest {
 
     @Override
     public String toString() {
-        return "{\"method\":\"" + methodType + "\", \"uri\":\"" + uri + "\",\"remote\":\"" + remoteAddress() + "\", \"version\":\"" + version + "\"}";
+        return "{\"method\":\"" + methodType + "\", \"uri\":\"" + uri() + "\",\"remote\":\"" + remoteAddress() + "\", \"version\":\"" + version() + "\"}";
         // return "Http Request{" +
         //         "uri='" + uri + "\n" +
         //         ", method=" + methodType +
@@ -263,13 +247,6 @@ public class HttpServerRequestImpl implements HttpServerRequest {
         //         ", httpVersion=" + this.request.protocolVersion() +
         //         ", headers=" + this.headers +
         //         '}';
-    }
-
-    private void initBody() {
-        if (!readBody) {
-            bodyDecoder = new HttpPostMultipartRequestDecoder(httpDataFactory, nettyRequest);
-            readBody = true;
-        }
     }
 
     private static String getWebSocketLocation(final WebSocket ws, final HttpRequest req) {

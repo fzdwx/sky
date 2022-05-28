@@ -1,5 +1,7 @@
 package util;
 
+import core.http.ext.HttpServerRequest;
+import core.http.ext.HttpServerResponse;
 import io.github.fzdwx.lambada.Collections;
 import io.github.fzdwx.lambada.lang.NvMap;
 import io.netty.buffer.ByteBuf;
@@ -73,8 +75,13 @@ public final class Netty {
     public static final int DEFAULT_CHUNK_SIZE = 8192;
     public static final int DEFAULT_MAX_CONTENT_LENGTH = 1024 * 1024 * 1024;
     public static final ByteBuf empty = Unpooled.EMPTY_BUFFER;
-
+    public static final AttributeKey<HttpServerRequest> REQUEST_KEY = AttributeKey.valueOf("request");
+    public static final AttributeKey<HttpServerResponse> RESPONSE_KEY = AttributeKey.valueOf("response");
+    private static final AsciiString CHARSET_EQUALS = AsciiString.of(HttpHeaderValues.CHARSET + "=");
+    private static final AsciiString SEMICOLON = AsciiString.cached(";");
+    private static final String COMMA_STRING = String.valueOf(COMMA);
     public static GenericFutureListener<? extends Future<? super Void>> close = ChannelFutureListener.CLOSE;
+    public static Map<Charset, HttpDataFactory> HTTP_DATA_FACTORY_CACHE = Collections.map();
 
     public static String read(ByteBuf buf) {
         return new String(readBytes(buf));
@@ -99,7 +106,6 @@ public final class Netty {
     public static ByteBuf wrap(final ByteBufAllocator alloc, final String data) {
         return wrap(alloc, data.getBytes());
     }
-
 
     public static boolean isWebSocket(HttpHeaders headers) {
         return headers.contains(HttpHeaderNames.UPGRADE, HttpHeaderValues.WEBSOCKET, true);
@@ -172,7 +178,7 @@ public final class Netty {
 
     public static void removeHandler(final Channel channel, final String handlerName) {
         if (channel.isActive() && channel.pipeline()
-                .context(handlerName) != null) {
+                                          .context(handlerName) != null) {
             channel.pipeline()
                     .remove(handlerName);
         }
@@ -180,7 +186,7 @@ public final class Netty {
 
     public static void replaceHandler(Channel channel, String handlerName, ChannelHandler handler) {
         if (channel.isActive() && channel.pipeline()
-                .context(handlerName) != null) {
+                                          .context(handlerName) != null) {
             channel.pipeline()
                     .replace(handlerName, handlerName, handler);
 
@@ -206,8 +212,6 @@ public final class Netty {
         return contentType.contains("application/x-www-form-urlencoded");
     }
 
-    public static Map<Charset, HttpDataFactory> HTTP_DATA_FACTORY_CACHE = Collections.map();
-
     public static HttpDataFactory dataFactory(Charset charset) {
         final HttpDataFactory httpDataFactory = HTTP_DATA_FACTORY_CACHE.get(charset);
         if (httpDataFactory == null) {
@@ -218,73 +222,13 @@ public final class Netty {
         return httpDataFactory;
     }
 
-    public final static class InboundIdleStateHandler extends IdleStateHandler {
-
-        final Runnable onReadIdle;
-
-        public InboundIdleStateHandler(long idleTimeout, Runnable onReadIdle) {
-            super(idleTimeout, 0, 0, TimeUnit.MILLISECONDS);
-            this.onReadIdle = requireNonNull(onReadIdle, "onReadIdle");
-        }
-
-        @Override
-        protected void channelIdle(ChannelHandlerContext ctx,
-                                   IdleStateEvent evt) throws Exception {
-            if (evt.state() == IdleState.READER_IDLE) {
-                onReadIdle.run();
-            }
-            super.channelIdle(ctx, evt);
-        }
-    }
-
-    public final static class OutboundIdleStateHandler extends IdleStateHandler {
-
-        final Runnable onWriteIdle;
-
-        public OutboundIdleStateHandler(long idleTimeout, Runnable onWriteIdle) {
-            super(0, idleTimeout, 0, TimeUnit.MILLISECONDS);
-            this.onWriteIdle = requireNonNull(onWriteIdle, "onWriteIdle");
-        }
-
-        @Override
-        protected void channelIdle(ChannelHandlerContext ctx,
-                                   IdleStateEvent evt) throws Exception {
-            if (evt.state() == IdleState.WRITER_IDLE) {
-                onWriteIdle.run();
-            }
-            super.channelIdle(ctx, evt);
-        }
-    }
-
-    @ChannelHandler.Sharable
-    public static final class ExtractorHandler extends ChannelInboundHandlerAdapter {
-
-
-        final BiConsumer<? super ChannelHandlerContext, Object> extractor;
-
-        public ExtractorHandler(BiConsumer<? super ChannelHandlerContext, Object> extractor) {
-            this.extractor = Objects.requireNonNull(extractor, "extractor");
-        }
-
-        @Override
-        public void channelRead(ChannelHandlerContext ctx, Object msg) {
-            extractor.accept(ctx, msg);
-        }
-
-    }
-
-
-    private static final AsciiString CHARSET_EQUALS = AsciiString.of(HttpHeaderValues.CHARSET + "=");
-    private static final AsciiString SEMICOLON = AsciiString.cached(";");
-    private static final String COMMA_STRING = String.valueOf(COMMA);
-
     /**
      * Determine if a uri is in origin-form according to
      * <a href="https://tools.ietf.org/html/rfc7230#section-5.3">rfc7230, 5.3</a>.
      */
     public static boolean isOriginForm(URI uri) {
         return uri.getScheme() == null && uri.getSchemeSpecificPart() == null &&
-                uri.getHost() == null && uri.getAuthority() == null;
+               uri.getHost() == null && uri.getAuthority() == null;
     }
 
     /**
@@ -293,9 +237,9 @@ public final class Netty {
      */
     public static boolean isAsteriskForm(URI uri) {
         return "*".equals(uri.getPath()) &&
-                uri.getScheme() == null && uri.getSchemeSpecificPart() == null &&
-                uri.getHost() == null && uri.getAuthority() == null && uri.getQuery() == null &&
-                uri.getFragment() == null;
+               uri.getScheme() == null && uri.getSchemeSpecificPart() == null &&
+               uri.getHost() == null && uri.getAuthority() == null && uri.getQuery() == null &&
+               uri.getFragment() == null;
     }
 
     /**
@@ -307,8 +251,8 @@ public final class Netty {
      */
     public static boolean isKeepAlive(HttpMessage message) {
         return !message.headers().containsValue(HttpHeaderNames.CONNECTION, HttpHeaderValues.CLOSE, true) &&
-                (message.protocolVersion().isKeepAliveDefault() ||
-                        message.headers().containsValue(HttpHeaderNames.CONNECTION, HttpHeaderValues.KEEP_ALIVE, true));
+               (message.protocolVersion().isKeepAliveDefault() ||
+                message.headers().containsValue(HttpHeaderNames.CONNECTION, HttpHeaderValues.KEEP_ALIVE, true));
     }
 
     /**
@@ -437,33 +381,6 @@ public final class Netty {
     }
 
     /**
-     * Returns the content length of the specified web socket message. If the
-     * specified message is not a web socket message, {@code -1} is returned.
-     */
-    private static int getWebSocketContentLength(HttpMessage message) {
-        // WebSocket messages have constant content-lengths.
-        HttpHeaders h = message.headers();
-        if (message instanceof HttpRequest) {
-            HttpRequest req = (HttpRequest) message;
-            if (HttpMethod.GET.equals(req.method()) &&
-                    h.contains(HttpHeaderNames.SEC_WEBSOCKET_KEY1) &&
-                    h.contains(HttpHeaderNames.SEC_WEBSOCKET_KEY2)) {
-                return 8;
-            }
-        } else if (message instanceof HttpResponse) {
-            HttpResponse res = (HttpResponse) message;
-            if (res.status().code() == 101 &&
-                    h.contains(HttpHeaderNames.SEC_WEBSOCKET_ORIGIN) &&
-                    h.contains(HttpHeaderNames.SEC_WEBSOCKET_LOCATION)) {
-                return 16;
-            }
-        }
-
-        // Not a web socket message
-        return -1;
-    }
-
-    /**
      * Sets the {@code "Content-Length"} header.
      */
     public static void setContentLength(HttpMessage message, long length) {
@@ -485,8 +402,8 @@ public final class Netty {
      */
     public static boolean is100ContinueExpected(HttpMessage message) {
         return isExpectHeaderValid(message)
-                // unquoted tokens in the expect header are case-insensitive, thus 100-continue is case insensitive
-                && message.headers().contains(HttpHeaderNames.EXPECT, HttpHeaderValues.CONTINUE, true);
+               // unquoted tokens in the expect header are case-insensitive, thus 100-continue is case insensitive
+               && message.headers().contains(HttpHeaderNames.EXPECT, HttpHeaderValues.CONTINUE, true);
     }
 
     /**
@@ -504,16 +421,6 @@ public final class Netty {
 
         final String expectValue = message.headers().get(HttpHeaderNames.EXPECT);
         return expectValue != null && !HttpHeaderValues.CONTINUE.toString().equalsIgnoreCase(expectValue);
-    }
-
-    private static boolean isExpectHeaderValid(final HttpMessage message) {
-        /*
-         * Expect: 100-continue is for requests only and it works only on HTTP/1.1 or later. Note further that RFC 7231
-         * section 5.1.1 says "A server that receives a 100-continue expectation in an HTTP/1.0 request MUST ignore
-         * that expectation."
-         */
-        return message instanceof HttpRequest &&
-                message.protocolVersion().compareTo(HttpVersion.HTTP_1_1) >= 0;
     }
 
     /**
@@ -574,32 +481,6 @@ public final class Netty {
         }
     }
 
-    static StringBuilder appendRequest(StringBuilder buf, HttpRequest req) {
-        appendCommon(buf, req);
-        appendInitialLine(buf, req);
-        appendHeaders(buf, req.headers());
-        removeLastNewLine(buf);
-        return buf;
-    }
-
-    static StringBuilder appendResponse(StringBuilder buf, HttpResponse res) {
-        appendCommon(buf, res);
-        appendInitialLine(buf, res);
-        appendHeaders(buf, res.headers());
-        removeLastNewLine(buf);
-        return buf;
-    }
-
-    private static void appendCommon(StringBuilder buf, HttpMessage msg) {
-        buf.append(StringUtil.simpleClassName(msg));
-        buf.append("(decodeResult: ");
-        buf.append(msg.decoderResult());
-        buf.append(", version: ");
-        buf.append(msg.protocolVersion());
-        buf.append(')');
-        buf.append(StringUtil.NEWLINE);
-    }
-
     public static StringBuilder appendFullRequest(StringBuilder buf, FullHttpRequest req) {
         appendFullCommon(buf, req);
         appendInitialLine(buf, req);
@@ -607,56 +488,6 @@ public final class Netty {
         appendHeaders(buf, req.trailingHeaders());
         removeLastNewLine(buf);
         return buf;
-    }
-
-    static StringBuilder appendFullResponse(StringBuilder buf, FullHttpResponse res) {
-        appendFullCommon(buf, res);
-        appendInitialLine(buf, res);
-        appendHeaders(buf, res.headers());
-        appendHeaders(buf, res.trailingHeaders());
-        removeLastNewLine(buf);
-        return buf;
-    }
-
-    private static void appendFullCommon(StringBuilder buf, FullHttpMessage msg) {
-        buf.append(StringUtil.simpleClassName(msg));
-        buf.append("(decodeResult: ");
-        buf.append(msg.decoderResult());
-        buf.append(", version: ");
-        buf.append(msg.protocolVersion());
-        buf.append(", content: ");
-        buf.append(msg.content());
-        buf.append(')');
-        buf.append(StringUtil.NEWLINE);
-    }
-
-    private static void appendInitialLine(StringBuilder buf, HttpRequest req) {
-        buf.append(req.method());
-        buf.append(' ');
-        buf.append(req.uri());
-        buf.append(' ');
-        buf.append(req.protocolVersion());
-        buf.append(StringUtil.NEWLINE);
-    }
-
-    private static void appendInitialLine(StringBuilder buf, HttpResponse res) {
-        buf.append(res.protocolVersion());
-        buf.append(' ');
-        buf.append(res.status());
-        buf.append(StringUtil.NEWLINE);
-    }
-
-    private static void appendHeaders(StringBuilder buf, HttpHeaders headers) {
-        for (Map.Entry<String, String> e : headers) {
-            buf.append(e.getKey());
-            buf.append(": ");
-            buf.append(e.getValue());
-            buf.append(StringUtil.NEWLINE);
-        }
-    }
-
-    private static void removeLastNewLine(StringBuilder buf) {
-        buf.setLength(buf.length() - StringUtil.NEWLINE.length());
     }
 
     /**
@@ -933,6 +764,174 @@ public final class Netty {
             throw new IllegalArgumentException(
                     "Content-Length value is not a number: " + firstField, e);
         }
+    }
+
+    static StringBuilder appendRequest(StringBuilder buf, HttpRequest req) {
+        appendCommon(buf, req);
+        appendInitialLine(buf, req);
+        appendHeaders(buf, req.headers());
+        removeLastNewLine(buf);
+        return buf;
+    }
+
+    static StringBuilder appendResponse(StringBuilder buf, HttpResponse res) {
+        appendCommon(buf, res);
+        appendInitialLine(buf, res);
+        appendHeaders(buf, res.headers());
+        removeLastNewLine(buf);
+        return buf;
+    }
+
+    static StringBuilder appendFullResponse(StringBuilder buf, FullHttpResponse res) {
+        appendFullCommon(buf, res);
+        appendInitialLine(buf, res);
+        appendHeaders(buf, res.headers());
+        appendHeaders(buf, res.trailingHeaders());
+        removeLastNewLine(buf);
+        return buf;
+    }
+
+    /**
+     * Returns the content length of the specified web socket message. If the
+     * specified message is not a web socket message, {@code -1} is returned.
+     */
+    private static int getWebSocketContentLength(HttpMessage message) {
+        // WebSocket messages have constant content-lengths.
+        HttpHeaders h = message.headers();
+        if (message instanceof HttpRequest) {
+            HttpRequest req = (HttpRequest) message;
+            if (HttpMethod.GET.equals(req.method()) &&
+                h.contains(HttpHeaderNames.SEC_WEBSOCKET_KEY1) &&
+                h.contains(HttpHeaderNames.SEC_WEBSOCKET_KEY2)) {
+                return 8;
+            }
+        } else if (message instanceof HttpResponse) {
+            HttpResponse res = (HttpResponse) message;
+            if (res.status().code() == 101 &&
+                h.contains(HttpHeaderNames.SEC_WEBSOCKET_ORIGIN) &&
+                h.contains(HttpHeaderNames.SEC_WEBSOCKET_LOCATION)) {
+                return 16;
+            }
+        }
+
+        // Not a web socket message
+        return -1;
+    }
+
+    private static boolean isExpectHeaderValid(final HttpMessage message) {
+        /*
+         * Expect: 100-continue is for requests only and it works only on HTTP/1.1 or later. Note further that RFC 7231
+         * section 5.1.1 says "A server that receives a 100-continue expectation in an HTTP/1.0 request MUST ignore
+         * that expectation."
+         */
+        return message instanceof HttpRequest &&
+               message.protocolVersion().compareTo(HttpVersion.HTTP_1_1) >= 0;
+    }
+
+    private static void appendCommon(StringBuilder buf, HttpMessage msg) {
+        buf.append(StringUtil.simpleClassName(msg));
+        buf.append("(decodeResult: ");
+        buf.append(msg.decoderResult());
+        buf.append(", version: ");
+        buf.append(msg.protocolVersion());
+        buf.append(')');
+        buf.append(StringUtil.NEWLINE);
+    }
+
+    private static void appendFullCommon(StringBuilder buf, FullHttpMessage msg) {
+        buf.append(StringUtil.simpleClassName(msg));
+        buf.append("(decodeResult: ");
+        buf.append(msg.decoderResult());
+        buf.append(", version: ");
+        buf.append(msg.protocolVersion());
+        buf.append(", content: ");
+        buf.append(msg.content());
+        buf.append(')');
+        buf.append(StringUtil.NEWLINE);
+    }
+
+    private static void appendInitialLine(StringBuilder buf, HttpRequest req) {
+        buf.append(req.method());
+        buf.append(' ');
+        buf.append(req.uri());
+        buf.append(' ');
+        buf.append(req.protocolVersion());
+        buf.append(StringUtil.NEWLINE);
+    }
+
+    private static void appendInitialLine(StringBuilder buf, HttpResponse res) {
+        buf.append(res.protocolVersion());
+        buf.append(' ');
+        buf.append(res.status());
+        buf.append(StringUtil.NEWLINE);
+    }
+
+    private static void appendHeaders(StringBuilder buf, HttpHeaders headers) {
+        for (Map.Entry<String, String> e : headers) {
+            buf.append(e.getKey());
+            buf.append(": ");
+            buf.append(e.getValue());
+            buf.append(StringUtil.NEWLINE);
+        }
+    }
+
+    private static void removeLastNewLine(StringBuilder buf) {
+        buf.setLength(buf.length() - StringUtil.NEWLINE.length());
+    }
+
+    public final static class InboundIdleStateHandler extends IdleStateHandler {
+
+        final Runnable onReadIdle;
+
+        public InboundIdleStateHandler(long idleTimeout, Runnable onReadIdle) {
+            super(idleTimeout, 0, 0, TimeUnit.MILLISECONDS);
+            this.onReadIdle = requireNonNull(onReadIdle, "onReadIdle");
+        }
+
+        @Override
+        protected void channelIdle(ChannelHandlerContext ctx,
+                                   IdleStateEvent evt) throws Exception {
+            if (evt.state() == IdleState.READER_IDLE) {
+                onReadIdle.run();
+            }
+            super.channelIdle(ctx, evt);
+        }
+    }
+
+    public final static class OutboundIdleStateHandler extends IdleStateHandler {
+
+        final Runnable onWriteIdle;
+
+        public OutboundIdleStateHandler(long idleTimeout, Runnable onWriteIdle) {
+            super(0, idleTimeout, 0, TimeUnit.MILLISECONDS);
+            this.onWriteIdle = requireNonNull(onWriteIdle, "onWriteIdle");
+        }
+
+        @Override
+        protected void channelIdle(ChannelHandlerContext ctx,
+                                   IdleStateEvent evt) throws Exception {
+            if (evt.state() == IdleState.WRITER_IDLE) {
+                onWriteIdle.run();
+            }
+            super.channelIdle(ctx, evt);
+        }
+    }
+
+    @ChannelHandler.Sharable
+    public static final class ExtractorHandler extends ChannelInboundHandlerAdapter {
+
+
+        final BiConsumer<? super ChannelHandlerContext, Object> extractor;
+
+        public ExtractorHandler(BiConsumer<? super ChannelHandlerContext, Object> extractor) {
+            this.extractor = Objects.requireNonNull(extractor, "extractor");
+        }
+
+        @Override
+        public void channelRead(ChannelHandlerContext ctx, Object msg) {
+            extractor.accept(ctx, msg);
+        }
+
     }
 
 }

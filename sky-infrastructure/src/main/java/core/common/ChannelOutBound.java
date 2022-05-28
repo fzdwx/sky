@@ -1,4 +1,4 @@
-package core;
+package core.common;
 
 import exception.ChannelException;
 import io.netty.buffer.ByteBuf;
@@ -19,7 +19,7 @@ import java.nio.channels.ReadableByteChannel;
 @Slf4j
 public abstract class ChannelOutBound implements NettyOutbound {
 
-    private final Channel ch;
+    protected final Channel ch;
 
     public ChannelOutBound(Channel ch) {
         this.ch = ch;

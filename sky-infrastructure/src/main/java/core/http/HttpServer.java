@@ -2,9 +2,9 @@ package core.http;
 
 import core.Server;
 import core.Transport;
-import core.http.handler.HttpObjectAggregatorX;
 import core.http.ext.HttpExceptionHandler;
 import core.http.ext.HttpHandler;
+import core.http.handler.BodyHandler;
 import core.http.handler.HttpServerHandler;
 import core.serializer.JsonSerializer;
 import io.github.fzdwx.lambada.Console;
@@ -15,8 +15,9 @@ import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelOption;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.handler.codec.http.HttpContentCompressor;
+import io.netty.handler.codec.http.HttpContentDecompressor;
 import io.netty.handler.codec.http.HttpServerCodec;
-import io.netty.handler.codec.http.multipart.HttpDataFactory;
+import io.netty.handler.codec.http.HttpServerExpectContinueHandler;
 import io.netty.handler.logging.LogLevel;
 import io.netty.handler.logging.LoggingHandler;
 import io.netty.handler.ssl.SslHandler;
@@ -40,7 +41,6 @@ public class HttpServer implements Transport<HttpServer> {
     private final Server server;
     private boolean sslFlag;
     private int maxContentLength;
-    private HttpDataFactory httpDataFactory;
     private HttpHandler httpHandler;
     private HttpExceptionHandler exceptionHandler;
     private Hooks<ChannelFuture> afterListenHooks;
@@ -97,19 +97,19 @@ public class HttpServer implements Transport<HttpServer> {
             if (this.afterListenHooks != null) {
                 this.afterListenHooks.call(f);
             }
-
         });
 
         this.server.addSocketChannelHooks(channel -> {
             channel.pipeline()
-                    // .addLast(new HttpContentDecompressor(false))
                     .addLast(new HttpServerCodec())
+                    .addLast(new HttpContentDecompressor(false))
                     // todo 请求压缩
                     .addLast(new HttpContentCompressor())
                     .addLast(new ChunkedWriteHandler())
-                    // .addLast(new HttpServerExpectContinueHandler())
-                    .addLast(new HttpObjectAggregatorX(this.maxContentLength))
-                    .addLast(new HttpServerHandler(httpHandler, exceptionHandler, sslFlag, httpDataFactory, jsonSerializer()));
+                    .addLast(new HttpServerExpectContinueHandler())
+                    // .addLast(new HttpObjectAggregatorX(this.maxContentLength))
+                    .addLast(BodyHandler.create(this.maxContentLength))
+                    .addLast(new HttpServerHandler(httpHandler, exceptionHandler, sslFlag, jsonSerializer()));
         }).listen(address);
 
         return this;
@@ -262,14 +262,6 @@ public class HttpServer implements Transport<HttpServer> {
     public HttpServer ssl(final SslHandler sslHandler) {
         this.server.ssl(sslHandler);
         this.sslFlag = true;
-        return this;
-    }
-
-    /**
-     * set http data factory
-     */
-    public HttpServer withHttpDataFactory(final HttpDataFactory factory) {
-        this.httpDataFactory = factory;
         return this;
     }
 

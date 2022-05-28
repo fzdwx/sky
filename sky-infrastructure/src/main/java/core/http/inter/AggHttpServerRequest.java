@@ -15,6 +15,7 @@ import io.netty.handler.codec.http.HttpHeaderNames;
 import io.netty.handler.codec.http.HttpHeaders;
 import io.netty.handler.codec.http.HttpRequest;
 import io.netty.handler.codec.http.HttpVersion;
+import io.netty.handler.codec.http.LastHttpContent;
 import io.netty.handler.codec.http.multipart.Attribute;
 import io.netty.handler.codec.http.multipart.FileUpload;
 import io.netty.handler.codec.http.multipart.HttpDataFactory;
@@ -39,16 +40,6 @@ public class AggHttpServerRequest extends AggregatedFullHttpMessage implements H
     private boolean multipartFlag;
     private boolean formUrlEncoderFlag = false;
     private volatile InterfaceHttpPostRequestDecoder postRequestDecoder;
-
-    public AggHttpServerRequest(final HttpRequest nettyRequest, ByteBuf content) {
-        super(nettyRequest, content, null);
-        this.multipartFlag = HttpPostRequestDecoder.isMultipart(nettyRequest);
-        if (!this.multipartFlag) {
-            String contentType = this.contentType();
-            this.formUrlEncoderFlag = contentType != null && Netty.isFormUrlEncoder(contentType.toLowerCase());
-        }
-    }
-
     private final Supplier<InterfaceHttpPostRequestDecoder> postRequestDecoderSupplier = () -> {
         if (!multipartFlag && !formUrlEncoderFlag) {
             return null;
@@ -74,8 +65,29 @@ public class AggHttpServerRequest extends AggregatedFullHttpMessage implements H
         return this.postRequestDecoder;
     };
 
+    public AggHttpServerRequest(final HttpRequest nettyRequest, ByteBuf content) {
+        super(nettyRequest, content, null);
+        this.multipartFlag = HttpPostRequestDecoder.isMultipart(nettyRequest);
+        if (!this.multipartFlag) {
+            String contentType = this.contentType();
+            this.formUrlEncoderFlag = contentType != null && Netty.isFormUrlEncoder(contentType.toLowerCase());
+        }
+    }
+
     public void offer(HttpContent httpContent) {
+        if (httpContent instanceof LastHttpContent && this.postRequestDecoder == null) {
+            return;
+        }
         postRequestDecoderSupplier.get().offer(httpContent);
+    }
+
+    @Override
+    public void destroy() {
+        if (this.postRequestDecoder != null) {
+            this.postRequestDecoder.destroy();
+            this.postRequestDecoder = null;
+        }
+        release();
     }
 
     @Override
@@ -99,11 +111,6 @@ public class AggHttpServerRequest extends AggregatedFullHttpMessage implements H
     }
 
     @Override
-    public HttpHeaders headers() {
-        return this.message.headers();
-    }
-
-    @Override
     public NvMap params() {
         return null;
     }
@@ -119,8 +126,23 @@ public class AggHttpServerRequest extends AggregatedFullHttpMessage implements H
     }
 
     @Override
+    public HttpServerRequest readFile(final Hooks<FileUpload> hooks, final String key) {
+        return HttpServerRequest.super.readFile(hooks, key);
+    }
+
+    @Override
+    public HttpServerRequest readFiles(final Hooks<Seq<FileUpload>> hooks) {
+        return HttpServerRequest.super.readFiles(hooks);
+    }
+
+    @Override
     public ByteBuf readJson() {
         return null;
+    }
+
+    @Override
+    public String readJsonString() {
+        return HttpServerRequest.super.readJsonString();
     }
 
     @Override
@@ -136,6 +158,11 @@ public class AggHttpServerRequest extends AggregatedFullHttpMessage implements H
     @Override
     public Seq<FileUpload> readFiles() {
         return null;
+    }
+
+    @Override
+    public String uri() {
+        return getUri();
     }
 
     @Override
@@ -169,6 +196,76 @@ public class AggHttpServerRequest extends AggregatedFullHttpMessage implements H
     }
 
     @Override
+    public FullHttpRequest replace(ByteBuf content) {
+        DefaultFullHttpRequest dup = new DefaultFullHttpRequest(protocolVersion(), method(), uri(), content,
+                headers().copy(), trailingHeaders().copy());
+        dup.setDecoderResult(decoderResult());
+        return dup;
+    }
+
+    @Override
+    public FullHttpRequest setMethod(io.netty.handler.codec.http.HttpMethod method) {
+        message.setMethod(method);
+        return this;
+    }
+
+    @Override
+    public FullHttpRequest setUri(String uri) {
+        message.setUri(uri);
+        return this;
+    }
+
+    @Override
+    public io.netty.handler.codec.http.HttpMethod getMethod() {
+        return message.method();
+    }
+
+    @Override
+    public io.netty.handler.codec.http.HttpMethod method() {
+        return getMethod();
+    }
+
+    @Override
+    public String getUri() {
+        return message.uri();
+    }
+
+    @Override
+    public FullHttpRequest setProtocolVersion(HttpVersion version) {
+        super.setProtocolVersion(version);
+        return this;
+    }
+
+    @Override
+    public HttpHeaders headers() {
+        return this.message.headers();
+    }
+
+    @Override
+    public FullHttpRequest retain() {
+        super.retain();
+        return this;
+    }
+
+    @Override
+    public FullHttpRequest retain(int increment) {
+        super.retain(increment);
+        return this;
+    }
+
+    @Override
+    public FullHttpRequest touch(Object hint) {
+        super.touch(hint);
+        return this;
+    }
+
+    @Override
+    public FullHttpRequest touch() {
+        super.touch();
+        return this;
+    }
+
+    @Override
     public FullHttpRequest copy() {
         return replace(content().copy());
     }
@@ -184,81 +281,11 @@ public class AggHttpServerRequest extends AggregatedFullHttpMessage implements H
     }
 
     @Override
-    public FullHttpRequest replace(ByteBuf content) {
-        DefaultFullHttpRequest dup = new DefaultFullHttpRequest(protocolVersion(), method(), uri(), content,
-                headers().copy(), trailingHeaders().copy());
-        dup.setDecoderResult(decoderResult());
-        return dup;
-    }
-
-    @Override
-    public FullHttpRequest retain(int increment) {
-        super.retain(increment);
-        return this;
-    }
-
-    @Override
-    public FullHttpRequest retain() {
-        super.retain();
-        return this;
-    }
-
-    @Override
-    public FullHttpRequest touch() {
-        super.touch();
-        return this;
-    }
-
-    @Override
-    public FullHttpRequest touch(Object hint) {
-        super.touch(hint);
-        return this;
-    }
-
-    @Override
-    public FullHttpRequest setMethod(io.netty.handler.codec.http.HttpMethod method) {
-        ((HttpRequest) message).setMethod(method);
-        return this;
-    }
-
-    @Override
-    public FullHttpRequest setUri(String uri) {
-        ((HttpRequest) message).setUri(uri);
-        return this;
-    }
-
-    @Override
-    public io.netty.handler.codec.http.HttpMethod getMethod() {
-        return ((HttpRequest) message).method();
-    }
-
-    @Override
-    public String getUri() {
-        return ((HttpRequest) message).uri();
-    }
-
-    @Override
-    public io.netty.handler.codec.http.HttpMethod method() {
-        return getMethod();
-    }
-
-    @Override
-    public String uri() {
-        return getUri();
-    }
-
-    @Override
-    public FullHttpRequest setProtocolVersion(HttpVersion version) {
-        super.setProtocolVersion(version);
-        return this;
-    }
-
-    @Override
     public String toString() {
         return Netty.appendFullRequest(new StringBuilder(256), this).toString();
     }
 
     public InterfaceHttpPostRequestDecoder bodyDecoder() {
-        return this.postRequestDecoder;
+        return this.postRequestDecoder == null ? new HttpPostMultipartRequestDecoder(this) : this.postRequestDecoder;
     }
 }
