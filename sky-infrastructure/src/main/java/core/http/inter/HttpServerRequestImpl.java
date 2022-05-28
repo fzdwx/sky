@@ -2,7 +2,10 @@ package core.http.inter;
 
 import cn.hutool.core.util.StrUtil;
 import core.http.HttpServerRequest;
-import util.Netty;
+import core.serializer.JsonSerializer;
+import core.socket.Socket;
+import core.socket.WebSocket;
+import core.socket.WebSocketHandler;
 import io.github.fzdwx.lambada.Lang;
 import io.github.fzdwx.lambada.Seq;
 import io.github.fzdwx.lambada.fun.Hooks;
@@ -25,10 +28,7 @@ import io.netty.handler.codec.http.multipart.InterfaceHttpData;
 import io.netty.handler.codec.http.websocketx.CloseWebSocketFrame;
 import io.netty.handler.codec.http.websocketx.WebSocketServerHandshaker;
 import io.netty.handler.codec.http.websocketx.WebSocketServerHandshakerFactory;
-import core.serializer.JsonSerializer;
-import core.socket.Socket;
-import core.socket.WebSocket;
-import core.socket.WebSocketHandler;
+import util.Netty;
 
 import java.net.SocketAddress;
 
@@ -45,7 +45,7 @@ public class HttpServerRequestImpl implements HttpServerRequest {
 
     private final ChannelHandlerContext ctx;
     private final Channel channel;
-    private final HttpRequest request;
+    private final FullHttpRequest nettyRequest;
     private final HttpMethod methodType;
     private final HttpVersion version;
     private final HttpHeaders headers;
@@ -59,16 +59,17 @@ public class HttpServerRequestImpl implements HttpServerRequest {
     private NvMap params;
     private boolean websocketFlag;
 
-    public HttpServerRequestImpl(final ChannelHandlerContext ctx, final boolean ssl, final HttpRequest request, final HttpDataFactory httpDataFactory,
+    public HttpServerRequestImpl(final ChannelHandlerContext ctx, final boolean ssl, final FullHttpRequest nettyRequest,
+                                 final HttpDataFactory httpDataFactory,
                                  final JsonSerializer serializer) {
         this.ctx = ctx;
         this.channel = ctx.channel();
-        this.request = request;
-        this.methodType = HttpMethod.of(request.method().name());
-        this.version = request.protocolVersion();
-        this.headers = request.headers();
+        this.nettyRequest = nettyRequest;
+        this.methodType = HttpMethod.of(nettyRequest.method().name());
+        this.version = nettyRequest.protocolVersion();
+        this.headers = nettyRequest.headers();
         this.ssl = ssl;
-        this.uri = request.uri();
+        this.uri = nettyRequest.uri();
         this.httpDataFactory = httpDataFactory;
         this.serializer = serializer;
     }
@@ -116,7 +117,7 @@ public class HttpServerRequestImpl implements HttpServerRequest {
 
     @Override
     public ByteBuf readJson() {
-        return ((FullHttpRequest) this.request).content();
+        return ((FullHttpRequest) this.nettyRequest).content();
     }
 
     @Override
@@ -183,7 +184,7 @@ public class HttpServerRequestImpl implements HttpServerRequest {
         //endregion
 
         final WebSocketServerHandshaker handShaker =
-                new WebSocketServerHandshakerFactory(getWebSocketLocation(webSocket, request), subProtocols, true).newHandshaker(request);
+                new WebSocketServerHandshakerFactory(getWebSocketLocation(webSocket, nettyRequest), subProtocols, true).newHandshaker(nettyRequest);
 
         if (handShaker != null) {
             final ChannelPipeline pipeline = ctx.pipeline();
@@ -202,7 +203,7 @@ public class HttpServerRequestImpl implements HttpServerRequest {
             // add handler
             pipeline.addLast(new WebSocketHandler(webSocket, session));
 
-            handShaker.handshake(session.channel(), request).addListener(future -> {
+            handShaker.handshake(session.channel(), nettyRequest).addListener(future -> {
                 if (future.isSuccess()) {
                     webSocket.onOpen(session);
                 } else {
@@ -233,7 +234,7 @@ public class HttpServerRequestImpl implements HttpServerRequest {
 
     private void initBody() {
         if (!readBody) {
-            bodyDecoder = new HttpPostMultipartRequestDecoder(httpDataFactory, request);
+            bodyDecoder = new HttpPostMultipartRequestDecoder(httpDataFactory, nettyRequest);
             readBody = true;
         }
     }

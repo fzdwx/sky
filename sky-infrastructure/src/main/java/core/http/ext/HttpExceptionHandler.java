@@ -30,7 +30,7 @@ public interface HttpExceptionHandler {
             resp.json(
                     Collections.linkedMap(
                             "timestamp", Time.now(),
-                            "core/thread", Threads.current().getName(),
+                            "thread", Threads.current().getName(),
                             "message", e.getMessage(),
                             "class", e.getClass(),
                             "cause", e.getCause(),

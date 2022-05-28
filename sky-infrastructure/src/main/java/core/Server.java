@@ -1,10 +1,14 @@
 package core;
 
+import core.serializer.JsonSerializer;
+import core.thread.SkyThreadFactory;
 import io.github.fzdwx.lambada.Assert;
+import io.github.fzdwx.lambada.Collections;
 import io.github.fzdwx.lambada.fun.Hooks;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
+import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelOption;
@@ -18,10 +22,9 @@ import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.handler.logging.LoggingHandler;
 import io.netty.handler.ssl.SslHandler;
+import io.netty.util.AttributeKey;
 import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
-import core.serializer.JsonSerializer;
-import core.thread.SkyThreadFactory;
 import util.AvailablePort;
 import util.Utils;
 
@@ -47,11 +50,14 @@ public class Server implements core.Transport<Server> {
     protected final Map<ChannelOption<?>, Object> childOptions = new HashMap<>();
     protected final List<ChannelHandler> serverHandlers = new ArrayList<>();
     protected final List<Hooks<SocketChannel>> scInit = new ArrayList<>();
+    protected Map<AttributeKey<?>, Object> attrMap = Collections.map();
+    protected Map<AttributeKey<?>, Object> childAttrMap = Collections.map();
     protected final boolean enableEpoll;
     protected Class<? extends ServerChannel> channelType;
     protected Hooks<ChannelFuture> afterListen;
     protected Hooks<Server> onSuccessHooks;
     protected Hooks<Throwable> onFailureHooks;
+    protected Hooks<ChannelFutureListener> onShutDownHooks;
     protected JsonSerializer serializer;
     protected EventLoopGroup boss;
     protected EventLoopGroup worker;
@@ -100,7 +106,7 @@ public class Server implements core.Transport<Server> {
         preListen(address);
 
         this.startFuture = this.serverBootstrap
-                .childHandler(workerHandler())
+                .childHandler(buildWorkerHandler())
                 .channel(this.channelType)
                 .group(this.boss, this.worker)
                 .bind(address)
@@ -138,12 +144,16 @@ public class Server implements core.Transport<Server> {
     public void shutdown() {
         checkNotStart();
 
-        if (!this.worker.isShutdown()) {
-            this.worker.shutdownGracefully();
-        }
-        if (!this.boss.isShutdown()) {
-            this.boss.shutdownGracefully();
-        }
+        close().addListener(f -> {
+            if (!this.worker.isShutdown()) {
+                this.worker.shutdownGracefully();
+            }
+            if (!this.boss.isShutdown()) {
+                this.boss.shutdownGracefully();
+            }
+
+            onShutDownHooks.call((ChannelFutureListener) f);
+        });
     }
 
     @Override
@@ -205,30 +215,20 @@ public class Server implements core.Transport<Server> {
         return this;
     }
 
+    public <T> Server attr(AttributeKey<T> key, T val) {
+        this.attrMap.put(key, val);
+        return this;
+    }
+
+    public <T> Server childAttr(AttributeKey<T> key, T val) {
+        this.childAttrMap.put(key, val);
+        return this;
+    }
+
     public Server serverHandler(ChannelHandler handler) {
         checkStart();
         serverHandlers.add(handler);
         return this;
-    }
-
-    @Override
-    public ChannelInitializer<SocketChannel> workerHandler() {
-        checkNotStart();
-        return new ChannelInitializer<SocketChannel>() {
-            @Override
-            protected void initChannel(@NotNull final SocketChannel ch) {
-                if (loggingHandler != null) {
-                    ch.pipeline().addLast(loggingHandler);
-                }
-                if (sslHandler != null) {
-                    ch.pipeline().addLast(sslHandler);
-                }
-
-                for (final Hooks<SocketChannel> hooks : scInit) {
-                    hooks.call(ch);
-                }
-            }
-        };
     }
 
     @Override
@@ -275,6 +275,13 @@ public class Server implements core.Transport<Server> {
         return impl();
     }
 
+    public Server onShutDown(final Hooks<ChannelFutureListener> hooks) {
+        checkStart();
+
+        this.onShutDownHooks = hooks;
+        return impl();
+    }
+
     @Override
     public boolean ssl() {
         return this.sslFlag;
@@ -307,6 +314,14 @@ public class Server implements core.Transport<Server> {
             serverHandlers.forEach(serverBootstrap::handler);
         }
 
+        for (final Map.Entry<AttributeKey<?>, ?> attr : this.attrMap.entrySet()) {
+            this.serverBootstrap = serverBootstrap.attr((AttributeKey<Object>) attr.getKey(), attr.getValue());
+        }
+
+        for (final Map.Entry<AttributeKey<?>, ?> attr : this.childAttrMap.entrySet()) {
+            this.serverBootstrap = serverBootstrap.childAttr((AttributeKey<Object>) attr.getKey(), attr.getValue());
+        }
+
         for (Map.Entry<ChannelOption<?>, ?> entry : serverOptions.entrySet()) {
             this.serverBootstrap = serverBootstrap.option((ChannelOption<Object>) entry.getKey(), entry.getValue());
         }
@@ -316,6 +331,25 @@ public class Server implements core.Transport<Server> {
         }
 
         this.port = this.address.getPort();
+    }
+
+    protected ChannelInitializer<SocketChannel> buildWorkerHandler() {
+        checkNotStart();
+        return new ChannelInitializer<SocketChannel>() {
+            @Override
+            protected void initChannel(@NotNull final SocketChannel ch) {
+                if (Server.this.loggingHandler != null) {
+                    ch.pipeline().addLast(Server.this.loggingHandler);
+                }
+                if (Server.this.sslHandler != null) {
+                    ch.pipeline().addLast(Server.this.sslHandler);
+                }
+
+                for (final Hooks<SocketChannel> hooks : Server.this.scInit) {
+                    hooks.call(ch);
+                }
+            }
+        };
     }
 
     protected EventLoopGroup createBoss(final int bossCount) {

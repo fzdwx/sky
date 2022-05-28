@@ -1,16 +1,20 @@
 package core.http;
 
-import util.Netty;
 import core.http.ext.HttpExceptionHandler;
 import core.http.ext.HttpHandler;
+import core.http.inter.HttpServerRequestImpl;
+import core.http.inter.HttpServerResponseImpl;
+import core.serializer.JsonSerializer;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.handler.codec.http.FullHttpRequest;
+import io.netty.handler.codec.http.HttpRequest;
 import io.netty.handler.codec.http.multipart.DefaultHttpDataFactory;
 import io.netty.handler.codec.http.multipart.HttpDataFactory;
 import io.netty.util.ReferenceCountUtil;
 import lombok.extern.slf4j.Slf4j;
-import core.serializer.JsonSerializer;
+import org.jetbrains.annotations.NotNull;
+import util.Netty;
 
 import java.lang.reflect.InvocationTargetException;
 
@@ -23,8 +27,16 @@ public class HttpServerHandler extends ChannelInboundHandlerAdapter {
     private final HttpExceptionHandler exceptionHandler;
     private final JsonSerializer serializer;
 
-    public HttpServerHandler(final HttpHandler httpHandler, final HttpExceptionHandler exceptionHandler, final Boolean ssl,
-                             final HttpDataFactory httpDataFactory, final JsonSerializer serializer) {
+    private HttpServerRequestImpl requestIng;
+    private HttpServerResponseImpl responseIng;
+
+
+    public HttpServerHandler(
+            final HttpHandler httpHandler,
+            final HttpExceptionHandler exceptionHandler,
+            final Boolean ssl,
+            final HttpDataFactory httpDataFactory,
+            final JsonSerializer serializer) {
         this.httpHandler = httpHandler;
         this.exceptionHandler = HttpExceptionHandler.defaultExceptionHandler(exceptionHandler);
         this.ssl = ssl;
@@ -34,15 +46,19 @@ public class HttpServerHandler extends ChannelInboundHandlerAdapter {
 
     @Override
     public void channelRead(final ChannelHandlerContext ctx, final Object msg) throws Exception {
-        try {
-            if (msg instanceof FullHttpRequest) {
-                handleRequest(ctx, ((FullHttpRequest) msg));
-            } else {
-                ctx.writeAndFlush("Unsupported message type: " + msg.getClass().getName()).addListener(Netty.close);
-            }
-        } finally {
+        if (msg instanceof HttpRequest) {
+            handleRequest(ctx, ((FullHttpRequest) msg));
+        } else {
+            ctx.writeAndFlush("Unsupported message type: " + msg.getClass().getName()).addListener(Netty.close);
             ReferenceCountUtil.release(msg);
         }
+    }
+
+    @Override
+    public void channelInactive(@NotNull final ChannelHandlerContext ctx) throws Exception {
+        this.requestIng = null;
+        // todo 销毁
+        this.responseIng = null;
     }
 
     @Override
@@ -52,9 +68,15 @@ public class HttpServerHandler extends ChannelInboundHandlerAdapter {
 
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
-        log.info("http server handler exceptionCaught: {}", cause.getMessage());
+        log.debug("http server handler exceptionCaught: {}", cause.getMessage());
+        final HttpServerRequest requestIng = this.requestIng;
+        final HttpServerResponse responseIng = this.responseIng;
 
-        super.exceptionCaught(ctx, cause);
+        if (requestIng != null && responseIng != null) {
+            exceptionHandler.handler(requestIng, responseIng, cause);
+        } else {
+            super.exceptionCaught(ctx, cause);
+        }
     }
 
     /**
@@ -79,4 +101,5 @@ public class HttpServerHandler extends ChannelInboundHandlerAdapter {
             httpRequest.release();
         }
     }
+
 }

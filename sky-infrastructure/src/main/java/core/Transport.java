@@ -1,12 +1,12 @@
 package core;
 
+import core.serializer.JsonSerializer;
 import io.github.fzdwx.lambada.fun.Hooks;
 import io.netty.channel.ChannelFuture;
-import io.netty.channel.ChannelInitializer;
+import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.handler.logging.LogLevel;
 import io.netty.handler.logging.LoggingHandler;
-import core.serializer.JsonSerializer;
 
 import java.net.InetSocketAddress;
 
@@ -35,11 +35,11 @@ public interface Transport<IMPL> {
 
     IMPL onFailure(Hooks<Throwable> hooks);
 
+    IMPL onShutDown(Hooks<ChannelFutureListener> hooks);
+
     IMPL jsonSerializer(JsonSerializer serializer);
 
     IMPL addSocketChannelHooks(Hooks<SocketChannel> hooks);
-
-    ChannelInitializer<SocketChannel> workerHandler();
 
     ChannelFuture dispose();
 

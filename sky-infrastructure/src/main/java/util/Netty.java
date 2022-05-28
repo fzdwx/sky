@@ -44,6 +44,7 @@ public final class Netty {
 
     public static final AttributeKey<String> SubProtocolAttrKey = AttributeKey.valueOf("subProtocol");
     public static final int DEFAULT_CHUNK_SIZE = 8192;
+    public static final int DEFAULT_MAX_CONTENT_LENGTH = 1024 * 1024 * 1024;
     public static final ByteBuf empty = Unpooled.EMPTY_BUFFER;
 
     public static GenericFutureListener<? extends Future<? super Void>> close = ChannelFutureListener.CLOSE;

@@ -4,14 +4,16 @@ import core.Server;
 import core.Transport;
 import core.http.ext.HttpExceptionHandler;
 import core.http.ext.HttpHandler;
+import core.serializer.JsonSerializer;
 import io.github.fzdwx.lambada.Console;
 import io.github.fzdwx.lambada.fun.Hooks;
 import io.netty.channel.ChannelFuture;
+import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandler;
-import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelOption;
 import io.netty.channel.socket.SocketChannel;
-import io.netty.handler.codec.http.HttpContentDecompressor;
+import io.netty.handler.codec.http.HttpContentCompressor;
+import io.netty.handler.codec.http.HttpObjectAggregator;
 import io.netty.handler.codec.http.HttpServerCodec;
 import io.netty.handler.codec.http.HttpServerExpectContinueHandler;
 import io.netty.handler.codec.http.multipart.HttpDataFactory;
@@ -19,8 +21,9 @@ import io.netty.handler.logging.LogLevel;
 import io.netty.handler.logging.LoggingHandler;
 import io.netty.handler.ssl.SslHandler;
 import io.netty.handler.stream.ChunkedWriteHandler;
+import io.netty.util.AttributeKey;
 import lombok.extern.slf4j.Slf4j;
-import core.serializer.JsonSerializer;
+import util.Netty;
 import util.Utils;
 
 import java.net.InetSocketAddress;
@@ -36,10 +39,12 @@ public class HttpServer implements Transport<HttpServer> {
 
     private final Server server;
     private boolean sslFlag;
+    private int maxContentLength;
     private HttpDataFactory httpDataFactory;
     private HttpHandler httpHandler;
     private HttpExceptionHandler exceptionHandler;
     private Hooks<ChannelFuture> afterListenHooks;
+
 
     private HttpServer() {
         this.server = new Server();
@@ -77,9 +82,12 @@ public class HttpServer implements Transport<HttpServer> {
 
     @Override
     public HttpServer listen(final InetSocketAddress address) {
-        this.withServerOptions(ChannelOption.SO_BACKLOG, 1024);
-        this.withChildOptions(ChannelOption.TCP_NODELAY, true);
-        this.withChildOptions(ChannelOption.SO_KEEPALIVE, true);
+        this.serverOptions(ChannelOption.SO_BACKLOG, 1024);
+        this.childOptions(ChannelOption.TCP_NODELAY, true);
+        this.childOptions(ChannelOption.SO_KEEPALIVE, true);
+        if (this.maxContentLength == 0) {
+            this.maxContentLength = Netty.DEFAULT_MAX_CONTENT_LENGTH;
+        }
 
         this.server.afterListen(f -> {
             if (f.isSuccess()) {
@@ -94,13 +102,14 @@ public class HttpServer implements Transport<HttpServer> {
 
         this.server.addSocketChannelHooks(channel -> {
             channel.pipeline()
-                    .addLast(new HttpContentDecompressor(false))
+                    // .addLast(new HttpContentDecompressor(false))
                     .addLast(new HttpServerCodec())
-                    // .addLast(new HttpContentCompressor())
-                    // .addLast(new HttpObjectAggregator(1024 * 1024))
+                    // todo 请求压缩
+                    .addLast(new HttpContentCompressor())
+                    .addLast(new HttpObjectAggregator(this.maxContentLength))
                     .addLast(new ChunkedWriteHandler())
                     .addLast(new HttpServerExpectContinueHandler())
-                    .addLast(new HttpServerHandler(httpHandler, exceptionHandler, sslFlag, httpDataFactory, jsonSerializer()));
+                    .addLast(new HttpServerHandler( httpHandler, exceptionHandler, sslFlag, httpDataFactory, jsonSerializer()));
         }).listen(address);
 
         return this;
@@ -128,6 +137,12 @@ public class HttpServer implements Transport<HttpServer> {
         return this;
     }
 
+    @Override
+    public HttpServer onShutDown(final Hooks<ChannelFutureListener> hooks) {
+        this.server.onShutDown(hooks);
+        return this;
+    }
+
     /**
      * default is {@link JsonSerializer#codec}
      */
@@ -140,11 +155,6 @@ public class HttpServer implements Transport<HttpServer> {
     public HttpServer addSocketChannelHooks(final Hooks<SocketChannel> hooks) {
         this.server.addSocketChannelHooks(hooks);
         return this;
-    }
-
-    @Override
-    public ChannelInitializer<SocketChannel> workerHandler() {
-        return server.workerHandler();
     }
 
     public ChannelFuture dispose() {
@@ -197,9 +207,19 @@ public class HttpServer implements Transport<HttpServer> {
     }
 
     /**
+     * Set the maximum file length that can be processed, if it exceeds this value, it will throw 413 Request Entity Too Large
+     *
+     * @see io.netty.handler.codec.http.HttpObjectAggregator
+     */
+    public HttpServer maxContentLength(int maxContentLength) {
+        this.maxContentLength = maxContentLength;
+        return this;
+    }
+
+    /**
      * add server option
      */
-    public <T> HttpServer withServerOptions(ChannelOption<T> option, T t) {
+    public <T> HttpServer serverOptions(ChannelOption<T> option, T t) {
         this.server.serverOptions(option, t);
         return this;
     }
@@ -207,15 +227,31 @@ public class HttpServer implements Transport<HttpServer> {
     /**
      * add child option
      */
-    public <T> HttpServer withChildOptions(ChannelOption<T> option, T t) {
+    public <T> HttpServer childOptions(ChannelOption<T> option, T t) {
         this.server.childOptions(option, t);
+        return this;
+    }
+
+    /**
+     * @see io.netty.bootstrap.ServerBootstrap#attr(AttributeKey, Object)
+     */
+    public <T> HttpServer attr(AttributeKey<T> key, T val) {
+        this.server.attr(key, val);
+        return this;
+    }
+
+    /**
+     * @see io.netty.bootstrap.ServerBootstrap#childAttr(AttributeKey, Object)
+     */
+    public <T> HttpServer childAttr(AttributeKey<T> key, T val) {
+        this.server.childAttr(key, val);
         return this;
     }
 
     /**
      * add server handler
      */
-    public HttpServer withServerHandler(ChannelHandler handler) {
+    public HttpServer serverHandler(ChannelHandler handler) {
         this.server.serverHandler(handler);
         return this;
     }
@@ -223,7 +259,7 @@ public class HttpServer implements Transport<HttpServer> {
     /**
      * enable ssl.
      */
-    public HttpServer withSsl(final SslHandler sslHandler) {
+    public HttpServer ssl(final SslHandler sslHandler) {
         this.server.ssl(sslHandler);
         this.sslFlag = true;
         return this;
@@ -240,7 +276,7 @@ public class HttpServer implements Transport<HttpServer> {
     /**
      * handler request and return response.
      */
-    public HttpServer handle(final HttpHandler httpHandler) {
+    public HttpServer requestHandler(final HttpHandler httpHandler) {
         this.httpHandler = httpHandler;
         return this;
     }

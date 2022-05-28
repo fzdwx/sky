@@ -4,12 +4,11 @@ import com.alibaba.fastjson2.JSON;
 import com.alibaba.fastjson2.JSONObject;
 import core.http.HttpServer;
 import core.http.Router;
-import core.http.ext.HttpHandler;
 import io.github.fzdwx.lambada.Seq;
 import io.github.fzdwx.lambada.Threads;
 import io.github.fzdwx.lambada.http.ContentType;
 import io.github.fzdwx.lambada.http.HttpMethod;
-import io.github.fzdwx.lambada.http.Route;
+import io.netty.handler.codec.http.multipart.FileUpload;
 import org.junit.jupiter.api.Test;
 
 import java.time.Duration;
@@ -75,18 +74,21 @@ class HttpServerTest {
             res.end();
         });
 
-        final int port = 8888;
+        final int port = 9999;
         HttpServer.create()
-                .handle((req, response) -> {
-                    final Route<HttpHandler> route = router.match(req);
+                .requestHandler((req, response) -> {
 
-                    if (route != null) {
-                        route.handler().handle(req, response);
-                        return;
-                    }
-
-                    response.notFound(req.toString());
-
+                    final FileUpload file = req.readFile("file");
+                    System.out.println(file);
+                    // final Route<HttpHandler> route = router.match(req);
+                    //
+                    // if (route != null) {
+                    //     route.handler().handle(req, response);
+                    //     return;
+                    // }
+                    //
+                    // response.notFound(req.toString());
+                    response.end();
                 })
                 .listen(port)
                 .dispose();

@@ -9,7 +9,7 @@ import core.http.HttpServer;
 public class Main {
 
     public static void main(String[] args) {
-        HttpServer.create().handle((req, resp) -> {
+        HttpServer.create().requestHandler((req, resp) -> {
                     resp.end("hello world");
                 })
                 .listen(8888)

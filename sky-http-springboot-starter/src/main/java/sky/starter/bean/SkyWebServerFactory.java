@@ -53,7 +53,7 @@ public class SkyWebServerFactory extends AbstractServletWebServerFactory impleme
 
     private SkyWebServer getSkyWebServer(final ServletContextInitializer[] initializers) {
         // TODO: 2022/5/18 customize exception handler
-        httpServer.handle(dispatchHandler);
+        httpServer.requestHandler(dispatchHandler);
         return new SkyWebServer(httpServer, skyHttpServerProps);
     }
 

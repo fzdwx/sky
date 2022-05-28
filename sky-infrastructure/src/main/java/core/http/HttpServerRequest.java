@@ -1,7 +1,8 @@
 package core.http;
 
-import util.Netty;
 import core.http.inter.HttpServerRequestImpl;
+import core.serializer.JsonSerializer;
+import core.socket.WebSocket;
 import io.github.fzdwx.lambada.Seq;
 import io.github.fzdwx.lambada.fun.Hooks;
 import io.github.fzdwx.lambada.http.HttpMethod;
@@ -14,8 +15,7 @@ import io.netty.handler.codec.http.HttpVersion;
 import io.netty.handler.codec.http.multipart.Attribute;
 import io.netty.handler.codec.http.multipart.FileUpload;
 import io.netty.handler.codec.http.multipart.HttpDataFactory;
-import core.serializer.JsonSerializer;
-import core.socket.WebSocket;
+import util.Netty;
 
 import java.net.SocketAddress;
 
@@ -28,12 +28,12 @@ import java.net.SocketAddress;
  */
 public interface HttpServerRequest {
 
-    static HttpServerRequest create(final ChannelHandlerContext ctx,
+    static HttpServerRequestImpl create(final ChannelHandlerContext ctx,
                                     final boolean ssl,
-                                    final FullHttpRequest request,
+                                    final FullHttpRequest nettyRequest,
                                     final HttpDataFactory httpDataFactory,
                                     final JsonSerializer serializer) {
-        return new HttpServerRequestImpl(ctx, ssl, request, httpDataFactory, serializer);
+        return new HttpServerRequestImpl(ctx, ssl, nettyRequest, httpDataFactory, serializer);
     }
 
     SocketAddress remoteAddress();

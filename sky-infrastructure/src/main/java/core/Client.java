@@ -56,6 +56,7 @@ public class Client implements Transport<Client> {
     private Hooks<ChannelFuture> afterListen;
     private Hooks<Client> onSuccessHooks;
     private Hooks<Throwable> onFailureHooks;
+    private Hooks<ChannelFutureListener> onShutDownHooks;
     private boolean enableEpoll;
 
     public Client() {
@@ -119,6 +120,14 @@ public class Client implements Transport<Client> {
     }
 
     @Override
+    public Client onShutDown(final Hooks<ChannelFutureListener> hooks) {
+        checkStart();
+
+        this.onShutDownHooks = hooks;
+        return impl();
+    }
+
+    @Override
     public Client jsonSerializer(final JsonSerializer serializer) {
         checkStart();
         this.serializer = serializer;
@@ -132,7 +141,6 @@ public class Client implements Transport<Client> {
         return this;
     }
 
-    @Override
     public ChannelInitializer<SocketChannel> workerHandler() {
         checkNotStart();
         return new ChannelInitializer<SocketChannel>() {
@@ -167,7 +175,10 @@ public class Client implements Transport<Client> {
     @Override
     public void shutdown() {
         checkNotStart();
-        this.worker.shutdownGracefully();
+        close().addListener(f -> {
+            this.worker.shutdownGracefully();
+            onShutDownHooks.call((ChannelFutureListener) f);
+        });
     }
 
     @Override

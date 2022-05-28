@@ -26,7 +26,7 @@ import java.nio.charset.Charset;
  */
 public interface HttpServerResponse extends NettyOutbound {
 
-    static HttpServerResponse create(Channel channel, final HttpServerRequest httpRequest) {
+    static HttpServerResponseImpl create(Channel channel, final HttpServerRequest httpRequest) {
         return new HttpServerResponseImpl(channel, httpRequest);
     }
 

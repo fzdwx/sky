@@ -8,7 +8,6 @@ import io.netty.util.concurrent.DefaultThreadFactory;
  */
 public class SkyThreadFactory extends DefaultThreadFactory {
 
-    private String ext;
     private final String PREFIX = "SKY-";
 
     public SkyThreadFactory(final String poolName) {
@@ -18,7 +17,7 @@ public class SkyThreadFactory extends DefaultThreadFactory {
     @Override
     protected Thread newThread(final Runnable r, final String name) {
         final Thread thread = super.newThread(r, name);
-        thread.setName(PREFIX + ext + thread.getName());
+        thread.setName(PREFIX + thread.getName());
         return thread;
     }
 }
