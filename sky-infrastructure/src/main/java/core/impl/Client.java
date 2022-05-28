@@ -121,14 +121,14 @@ public class Client implements Transport<Client> {
     }
 
     @Override
-    public Client withSerializer(final JsonSerializer serializer) {
+    public Client jsonSerializer(final JsonSerializer serializer) {
         checkStart();
         this.serializer = serializer;
         return this;
     }
 
     @Override
-    public Client withInitChannel(final Hooks<SocketChannel> hooks) {
+    public Client addSocketChannelHooks(final Hooks<SocketChannel> hooks) {
         checkStart();
         this.socketChannelInitHooks = hooks;
         return this;
@@ -193,14 +193,14 @@ public class Client implements Transport<Client> {
     }
 
     @Override
-    public Client withWorker(final int worker) {
+    public Client worker(final int worker) {
         checkStart();
         this.worker = createWorker(worker);
         return this;
     }
 
     @Override
-    public Client withLog(final LoggingHandler loggingHandler) {
+    public Client log(final LoggingHandler loggingHandler) {
         checkStart();
         this.loggingHandler = loggingHandler;
         return this;

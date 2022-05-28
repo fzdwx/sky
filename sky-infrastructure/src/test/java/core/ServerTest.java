@@ -13,8 +13,8 @@ class ServerTest {
     @Test
     void test_server() {
         new Server()
-                .withLog(LogLevel.INFO)
-                .withInitChannel(ch -> {
+                .log(LogLevel.INFO)
+                .addSocketChannelHooks(ch -> {
                     // add your handler
                 })
                 .listen(8888)

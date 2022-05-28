@@ -36,9 +36,9 @@ public interface Transport<IMPL> {
 
     IMPL onFailure(Hooks<Throwable> hooks);
 
-    IMPL withSerializer(JsonSerializer serializer);
+    IMPL jsonSerializer(JsonSerializer serializer);
 
-    IMPL withInitChannel(Hooks<SocketChannel> hooks);
+    IMPL addSocketChannelHooks(Hooks<SocketChannel> hooks);
 
     ChannelInitializer<SocketChannel> channelInitializer();
 
@@ -54,16 +54,16 @@ public interface Transport<IMPL> {
 
     IMPL impl();
 
-    IMPL withWorker(int workerCount);
+    IMPL worker(int workerCount);
 
     /**
      * set child log handler
      */
-    default IMPL withLog(LogLevel level) {
-        return withLog(new LoggingHandler(level));
+    default IMPL log(LogLevel level) {
+        return log(new LoggingHandler(level));
     }
 
-    IMPL withLog(LoggingHandler loggingHandler);
+    IMPL log(LoggingHandler loggingHandler);
 
     default void callStartFuture(ChannelFuture startFuture,
                                  Hooks<ChannelFuture> afterListen,

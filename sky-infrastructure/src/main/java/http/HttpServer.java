@@ -92,7 +92,7 @@ public class HttpServer implements Transport<HttpServer> {
 
         });
 
-        this.server.withInitChannel(channel -> {
+        this.server.addSocketChannelHooks(channel -> {
             channel.pipeline()
                     .addLast(new HttpContentDecompressor(false))
                     .addLast(new HttpServerCodec())
@@ -131,14 +131,14 @@ public class HttpServer implements Transport<HttpServer> {
     /**
      * default is {@link serializer.JsonSerializer#codec}
      */
-    public HttpServer withSerializer(final JsonSerializer serializer) {
-        this.server.withSerializer(serializer);
+    public HttpServer jsonSerializer(final JsonSerializer serializer) {
+        this.server.jsonSerializer(serializer);
         return this;
     }
 
     @Override
-    public HttpServer withInitChannel(final Hooks<SocketChannel> hooks) {
-        this.server.withInitChannel(hooks);
+    public HttpServer addSocketChannelHooks(final Hooks<SocketChannel> hooks) {
+        this.server.addSocketChannelHooks(hooks);
         return this;
     }
 
@@ -176,23 +176,23 @@ public class HttpServer implements Transport<HttpServer> {
     }
 
     @Override
-    public HttpServer withWorker(final int worker) {
-        this.server.withWorker(worker);
+    public HttpServer worker(final int worker) {
+        this.server.worker(worker);
         return this;
     }
 
     /**
-     * @see #withLog(LoggingHandler)
+     * @see #log(LoggingHandler)
      */
-    public HttpServer withLog(final LogLevel logLevel) {
-        return this.withLog(new LoggingHandler(logLevel));
+    public HttpServer log(final LogLevel logLevel) {
+        return this.log(new LoggingHandler(logLevel));
     }
 
     /**
      * ser child log handler
      */
-    public HttpServer withLog(final LoggingHandler loggingHandler) {
-        this.server.withLog(loggingHandler);
+    public HttpServer log(final LoggingHandler loggingHandler) {
+        this.server.log(loggingHandler);
         return this;
     }
 
@@ -224,7 +224,7 @@ public class HttpServer implements Transport<HttpServer> {
      * enable ssl.
      */
     public HttpServer withSsl(final SslHandler sslHandler) {
-        this.server.withSsl(sslHandler);
+        this.server.ssl(sslHandler);
         this.sslFlag = true;
         return this;
     }
