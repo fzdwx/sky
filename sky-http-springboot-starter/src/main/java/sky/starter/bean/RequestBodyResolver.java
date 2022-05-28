@@ -1,7 +1,7 @@
 package sky.starter.bean;
 
-import http.HttpServerRequest;
-import http.HttpServerResponse;
+import core.http.HttpServerRequest;
+import core.http.HttpServerResponse;
 import io.github.fzdwx.lambada.lang.NvMap;
 import org.springframework.web.bind.annotation.RequestBody;
 import sky.starter.domain.SkyHttpMethod;

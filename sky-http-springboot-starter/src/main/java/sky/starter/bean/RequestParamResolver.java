@@ -1,7 +1,7 @@
 package sky.starter.bean;
 
-import http.HttpServerRequest;
-import http.HttpServerResponse;
+import core.http.HttpServerRequest;
+import core.http.HttpServerResponse;
 import io.github.fzdwx.lambada.Assert;
 import io.github.fzdwx.lambada.Lang;
 import io.github.fzdwx.lambada.lang.NvMap;

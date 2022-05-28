@@ -7,7 +7,7 @@ import io.netty.channel.ChannelInitializer;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.handler.logging.LogLevel;
 import io.netty.handler.logging.LoggingHandler;
-import serializer.JsonSerializer;
+import core.serializer.JsonSerializer;
 
 import java.net.InetSocketAddress;
 
@@ -40,7 +40,7 @@ public interface Transport<IMPL> {
 
     IMPL addSocketChannelHooks(Hooks<SocketChannel> hooks);
 
-    ChannelInitializer<SocketChannel> channelInitializer();
+    ChannelInitializer<SocketChannel> workerHandler();
 
     ChannelFuture dispose();
 

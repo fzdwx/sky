@@ -1,6 +1,6 @@
 package org.example.websocketserver;
 
-import http.HttpServer;
+import core.http.HttpServer;
 
 /**
  * @author <a href="mailto:likelovec@gmail.com">fzdwx</a>

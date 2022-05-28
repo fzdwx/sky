@@ -1,6 +1,6 @@
 package org.example.controller;
 
-import http.HttpServerRequest;
+import core.http.HttpServerRequest;
 import io.github.fzdwx.lambada.Collections;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;

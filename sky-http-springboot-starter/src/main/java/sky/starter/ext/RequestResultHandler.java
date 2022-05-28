@@ -1,7 +1,7 @@
 package sky.starter.ext;
 
-import http.HttpServerRequest;
-import http.HttpServerResponse;
+import core.http.HttpServerRequest;
+import core.http.HttpServerResponse;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.core.Ordered;
 import sky.starter.domain.SkyRouteDefinition;

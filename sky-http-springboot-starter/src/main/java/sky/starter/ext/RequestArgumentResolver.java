@@ -1,7 +1,7 @@
 package sky.starter.ext;
 
-import http.HttpServerRequest;
-import http.HttpServerResponse;
+import core.http.HttpServerRequest;
+import core.http.HttpServerResponse;
 import io.github.fzdwx.lambada.lang.NvMap;
 import sky.starter.bean.PathVariableResolver;
 import sky.starter.bean.RequestParamResolver;

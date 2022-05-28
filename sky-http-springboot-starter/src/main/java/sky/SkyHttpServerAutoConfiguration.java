@@ -1,6 +1,6 @@
 package sky;
 
-import http.HttpServer;
+import core.http.HttpServer;
 import io.github.fzdwx.lambada.http.Router;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;

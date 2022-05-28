@@ -21,8 +21,8 @@ import io.netty.handler.logging.LoggingHandler;
 import io.netty.handler.ssl.SslHandler;
 import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
-import serializer.JsonSerializer;
-import thread.SkyThreadFactory;
+import core.serializer.JsonSerializer;
+import core.thread.SkyThreadFactory;
 import util.AvailablePort;
 import util.Utils;
 
@@ -76,7 +76,6 @@ public class Server implements core.Transport<Server> {
             this.channelType = NioServerSocketChannel.class;
             log.info(Utils.PREFIX + " use nio");
         }
-
     }
 
     /**
@@ -101,7 +100,8 @@ public class Server implements core.Transport<Server> {
     public Server listen(final InetSocketAddress address) {
         preListen(address);
 
-        this.startFuture = this.serverBootstrap.childHandler(channelInitializer())
+        this.startFuture = this.serverBootstrap
+                .childHandler(workerHandler())
                 .channel(this.channelType)
                 .group(this.boss, this.worker)
                 .bind(address)
@@ -193,41 +193,31 @@ public class Server implements core.Transport<Server> {
         return impl();
     }
 
-    @Override
-    public Server addSocketChannelHooks(Hooks<SocketChannel> hooks) {
-        Assert.nonNull(hooks, "socket channel init is null!");
-        checkStart();
-
-        scInit.add(hooks);
-
-        return impl();
-    }
-
-    public <T> Server withServerOptions(ChannelOption<T> option, T t) {
+    public <T> Server serverOptions(ChannelOption<T> option, T t) {
         checkStart();
         serverOptions.put(option, t);
         return this;
     }
 
-    public Server withServerHandler(ChannelHandler handler) {
-        checkStart();
-        serverHandlers.add(handler);
-        return this;
-    }
-
-    public <T> Server withChildOptions(ChannelOption<T> option, T t) {
+    public <T> Server childOptions(ChannelOption<T> option, T t) {
         checkStart();
         childOptions.put(option, t);
 
         return this;
     }
 
+    public Server serverHandler(ChannelHandler handler) {
+        checkStart();
+        serverHandlers.add(handler);
+        return this;
+    }
+
     @Override
-    public ChannelInitializer<SocketChannel> channelInitializer() {
+    public ChannelInitializer<SocketChannel> workerHandler() {
         checkNotStart();
         return new ChannelInitializer<SocketChannel>() {
             @Override
-            protected void initChannel(@NotNull final SocketChannel ch) throws Exception {
+            protected void initChannel(@NotNull final SocketChannel ch) {
                 if (loggingHandler != null) {
                     ch.pipeline().addLast(loggingHandler);
                 }
@@ -243,6 +233,16 @@ public class Server implements core.Transport<Server> {
     }
 
     @Override
+    public Server addSocketChannelHooks(Hooks<SocketChannel> hooks) {
+        Assert.nonNull(hooks, "socket channel init is null!");
+        checkStart();
+
+        scInit.add(hooks);
+
+        return impl();
+    }
+
+    @Override
     public JsonSerializer jsonSerializer() {
         return this.serializer;
     }
@@ -251,7 +251,6 @@ public class Server implements core.Transport<Server> {
     public Server impl() {
         return this;
     }
-
 
     @Override
     public Server afterListen(Hooks<ChannelFuture> hooks) {
@@ -290,9 +289,9 @@ public class Server implements core.Transport<Server> {
         if (!startFlag.compareAndSet(false, true)) {
             return;
         }
-
         Objects.requireNonNull(address, "address is null");
         Objects.requireNonNull(channelType, "channelType is null");
+
         this.address = address;
 
         if (this.boss == null) {

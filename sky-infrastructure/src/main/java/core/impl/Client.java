@@ -1,7 +1,7 @@
 package core.impl;
 
 import core.ReconnectHandler;
-import thread.SkyThreadFactory;
+import core.thread.SkyThreadFactory;
 import core.Transport;
 import io.github.fzdwx.lambada.fun.Hooks;
 import io.netty.bootstrap.Bootstrap;
@@ -21,7 +21,7 @@ import io.netty.handler.ssl.SslContextBuilder;
 import io.netty.handler.ssl.SslHandler;
 import io.netty.handler.ssl.util.InsecureTrustManagerFactory;
 import lombok.extern.slf4j.Slf4j;
-import serializer.JsonSerializer;
+import core.serializer.JsonSerializer;
 
 import java.net.InetSocketAddress;
 import java.time.Duration;
@@ -73,7 +73,7 @@ public class Client implements Transport<Client> {
             this.bootstrap = bootstrap.option((ChannelOption<Object>) entry.getKey(), entry.getValue());
         }
 
-        bootstrap.group(worker).channel(channelType).handler(channelInitializer());
+        bootstrap.group(worker).channel(channelType).handler(workerHandler());
 
         connect();
 
@@ -135,7 +135,7 @@ public class Client implements Transport<Client> {
     }
 
     @Override
-    public ChannelInitializer<SocketChannel> channelInitializer() {
+    public ChannelInitializer<SocketChannel> workerHandler() {
         checkNotStart();
         return new ChannelInitializer<SocketChannel>() {
             @Override

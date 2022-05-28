@@ -1,6 +1,6 @@
 package sky.starter.bean;
 
-import http.HttpServer;
+import core.http.HttpServer;
 import org.springframework.boot.web.server.ConfigurableWebServerFactory;
 import org.springframework.boot.web.server.WebServer;
 import org.springframework.boot.web.servlet.ServletContextInitializer;
