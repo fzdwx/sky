@@ -1,6 +1,5 @@
 package core;
 
-import core.impl.Server;
 import io.netty.handler.logging.LogLevel;
 import org.junit.jupiter.api.Test;
 

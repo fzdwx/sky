@@ -1,6 +1,6 @@
 package core.http;
 
-import core.impl.Server;
+import core.Server;
 import core.Transport;
 import core.http.ext.HttpExceptionHandler;
 import core.http.ext.HttpHandler;

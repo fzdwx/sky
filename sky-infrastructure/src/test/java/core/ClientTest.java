@@ -1,6 +1,5 @@
 package core;
 
-import core.impl.Client;
 import io.github.fzdwx.lambada.Threads;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
