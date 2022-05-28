@@ -1,6 +1,6 @@
 package sky.starter.bean;
 
-import core.http.HttpServerResponse;
+import core.http.ext.HttpServerResponse;
 import org.springframework.core.Ordered;
 import sky.starter.domain.SkyRouteDefinition;
 import sky.starter.ext.RequestResultHandler;

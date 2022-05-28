@@ -1,7 +1,7 @@
 package core.http.inter;
 
 import cn.hutool.core.util.StrUtil;
-import core.http.HttpServerRequest;
+import core.http.ext.HttpServerRequest;
 import core.serializer.JsonSerializer;
 import core.socket.Socket;
 import core.socket.WebSocket;

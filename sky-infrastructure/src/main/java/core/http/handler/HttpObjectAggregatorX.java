@@ -1,4 +1,4 @@
-package core.http;
+package core.http.handler;
 
 import core.http.inter.AggHttpServerRequest;
 import io.netty.buffer.ByteBuf;

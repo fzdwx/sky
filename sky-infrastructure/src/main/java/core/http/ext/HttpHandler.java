@@ -1,8 +1,5 @@
 package core.http.ext;
 
-import core.http.HttpServerRequest;
-import core.http.HttpServerResponse;
-
 /**
  * handle
  *

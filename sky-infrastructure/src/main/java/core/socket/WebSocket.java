@@ -2,7 +2,7 @@ package core.socket;
 
 import core.socket.inter.WebSocketImpl;
 import util.Netty;
-import core.http.HttpServerRequest;
+import core.http.ext.HttpServerRequest;
 import io.github.fzdwx.lambada.fun.Hooks;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelFuture;

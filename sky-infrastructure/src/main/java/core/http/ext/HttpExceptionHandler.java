@@ -1,7 +1,5 @@
 package core.http.ext;
 
-import core.http.HttpServerRequest;
-import core.http.HttpServerResponse;
 import io.github.fzdwx.lambada.Collections;
 import io.github.fzdwx.lambada.Threads;
 import io.github.fzdwx.lambada.Time;

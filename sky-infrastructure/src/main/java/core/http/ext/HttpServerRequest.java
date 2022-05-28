@@ -1,4 +1,4 @@
-package core.http;
+package core.http.ext;
 
 import core.http.inter.AggHttpServerRequest;
 import core.http.inter.HttpServerRequestImpl;

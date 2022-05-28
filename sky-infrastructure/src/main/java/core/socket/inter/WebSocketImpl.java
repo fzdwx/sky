@@ -1,7 +1,7 @@
 package core.socket.inter;
 
 import util.Netty;
-import core.http.HttpServerRequest;
+import core.http.ext.HttpServerRequest;
 import io.github.fzdwx.lambada.fun.Hooks;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.Channel;

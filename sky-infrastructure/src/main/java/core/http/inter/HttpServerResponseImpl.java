@@ -1,8 +1,8 @@
 package core.http.inter;
 
 import core.ChannelOutBound;
-import core.http.HttpServerRequest;
-import core.http.HttpServerResponse;
+import core.http.ext.HttpServerRequest;
+import core.http.ext.HttpServerResponse;
 import util.Netty;
 import core.NettyOutbound;
 import exception.ChannelException;

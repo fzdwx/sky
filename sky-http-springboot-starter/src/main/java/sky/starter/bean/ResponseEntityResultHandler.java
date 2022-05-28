@@ -1,6 +1,6 @@
 package sky.starter.bean;
 
-import core.http.HttpServerResponse;
+import core.http.ext.HttpServerResponse;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import org.springframework.core.Ordered;
 import org.springframework.http.ResponseEntity;

@@ -1,6 +1,6 @@
 package core.http.inter;
 
-import core.http.HttpServerRequest;
+import core.http.ext.HttpServerRequest;
 import core.serializer.JsonSerializer;
 import core.socket.WebSocket;
 import io.github.fzdwx.lambada.Seq;

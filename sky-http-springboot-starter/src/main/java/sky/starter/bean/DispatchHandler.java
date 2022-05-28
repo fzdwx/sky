@@ -1,7 +1,7 @@
 package sky.starter.bean;
 
-import core.http.HttpServerRequest;
-import core.http.HttpServerResponse;
+import core.http.ext.HttpServerRequest;
+import core.http.ext.HttpServerResponse;
 import core.http.ext.HttpHandler;
 import io.github.fzdwx.lambada.http.HttpPath;
 import io.github.fzdwx.lambada.http.Route;
