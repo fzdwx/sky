@@ -8,7 +8,7 @@ import io.netty.util.concurrent.DefaultThreadFactory;
  */
 public class SkyThreadFactory extends DefaultThreadFactory {
 
-    private final String PREFIX = "SKY-";
+    private final String PREFIX = "Sky-";
 
     public SkyThreadFactory(final String poolName) {
         super(poolName);

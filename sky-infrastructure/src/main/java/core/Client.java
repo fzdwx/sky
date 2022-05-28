@@ -354,9 +354,9 @@ public class Client implements Transport<Client> {
     private EventLoopGroup createWorker(final int workerCnt) {
         EventLoopGroup group;
         if (this.enableEpoll) {
-            group = new EpollEventLoopGroup(workerCnt, new SkyThreadFactory("Epoll-Sky-Server-Boss"));
+            group = new EpollEventLoopGroup(workerCnt, new SkyThreadFactory("Epoll-chServer-Boss"));
         } else {
-            group = new NioEventLoopGroup(workerCnt, new SkyThreadFactory("NIO-Sky-Server-Boss"));
+            group = new NioEventLoopGroup(workerCnt, new SkyThreadFactory("NIO-chServer-Boss"));
         }
         return group;
     }
