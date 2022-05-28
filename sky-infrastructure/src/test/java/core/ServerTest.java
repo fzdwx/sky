@@ -1,5 +1,6 @@
 package core;
 
+import core.impl.Server;
 import io.netty.handler.logging.LogLevel;
 import org.junit.jupiter.api.Test;
 
@@ -12,7 +13,6 @@ class ServerTest {
     @Test
     void test_server() {
         new Server()
-                .withGroup(0, 0)
                 .withLog(LogLevel.INFO)
                 .withInitChannel(ch -> {
                     // add your handler

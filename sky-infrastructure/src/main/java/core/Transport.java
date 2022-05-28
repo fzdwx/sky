@@ -1,5 +1,6 @@
 package core;
 
+import core.impl.Server;
 import io.github.fzdwx.lambada.fun.Hooks;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelInitializer;
@@ -47,9 +48,9 @@ public interface Transport<IMPL> {
 
     ChannelFuture close();
 
-    boolean sslFlag();
+    boolean ssl();
 
-    JsonSerializer serializer();
+    JsonSerializer jsonSerializer();
 
     IMPL impl();
 
@@ -63,4 +64,12 @@ public interface Transport<IMPL> {
     }
 
     IMPL withLog(LoggingHandler loggingHandler);
+
+    default void callStartFuture(ChannelFuture startFuture,
+                                 Hooks<ChannelFuture> afterListen,
+                                 Hooks<Server> onSuccessHooks,
+                                 Hooks<Throwable> onFailureHooks
+    ) {
+
+    }
 }

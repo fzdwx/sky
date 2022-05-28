@@ -1,6 +1,6 @@
 package socket.inter;
 
-import core.Netty;
+import util.Netty;
 import http.HttpServerRequest;
 import io.github.fzdwx.lambada.fun.Hooks;
 import io.netty.buffer.ByteBuf;

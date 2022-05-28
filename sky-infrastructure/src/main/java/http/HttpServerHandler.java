@@ -1,6 +1,6 @@
 package http;
 
-import core.Netty;
+import util.Netty;
 import http.ext.HttpExceptionHandler;
 import http.ext.HttpHandler;
 import io.netty.channel.ChannelHandlerContext;

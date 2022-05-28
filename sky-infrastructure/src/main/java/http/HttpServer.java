@@ -1,6 +1,6 @@
 package http;
 
-import core.Server;
+import core.impl.Server;
 import core.Transport;
 import http.ext.HttpExceptionHandler;
 import http.ext.HttpHandler;
@@ -100,7 +100,7 @@ public class HttpServer implements Transport<HttpServer> {
                     // .addLast(new HttpObjectAggregator(1024 * 1024))
                     .addLast(new ChunkedWriteHandler())
                     .addLast(new HttpServerExpectContinueHandler())
-                    .addLast(new HttpServerHandler(httpHandler, exceptionHandler, sslFlag, httpDataFactory, serializer()));
+                    .addLast(new HttpServerHandler(httpHandler, exceptionHandler, sslFlag, httpDataFactory, jsonSerializer()));
         }).listen(address);
 
         return this;
@@ -162,12 +162,12 @@ public class HttpServer implements Transport<HttpServer> {
     }
 
     @Override
-    public boolean sslFlag() {
-        return this.server.sslFlag();
+    public boolean ssl() {
+        return this.server.ssl();
     }
 
-    public JsonSerializer serializer() {
-        return this.server.serializer();
+    public JsonSerializer jsonSerializer() {
+        return this.server.jsonSerializer();
     }
 
     @Override

@@ -1,5 +1,8 @@
-package core;
+package core.impl;
 
+import core.ReconnectHandler;
+import thread.SkyThreadFactory;
+import core.Transport;
 import io.github.fzdwx.lambada.fun.Hooks;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.Channel;
@@ -175,12 +178,12 @@ public class Client implements Transport<Client> {
     }
 
     @Override
-    public boolean sslFlag() {
+    public boolean ssl() {
         return this.sslFlag;
     }
 
     @Override
-    public JsonSerializer serializer() {
+    public JsonSerializer jsonSerializer() {
         return this.serializer;
     }
 

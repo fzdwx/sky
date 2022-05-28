@@ -1,11 +1,13 @@
 package core;
 
+import core.impl.CopyNettyOutbound;
 import io.github.fzdwx.lambada.fun.Hooks;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufAllocator;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelPromise;
+import util.Netty;
 
 import java.io.InputStream;
 
