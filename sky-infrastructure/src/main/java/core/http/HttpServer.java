@@ -2,6 +2,7 @@ package core.http;
 
 import core.Server;
 import core.Transport;
+import core.common.Disposer;
 import core.http.ext.HttpExceptionHandler;
 import core.http.ext.HttpHandler;
 import core.http.handler.BodyHandler;
@@ -68,7 +69,7 @@ public class HttpServer implements Transport<HttpServer> {
     /**
      * listen on a random port
      */
-    public HttpServer listen() {
+    public Disposer listen() {
         this.server.listen();
         return this;
     }
@@ -76,12 +77,12 @@ public class HttpServer implements Transport<HttpServer> {
     /**
      * start server
      */
-    public HttpServer listen(final int port) {
+    public Disposer listen(final int port) {
         return this.listen(new InetSocketAddress(port));
     }
 
     @Override
-    public HttpServer listen(final InetSocketAddress address) {
+    public Disposer listen(final InetSocketAddress address) {
         this.serverOptions(ChannelOption.SO_BACKLOG, 1024);
         this.childOptions(ChannelOption.TCP_NODELAY, true);
         this.childOptions(ChannelOption.SO_KEEPALIVE, true);

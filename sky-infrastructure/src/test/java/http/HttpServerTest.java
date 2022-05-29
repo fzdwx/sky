@@ -19,6 +19,14 @@ import java.time.Duration;
  */
 class HttpServerTest {
 
+
+    @Test
+    void test22() {
+        HttpServer.create()
+                .listen(8888)
+                .dispose();
+    }
+
     @Test
     void test_http() {
         final Router router = Router.router().GET("/ws", (req, res) -> {

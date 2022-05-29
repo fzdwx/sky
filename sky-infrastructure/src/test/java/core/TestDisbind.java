@@ -12,8 +12,8 @@ import java.util.Objects;
 public class TestDisbind {
 
     public static void main(String[] args) {
-        final Server listen = new Server()
-                .listen(10010);
+        final Server listen = new Server();
+        listen.listen(10010);
         new Server()
                 .listen(7777);
 

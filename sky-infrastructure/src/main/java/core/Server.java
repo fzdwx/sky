@@ -1,5 +1,6 @@
 package core;
 
+import core.common.Disposer;
 import core.serializer.JsonSerializer;
 import core.thread.SkyThreadFactory;
 import io.github.fzdwx.lambada.Assert;
@@ -86,7 +87,7 @@ public class Server implements core.Transport<Server> {
     /**
      * listen on a random port
      */
-    public Server listen() {
+    public Disposer listen() {
         final Integer port = AvailablePort.random();
         Assert.nonNull(port, "now don't have available port");
 
@@ -94,7 +95,7 @@ public class Server implements core.Transport<Server> {
     }
 
     @Override
-    public Server listen(final int port) {
+    public Disposer listen(final int port) {
         if (port == 0) {
             return listen();
         }

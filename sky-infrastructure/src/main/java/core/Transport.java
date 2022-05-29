@@ -1,5 +1,6 @@
 package core;
 
+import core.common.Disposer;
 import core.serializer.JsonSerializer;
 import io.github.fzdwx.lambada.fun.Hooks;
 import io.netty.channel.ChannelFuture;
@@ -14,18 +15,18 @@ import java.net.InetSocketAddress;
  * @author <a href="mailto:likelovec@gmail.com">韦朕</a>
  * @date 2022/5/6 14:34
  */
-public interface Transport<IMPL> {
+public interface Transport<IMPL> extends Disposer {
 
-    default IMPL listen(int port) {
+    default Disposer listen(int port) {
         return listen(new InetSocketAddress(port));
     }
 
     /**
      * start transport
      */
-    IMPL listen(InetSocketAddress address);
+    Disposer listen(InetSocketAddress address);
 
-    default IMPL listen(String host, int port) {
+    default Disposer listen(String host, int port) {
         return listen(new InetSocketAddress(host, port));
     }
 
@@ -40,8 +41,6 @@ public interface Transport<IMPL> {
     IMPL jsonSerializer(JsonSerializer serializer);
 
     IMPL childHandler(Hooks<SocketChannel> hooks);
-
-    ChannelFuture dispose();
 
     void shutdown();
 
