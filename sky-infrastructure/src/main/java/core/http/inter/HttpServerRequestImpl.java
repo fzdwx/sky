@@ -78,7 +78,9 @@ public class HttpServerRequestImpl implements HttpServerRequest {
 
     @Override
     public void destroy() {
-        this.nettyRequest.release();
+        if (this.nettyRequest.refCnt() > 0) {
+            this.nettyRequest.release(this.nettyRequest.refCnt());
+        }
         if (this.bodyDecoder != null) {
             this.bodyDecoder.destroy();
             this.bodyDecoder = null;

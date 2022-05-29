@@ -24,13 +24,6 @@ class HttpServerTest {
     void test22() {
         HttpServer.create()
                 .requestHandler(((request, response) -> {
-                    System.out.println(request.remoteAddress().toString());
-
-
-                    final FileUpload file = request.readFile("file");
-                    final FileUpload f2 = request.readFile("file");
-                    System.out.println(file);
-                    System.out.println(request.bodyToString());
                     response.end();
                 }))
                 .listen(8888)
