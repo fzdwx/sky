@@ -80,12 +80,12 @@ public final class Netty {
     public static final ByteBuf empty = Unpooled.EMPTY_BUFFER;
     public static final AttributeKey<HttpServerRequest> REQUEST_KEY = AttributeKey.valueOf("request");
     public static final AttributeKey<HttpServerResponse> RESPONSE_KEY = AttributeKey.valueOf("response");
+    public static final GenericFutureListener<? extends Future<? super Void>> close = ChannelFutureListener.CLOSE;
+    public static final Map<Charset, HttpDataFactory> HTTP_DATA_FACTORY_CACHE = Collections.map();
+    public static final String localhost = "localhost";
     private static final AsciiString CHARSET_EQUALS = AsciiString.of(HttpHeaderValues.CHARSET + "=");
     private static final AsciiString SEMICOLON = AsciiString.cached(";");
     private static final String COMMA_STRING = String.valueOf(COMMA);
-    public static GenericFutureListener<? extends Future<? super Void>> close = ChannelFutureListener.CLOSE;
-    public static Map<Charset, HttpDataFactory> HTTP_DATA_FACTORY_CACHE = Collections.map();
-    public static String localhost = "localhost";
 
     public static String read(ByteBuf buf) {
         if (buf == null) return Lang.EMPTY_STR;

@@ -12,7 +12,7 @@ import com.alibaba.fastjson2.JSON;
  */
 public class FasJsonSerializerSerializer implements JsonSerializer {
 
-    public static FasJsonSerializerSerializer instance = new FasJsonSerializerSerializer();
+    public static final FasJsonSerializerSerializer instance = new FasJsonSerializerSerializer();
 
     @Override
     public byte[] serialize(final Object obj) {
