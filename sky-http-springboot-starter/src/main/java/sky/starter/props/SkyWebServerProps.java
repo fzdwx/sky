@@ -11,7 +11,7 @@ import sky.starter.util.SkyBanner;
  */
 @Data
 @ConfigurationProperties(prefix = "server")
-public class SkyHttpServerProps {
+public class SkyWebServerProps {
 
     /**
      * http server port
@@ -47,7 +47,7 @@ public class SkyHttpServerProps {
         public Boolean banner = true;
 
         /**
-         * path prefix
+         * path prefix(current not support)
          */
         public String path = "sky";
 

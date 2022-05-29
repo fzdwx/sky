@@ -28,7 +28,7 @@ import sky.starter.bean.SkyWebServerFactory;
 import sky.starter.domain.SkyRouteDefinition;
 import sky.starter.ext.HandlerMappingContainer;
 import sky.starter.ext.ValConvertor;
-import sky.starter.props.SkyHttpServerProps;
+import sky.starter.props.SkyWebServerProps;
 import sky.starter.unsupport.SkyDispatcherServletPath;
 import sky.starter.unsupport.SkyServletContext;
 import sky.starter.util.SkyBanner;
@@ -43,13 +43,13 @@ import javax.servlet.ServletContext;
  */
 @Configuration
 @ConditionalOnClass({SkyWebServer.class, SkyWebServerFactory.class})
-@EnableConfigurationProperties(SkyHttpServerProps.class)
-public class SkyHttpServerAutoConfiguration {
+@EnableConfigurationProperties(SkyWebServerProps.class)
+public class SkyWebServerAutoConfiguration {
 
-    private final SkyHttpServerProps skyHttpServerProps;
+    private final SkyWebServerProps skyWebServerProps;
 
-    public SkyHttpServerAutoConfiguration(final SkyHttpServerProps skyHttpServerProps) {
-        this.skyHttpServerProps = skyHttpServerProps;
+    public SkyWebServerAutoConfiguration(final SkyWebServerProps skyWebServerProps) {
+        this.skyWebServerProps = skyWebServerProps;
 
         showBanner();
     }
@@ -64,7 +64,7 @@ public class SkyHttpServerAutoConfiguration {
 
         webMvcConfigurationSupport.setServletContext(servletContext());
 
-        return new SkyWebServerFactory(httpServer, skyHttpServerProps, dispatchHandler);
+        return new SkyWebServerFactory(httpServer, skyWebServerProps, dispatchHandler);
     }
 
     /**
@@ -105,7 +105,7 @@ public class SkyHttpServerAutoConfiguration {
     @Bean
     @ConditionalOnMissingBean
     HandlerMappingContainer<?> container(Router<SkyRouteDefinition> router) {
-        return new SkyHandlerMappingContainer(skyHttpServerProps, router);
+        return new SkyHandlerMappingContainer(skyWebServerProps, router);
     }
 
     /**
@@ -152,7 +152,7 @@ public class SkyHttpServerAutoConfiguration {
     @Bean
     @Primary
     DispatcherServletPath dispatcherServletPath() {
-        return new SkyDispatcherServletPath(skyHttpServerProps.sky.path);
+        return new SkyDispatcherServletPath(skyWebServerProps.sky.path);
     }
 
     /**
@@ -161,11 +161,11 @@ public class SkyHttpServerAutoConfiguration {
     @Bean
     @Primary
     ServletContext servletContext() {
-        return new SkyServletContext(skyHttpServerProps.sky.path);
+        return new SkyServletContext(skyWebServerProps.sky.path);
     }
 
     private void showBanner() {
-        if (skyHttpServerProps.sky.banner) {
+        if (skyWebServerProps.sky.banner) {
             SkyBanner.print();
         }
     }

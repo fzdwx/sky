@@ -9,7 +9,7 @@ import sky.starter.domain.SkyHandlerInfo;
 import sky.starter.domain.SkyRouteDefinition;
 import sky.starter.ext.HandlerMappingContainer;
 import sky.starter.domain.SkyHttpMethod;
-import sky.starter.props.SkyHttpServerProps;
+import sky.starter.props.SkyWebServerProps;
 
 import java.lang.reflect.AnnotatedElement;
 import java.lang.reflect.Method;
@@ -24,8 +24,8 @@ public class SkyHandlerMappingContainer extends HandlerMappingContainer<SkyHandl
 
     final Router<SkyRouteDefinition> router;
 
-    public SkyHandlerMappingContainer(final SkyHttpServerProps skyHttpServerProps, final Router<SkyRouteDefinition> router) {
-        super(skyHttpServerProps);
+    public SkyHandlerMappingContainer(final SkyWebServerProps skyWebServerProps, final Router<SkyRouteDefinition> router) {
+        super(skyWebServerProps);
         this.router = router;
     }
 

@@ -77,10 +77,10 @@ public class Server implements core.Transport<Server> {
 
         if (enableEpoll) {
             this.channelType = EpollServerSocketChannel.class;
-            log.info(Utils.PREFIX + " use epoll");
+            log.info(Utils.PREFIX + "use epoll");
         } else {
             this.channelType = NioServerSocketChannel.class;
-            log.info(Utils.PREFIX + " use nio");
+            log.info(Utils.PREFIX + "use nio");
         }
     }
 

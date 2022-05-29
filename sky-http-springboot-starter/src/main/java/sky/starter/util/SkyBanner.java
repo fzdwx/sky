@@ -13,6 +13,6 @@ public class SkyBanner {
     private final static String version = "0.11-dev";
 
     public static void print() {
-        log.info(Console.banner() + Console.cyan("  [ Sky Starter ]  ") + Console.ANSI_RESET + "                             (v{})", version);
+        log.info(Console.banner() + Console.cyan("  [ Sky Web Server ]  ") + Console.ANSI_RESET + "                             (v{})", version);
     }
 }
