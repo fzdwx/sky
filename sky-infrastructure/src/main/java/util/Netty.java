@@ -5,7 +5,7 @@ import core.http.ext.HttpServerRequest;
 import core.http.ext.HttpServerResponse;
 import io.github.fzdwx.lambada.Collections;
 import io.github.fzdwx.lambada.Lang;
-import io.github.fzdwx.lambada.lang.NvMap;
+import io.github.fzdwx.lambada.lang.KvMap;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufAllocator;
 import io.netty.buffer.Unpooled;
@@ -85,6 +85,7 @@ public final class Netty {
     private static final String COMMA_STRING = String.valueOf(COMMA);
     public static GenericFutureListener<? extends Future<? super Void>> close = ChannelFutureListener.CLOSE;
     public static Map<Charset, HttpDataFactory> HTTP_DATA_FACTORY_CACHE = Collections.map();
+    public static String localhost = "localhost";
 
     public static String read(ByteBuf buf) {
         if (buf == null) return Lang.EMPTY_STR;
@@ -143,11 +144,11 @@ public final class Netty {
         }
     }
 
-    public static NvMap params(final String uri) {
+    public static KvMap params(final String uri) {
         QueryStringDecoder queryStringDecoder = new QueryStringDecoder(uri);
         final Map<String, List<String>> parameters = queryStringDecoder.parameters();
 
-        NvMap params = NvMap.create();
+        KvMap params = KvMap.create();
         if (!parameters.isEmpty()) {
             for (Map.Entry<String, List<String>> entry : parameters.entrySet()) {
                 params.add(entry.getKey(), entry.getValue());

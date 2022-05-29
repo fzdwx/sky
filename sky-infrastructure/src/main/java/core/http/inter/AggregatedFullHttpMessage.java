@@ -11,7 +11,7 @@ import io.netty.handler.codec.http.HttpVersion;
 public abstract class AggregatedFullHttpMessage implements FullHttpMessage {
 
     protected final HttpRequest message;
-    private final ByteBuf content;
+    protected ByteBuf content;
     private HttpHeaders trailingHeaders;
 
     AggregatedFullHttpMessage(HttpRequest message, ByteBuf content, HttpHeaders trailingHeaders) {
@@ -28,10 +28,6 @@ public abstract class AggregatedFullHttpMessage implements FullHttpMessage {
         } else {
             return trailingHeaders;
         }
-    }
-
-    void setTrailingHeaders(HttpHeaders trailingHeaders) {
-        this.trailingHeaders = trailingHeaders;
     }
 
     @Override
@@ -81,30 +77,6 @@ public abstract class AggregatedFullHttpMessage implements FullHttpMessage {
     }
 
     @Override
-    public FullHttpMessage retain() {
-        content.retain();
-        return this;
-    }
-
-    @Override
-    public FullHttpMessage retain(int increment) {
-        content.retain(increment);
-        return this;
-    }
-
-    @Override
-    public FullHttpMessage touch(Object hint) {
-        content.touch(hint);
-        return this;
-    }
-
-    @Override
-    public FullHttpMessage touch() {
-        content.touch();
-        return this;
-    }
-
-    @Override
     public boolean release() {
         return content.release();
     }
@@ -122,4 +94,32 @@ public abstract class AggregatedFullHttpMessage implements FullHttpMessage {
 
     @Override
     public abstract FullHttpMessage retainedDuplicate();
+
+    @Override
+    public FullHttpMessage retain(int increment) {
+        content.retain(increment);
+        return this;
+    }
+
+    @Override
+    public FullHttpMessage retain() {
+        content.retain();
+        return this;
+    }
+
+    @Override
+    public FullHttpMessage touch() {
+        content.touch();
+        return this;
+    }
+
+    @Override
+    public FullHttpMessage touch(Object hint) {
+        content.touch(hint);
+        return this;
+    }
+
+    void setTrailingHeaders(HttpHeaders trailingHeaders) {
+        this.trailingHeaders = trailingHeaders;
+    }
 }

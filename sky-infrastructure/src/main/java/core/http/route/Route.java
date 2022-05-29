@@ -1,7 +1,7 @@
 package core.http.route;
 
 import core.http.ext.HttpHandler;
-import io.github.fzdwx.lambada.lang.NvMap;
+import io.github.fzdwx.lambada.lang.KvMap;
 
 /**
  * @author <a href="mailto:likelovec@gmail.com">fzdwx</a>
@@ -26,7 +26,7 @@ public class Route implements io.github.fzdwx.lambada.http.Route<HttpHandler> {
     }
 
     @Override
-    public NvMap extract(final String path) {
+    public KvMap extract(final String path) {
         return source.extract(path);
     }
 

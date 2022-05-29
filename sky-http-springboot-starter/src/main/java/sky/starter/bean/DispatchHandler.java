@@ -6,7 +6,7 @@ import core.http.ext.HttpHandler;
 import io.github.fzdwx.lambada.http.HttpPath;
 import io.github.fzdwx.lambada.http.Route;
 import io.github.fzdwx.lambada.http.Router;
-import io.github.fzdwx.lambada.lang.NvMap;
+import io.github.fzdwx.lambada.lang.KvMap;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
@@ -100,7 +100,7 @@ public class DispatchHandler implements HttpHandler {
         }
 
         final Object[] arguments = new Object[methodParameters.length];
-        final NvMap pathVal = route.extract(request.uri());
+        final KvMap pathVal = route.extract(request.uri());
 
         for (int i = 0; i < methodParameters.length; i++) {
             final SkyHttpMethod.SkyHttpMethodParameter parameter = methodParameters[i];

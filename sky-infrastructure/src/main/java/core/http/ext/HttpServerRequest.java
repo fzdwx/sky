@@ -5,21 +5,20 @@ import core.http.inter.AggHttpServerRequest;
 import core.http.inter.HttpServerRequestImpl;
 import core.serializer.JsonSerializer;
 import core.socket.WebSocket;
-import io.github.fzdwx.lambada.Seq;
 import io.github.fzdwx.lambada.anno.NonNull;
 import io.github.fzdwx.lambada.anno.Nullable;
 import io.github.fzdwx.lambada.fun.Hooks;
 import io.github.fzdwx.lambada.http.HttpMethod;
-import io.github.fzdwx.lambada.lang.NvMap;
+import io.github.fzdwx.lambada.lang.KvMap;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.http.HttpRequest;
 import io.netty.handler.codec.http.HttpVersion;
-import io.netty.handler.codec.http.multipart.Attribute;
 import io.netty.handler.codec.http.multipart.FileUpload;
 import util.Netty;
 
 import java.net.SocketAddress;
+import java.util.Collection;
 
 /**
  * http request.
@@ -40,9 +39,9 @@ public interface HttpServerRequest {
 
     HttpVersion version();
 
-    Headers header();
+    Headers headers();
 
-    NvMap params();
+    KvMap params();
 
     boolean ssl();
 
@@ -53,28 +52,34 @@ public interface HttpServerRequest {
         return this;
     }
 
-    default HttpServerRequest readFiles(Hooks<Seq<FileUpload>> hooks) {
+    default HttpServerRequest readFiles(Hooks<Collection<FileUpload>> hooks) {
         hooks.call(readFiles());
 
         return this;
     }
 
+    /**
+     * read body,maybe null.
+     */
     @Nullable
-    ByteBuf readJson();
+    ByteBuf body();
 
+    /**
+     * read body as string,never null.
+     */
     @NonNull
-    default String readJsonString() {
-        return Netty.read(readJson());
+    default String bodyToString() {
+        return Netty.read(body());
     }
 
     @Nullable
-    Attribute readBody(String key);
+    KvMap formAttributes();
 
     @Nullable
     FileUpload readFile(String key);
 
     @Nullable
-    Seq<FileUpload> readFiles();
+    Collection<FileUpload> readFiles();
 
     /**
      * request uri

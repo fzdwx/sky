@@ -7,11 +7,11 @@ import core.serializer.JsonSerializer;
 import core.socket.Socket;
 import core.socket.WebSocket;
 import core.socket.WebSocketHandler;
+import io.github.fzdwx.lambada.Collections;
 import io.github.fzdwx.lambada.Lang;
-import io.github.fzdwx.lambada.Seq;
 import io.github.fzdwx.lambada.fun.Hooks;
 import io.github.fzdwx.lambada.http.HttpMethod;
-import io.github.fzdwx.lambada.lang.NvMap;
+import io.github.fzdwx.lambada.lang.KvMap;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
@@ -29,7 +29,10 @@ import io.netty.handler.codec.http.websocketx.WebSocketServerHandshaker;
 import io.netty.handler.codec.http.websocketx.WebSocketServerHandshakerFactory;
 import util.Netty;
 
+import java.io.IOException;
 import java.net.SocketAddress;
+import java.util.Collection;
+import java.util.Map;
 
 import static io.netty.handler.codec.http.websocketx.WebSocketServerHandshakerFactory.sendUnsupportedVersionResponse;
 
@@ -53,7 +56,9 @@ public class HttpServerRequestImpl implements HttpServerRequest {
     private HttpMethod methodType;
     private String path;
     private InterfaceHttpPostRequestDecoder bodyDecoder;
-    private NvMap params;
+    private KvMap params;
+    private KvMap formAttributes;
+    private Map<String, FileUpload> uploadFiles;
     private boolean websocketFlag;
 
     public HttpServerRequestImpl(final ChannelHandlerContext ctx,
@@ -63,7 +68,7 @@ public class HttpServerRequestImpl implements HttpServerRequest {
         this.ctx = ctx;
         this.channel = ctx.channel();
         this.nettyRequest = msg;
-        this.headers = msg.header();
+        this.headers = msg.headers();
         this.ssl = ssl;
         this.serializer = serializer;
         this.bodyDecoder = msg.bodyDecoder();
@@ -101,12 +106,12 @@ public class HttpServerRequestImpl implements HttpServerRequest {
     }
 
     @Override
-    public Headers header() {
+    public Headers headers() {
         return headers;
     }
 
     @Override
-    public NvMap params() {
+    public KvMap params() {
         if (params == null) {
             params = Netty.params(uri());
         }
@@ -125,31 +130,27 @@ public class HttpServerRequestImpl implements HttpServerRequest {
     }
 
     @Override
-    public ByteBuf readJson() {
+    public ByteBuf body() {
         return this.nettyRequest.content();
     }
 
     @Override
-    public Attribute readBody(final String key) {
-        if (bodyDecoder == null) return null;
-
-        return (Attribute) bodyDecoder.getBodyHttpData(key);
+    public KvMap formAttributes() {
+        initFormAttributes();
+        return formAttributes;
     }
 
     @Override
     public FileUpload readFile(String key) {
-        if (bodyDecoder == null) return null;
+        initFormAttributes();
 
-        return (FileUpload) bodyDecoder.getBodyHttpData(key);
+        return uploadFiles.get(key);
     }
 
     @Override
-    public Seq<FileUpload> readFiles() {
-        if (bodyDecoder == null) return null;
-
-        return Seq.of(bodyDecoder.getBodyHttpDatas())
-                .filter(d -> d.getHttpDataType().equals(InterfaceHttpData.HttpDataType.FileUpload))
-                .typeOf(FileUpload.class);
+    public Collection<FileUpload> readFiles() {
+        initFormAttributes();
+        return uploadFiles.values();
     }
 
     @Override
@@ -252,6 +253,38 @@ public class HttpServerRequestImpl implements HttpServerRequest {
         //         ", httpVersion=" + this.request.protocolVersion() +
         //         ", headers=" + this.headers +
         //         '}';
+    }
+
+    private void initFormAttributes() {
+        if (this.formAttributes == null) {
+            this.formAttributes = KvMap.create();
+        }
+        if (this.uploadFiles == null) {
+            this.uploadFiles = Collections.map();
+        }
+        if (this.bodyDecoder == null) {
+            return;
+        }
+
+        while (this.bodyDecoder.hasNext()) {
+            final InterfaceHttpData next = this.bodyDecoder.next();
+            if (next instanceof Attribute) {
+                final Attribute attribute = (Attribute) next;
+                try {
+                    formAttributes.put(next.getName(), attribute.getValue());
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                } finally {
+                    attribute.release();
+                }
+            }
+
+            if (next instanceof FileUpload) {
+                final FileUpload fileUpload = (FileUpload) next;
+                uploadFiles.put(fileUpload.getName(), fileUpload);
+            }
+        }
+
     }
 
     private static String getWebSocketLocation(final WebSocket ws, final HttpRequest req) {

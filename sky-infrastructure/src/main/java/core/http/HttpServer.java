@@ -49,12 +49,20 @@ public class HttpServer implements Transport<HttpServer> {
 
     private HttpServer() {
         this.server = new Server();
+
+        this.serverOptions(ChannelOption.SO_BACKLOG, 1024);
+        this.childOptions(ChannelOption.TCP_NODELAY, true);
+        this.childOptions(ChannelOption.SO_KEEPALIVE, true);
+        this.childOptions(ChannelOption.SO_REUSEADDR, true);
     }
 
     private HttpServer(Server server) {
         this.server = server;
     }
 
+    /**
+     * use {@link Server}.
+     */
     public static HttpServer create() {
         return new HttpServer();
     }
@@ -78,14 +86,11 @@ public class HttpServer implements Transport<HttpServer> {
      * start server
      */
     public Disposer listen(final int port) {
-        return this.listen(new InetSocketAddress("localhost", port));
+        return this.listen(new InetSocketAddress(Netty.localhost, port));
     }
 
     @Override
     public Disposer listen(final InetSocketAddress address) {
-        this.serverOptions(ChannelOption.SO_BACKLOG, 1024);
-        this.childOptions(ChannelOption.TCP_NODELAY, true);
-        this.childOptions(ChannelOption.SO_KEEPALIVE, true);
         if (this.maxContentLength == 0) {
             this.maxContentLength = Netty.DEFAULT_MAX_CONTENT_LENGTH;
         }

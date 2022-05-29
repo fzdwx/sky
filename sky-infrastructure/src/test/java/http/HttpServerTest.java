@@ -25,7 +25,12 @@ class HttpServerTest {
         HttpServer.create()
                 .requestHandler(((request, response) -> {
                     System.out.println(request.remoteAddress().toString());
-                    // request.params()
+
+
+                    final FileUpload file = request.readFile("file");
+                    final FileUpload f2 = request.readFile("file");
+                    System.out.println(file);
+                    System.out.println(request.bodyToString());
                     response.end();
                 }))
                 .listen(8888)
@@ -75,7 +80,7 @@ class HttpServerTest {
 
         // 动态添加路由
         router.POST("/d", (req, res) -> {
-            final JSONObject jsonObject = JSON.parseObject(req.readJsonString());
+            final JSONObject jsonObject = JSON.parseObject(req.bodyToString());
 
             final String path = jsonObject.getString("path");
             final String text = jsonObject.getString("text");

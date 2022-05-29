@@ -4,10 +4,9 @@ import core.http.Headers;
 import core.http.ext.HttpServerRequest;
 import core.serializer.JsonSerializer;
 import core.socket.WebSocket;
-import io.github.fzdwx.lambada.Seq;
 import io.github.fzdwx.lambada.fun.Hooks;
 import io.github.fzdwx.lambada.http.HttpMethod;
-import io.github.fzdwx.lambada.lang.NvMap;
+import io.github.fzdwx.lambada.lang.KvMap;
 import io.netty.buffer.ByteBuf;
 import io.netty.handler.codec.http.DefaultFullHttpRequest;
 import io.netty.handler.codec.http.FullHttpRequest;
@@ -15,8 +14,6 @@ import io.netty.handler.codec.http.HttpContent;
 import io.netty.handler.codec.http.HttpHeaderNames;
 import io.netty.handler.codec.http.HttpRequest;
 import io.netty.handler.codec.http.HttpVersion;
-import io.netty.handler.codec.http.LastHttpContent;
-import io.netty.handler.codec.http.multipart.Attribute;
 import io.netty.handler.codec.http.multipart.FileUpload;
 import io.netty.handler.codec.http.multipart.HttpDataFactory;
 import io.netty.handler.codec.http.multipart.HttpPostMultipartRequestDecoder;
@@ -27,6 +24,7 @@ import util.Netty;
 
 import java.net.SocketAddress;
 import java.nio.charset.Charset;
+import java.util.Collection;
 import java.util.function.Supplier;
 
 /**
@@ -37,9 +35,9 @@ import java.util.function.Supplier;
  */
 public class AggHttpServerRequest extends AggregatedFullHttpMessage implements HttpServerRequest, FullHttpRequest {
 
+    private final Headers headers;
     private boolean multipartFlag;
     private boolean formUrlEncoderFlag = false;
-    private Headers headers;
     private volatile InterfaceHttpPostRequestDecoder postRequestDecoder;
     private final Supplier<InterfaceHttpPostRequestDecoder> postRequestDecoderSupplier = () -> {
         if (!multipartFlag && !formUrlEncoderFlag) {
@@ -68,19 +66,25 @@ public class AggHttpServerRequest extends AggregatedFullHttpMessage implements H
 
     public AggHttpServerRequest(final HttpRequest nettyRequest, ByteBuf content) {
         super(nettyRequest, content, null);
+
         this.multipartFlag = HttpPostRequestDecoder.isMultipart(nettyRequest);
         if (!this.multipartFlag) {
             String contentType = this.contentType();
             this.formUrlEncoderFlag = contentType != null && Netty.isFormUrlEncoder(contentType.toLowerCase());
         }
+
         this.headers = new Headers(nettyRequest.headers());
     }
 
     public void offer(HttpContent httpContent) {
-        if (httpContent instanceof LastHttpContent && this.postRequestDecoder == null) {
-            return;
+        if (multipartFlag || formUrlEncoderFlag) {
+
+            postRequestDecoderSupplier.get().offer(httpContent);
+            httpContent.content().release();
+
+        } else {
+            offerInter(httpContent);
         }
-        postRequestDecoderSupplier.get().offer(httpContent);
     }
 
     @Override
@@ -113,12 +117,7 @@ public class AggHttpServerRequest extends AggregatedFullHttpMessage implements H
     }
 
     @Override
-    public Headers header() {
-        return headers;
-    }
-
-    @Override
-    public NvMap params() {
+    public KvMap params() {
         return null;
     }
 
@@ -138,22 +137,17 @@ public class AggHttpServerRequest extends AggregatedFullHttpMessage implements H
     }
 
     @Override
-    public HttpServerRequest readFiles(final Hooks<Seq<FileUpload>> hooks) {
+    public HttpServerRequest readFiles(final Hooks<Collection<FileUpload>> hooks) {
         return HttpServerRequest.super.readFiles(hooks);
     }
 
     @Override
-    public ByteBuf readJson() {
+    public ByteBuf body() {
         return null;
     }
 
     @Override
-    public String readJsonString() {
-        return HttpServerRequest.super.readJsonString();
-    }
-
-    @Override
-    public Attribute readBody(final String key) {
+    public KvMap formAttributes() {
         return null;
     }
 
@@ -163,7 +157,7 @@ public class AggHttpServerRequest extends AggregatedFullHttpMessage implements H
     }
 
     @Override
-    public Seq<FileUpload> readFiles() {
+    public Collection<FileUpload> readFiles() {
         return null;
     }
 
@@ -204,8 +198,7 @@ public class AggHttpServerRequest extends AggregatedFullHttpMessage implements H
 
     @Override
     public FullHttpRequest replace(ByteBuf content) {
-        DefaultFullHttpRequest dup = new DefaultFullHttpRequest(protocolVersion(), method(), uri(), content,
-                headers().copy(), trailingHeaders().copy());
+        DefaultFullHttpRequest dup = new DefaultFullHttpRequest(protocolVersion(), method(), uri(), content, headers().copy(), trailingHeaders().copy());
         dup.setDecoderResult(decoderResult());
         return dup;
     }
@@ -244,27 +237,8 @@ public class AggHttpServerRequest extends AggregatedFullHttpMessage implements H
     }
 
     @Override
-    public FullHttpRequest retain() {
-        super.retain();
-        return this;
-    }
-
-    @Override
-    public FullHttpRequest retain(int increment) {
-        super.retain(increment);
-        return this;
-    }
-
-    @Override
-    public FullHttpRequest touch(Object hint) {
-        super.touch(hint);
-        return this;
-    }
-
-    @Override
-    public FullHttpRequest touch() {
-        super.touch();
-        return this;
+    public Headers headers() {
+        return headers;
     }
 
     @Override
@@ -283,11 +257,46 @@ public class AggHttpServerRequest extends AggregatedFullHttpMessage implements H
     }
 
     @Override
+    public FullHttpRequest retain(int increment) {
+        super.retain(increment);
+        return this;
+    }
+
+    @Override
+    public FullHttpRequest retain() {
+        super.retain();
+        return this;
+    }
+
+    @Override
+    public FullHttpRequest touch() {
+        super.touch();
+        return this;
+    }
+
+    @Override
+    public FullHttpRequest touch(Object hint) {
+        super.touch(hint);
+        return this;
+    }
+
+    @Override
     public String toString() {
         return Netty.appendFullRequest(new StringBuilder(256), this).toString();
     }
 
     public InterfaceHttpPostRequestDecoder bodyDecoder() {
         return this.postRequestDecoder;
+    }
+
+    private void offerInter(final HttpContent httpContent) {
+        final ByteBuf buf = httpContent.content();
+        if (content == null) {
+            content = buf;
+            return;
+        }
+
+        content.writeBytes(buf);
+        buf.release();
     }
 }

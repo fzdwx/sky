@@ -103,6 +103,7 @@ public class BodyHandler extends ChannelInboundHandlerAdapter {
     public void channelRead(@NotNull final ChannelHandlerContext ctx, @NotNull final Object msg) throws Exception {
         if (!(msg instanceof HttpObject)) {
             ReferenceCountUtil.release(msg);
+            return;
         }
 
         if (msg instanceof DefaultHttpRequest) {
@@ -129,6 +130,7 @@ public class BodyHandler extends ChannelInboundHandlerAdapter {
             if (currentRequest == null) {
                 // it is possible that a TooLongFrameException was already thrown but we can still discard data
                 // until the begging of the next request/response.
+                // ReferenceCountUtil.release(msg);
                 return;
             }
 

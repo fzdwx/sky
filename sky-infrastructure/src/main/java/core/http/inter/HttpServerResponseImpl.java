@@ -106,7 +106,7 @@ public class HttpServerResponseImpl extends ChannelOutBound implements HttpServe
         this.headers = new Headers(new DefaultHttpHeaders());
         this.version = httpRequest.version();
         this.status = HttpResponseStatus.OK;
-        this.keepAlive = (version == HttpVersion.HTTP_1_1 && !httpRequest.header().contains(HttpHeaderNames.CONNECTION, HttpHeaderValues.CLOSE, true)) || (version == HttpVersion.HTTP_1_0 && httpRequest.header().contains(HttpHeaderNames.CONNECTION, HttpHeaderValues.KEEP_ALIVE, true));
+        this.keepAlive = (version == HttpVersion.HTTP_1_1 && !httpRequest.headers().contains(HttpHeaderNames.CONNECTION, HttpHeaderValues.CLOSE, true)) || (version == HttpVersion.HTTP_1_0 && httpRequest.headers().contains(HttpHeaderNames.CONNECTION, HttpHeaderValues.KEEP_ALIVE, true));
         this.head = httpRequest.methodType() == HttpMethod.HEAD;
         this.serializer = httpRequest.serializer();
     }

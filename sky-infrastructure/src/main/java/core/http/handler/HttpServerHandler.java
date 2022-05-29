@@ -40,10 +40,12 @@ public class HttpServerHandler extends ChannelInboundHandlerAdapter {
     public void channelInactive(@NotNull final ChannelHandlerContext ctx) throws Exception {
         final HttpServerRequest request = ctx.channel().attr(Netty.REQUEST_KEY).getAndSet(null);
         final HttpServerResponse response = ctx.channel().attr(Netty.RESPONSE_KEY).getAndSet(null);
-        if (request != null && response != null) {
+
+        if (request != null) {
             log.debug("http server handler channelInactive and destroy request and response");
             request.destroy();
         }
+
     }
 
     @Override
@@ -64,13 +66,18 @@ public class HttpServerHandler extends ChannelInboundHandlerAdapter {
         log.debug("http server handler exceptionCaught: {}", cause.getMessage(), cause);
         final HttpServerRequest request = ctx.channel().attr(Netty.REQUEST_KEY).getAndSet(null);
         final HttpServerResponse response = ctx.channel().attr(Netty.RESPONSE_KEY).getAndSet(null);
-        if (request != null && response != null) {
-            log.debug("http server handler exceptionCaught and destroy request and response");
-            exceptionHandler.handler(request, response, cause);
-            request.destroy();
-        } else {
+        if (request == null) {
             ctx.writeAndFlush(new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.INTERNAL_SERVER_ERROR, Netty.wrap(ctx.alloc(), cause.getMessage())))
                     .addListener(Netty.close);
+        } else {
+            log.debug("http server handler exceptionCaught and destroy request and response");
+
+            if (response != null) {
+                exceptionHandler.handler(request, response, cause);
+                request.destroy();
+            }
+
+            request.destroy();
         }
     }
 
