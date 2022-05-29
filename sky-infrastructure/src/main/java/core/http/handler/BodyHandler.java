@@ -2,9 +2,7 @@ package core.http.handler;
 
 import core.http.inter.AggHttpServerRequest;
 import io.netty.buffer.ByteBuf;
-import io.netty.buffer.CompositeByteBuf;
 import io.netty.buffer.Unpooled;
-import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
@@ -29,7 +27,6 @@ import util.Netty;
 import static com.google.common.net.HttpHeaders.EXPECT;
 import static io.netty.handler.codec.http.HttpHeaderNames.CONNECTION;
 import static io.netty.handler.codec.http.HttpHeaderNames.CONTENT_LENGTH;
-import static util.Netty.getContentLength;
 
 /**
  * content aggregation(parse data while reading)
@@ -48,6 +45,17 @@ public class BodyHandler extends ChannelInboundHandlerAdapter {
             new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.CONTINUE, Unpooled.EMPTY_BUFFER);
     private static final FullHttpResponse TOO_LARGE = new DefaultFullHttpResponse(
             HttpVersion.HTTP_1_1, HttpResponseStatus.REQUEST_ENTITY_TOO_LARGE, Unpooled.EMPTY_BUFFER);
+    private static final int DEFAULT_INITIAL_BODY_BUFFER_SIZE = 1024; //bytes
+    private static final int MAX_PREALLOCATED_BODY_BUFFER_BYTES = 65535;
+    /**
+     * Default value of whether to pre-allocate the body buffer size according to the content-length HTTP request header
+     */
+    public static boolean isPreallocateBodyBuffer = false;
+    /**
+     * Default max size for a request body = {@code -1} means unlimited
+     * 请求正文的默认最大大小 = -1表示无限制
+     */
+    public static long DEFAULT_BODY_LIMIT = -1;
 
     static {
         EXPECTATION_FAILED.headers().set(CONTENT_LENGTH, 0);
@@ -114,7 +122,7 @@ public class BodyHandler extends ChannelInboundHandlerAdapter {
                 return;
             }
 
-            CompositeByteBuf content = ctx.alloc().compositeBuffer();
+            ByteBuf content = initContentBuffer(ctx, Netty.getContentLength(nettyRequest, -1L));
 
             currentRequest = new AggHttpServerRequest(nettyRequest, content);
         } else if (msg instanceof HttpContent) {
@@ -160,10 +168,32 @@ public class BodyHandler extends ChannelInboundHandlerAdapter {
 
     protected boolean isContentLengthInvalid(HttpMessage start) {
         try {
-            return getContentLength(start, -1L) > maxContentLength;
+            return Netty.getContentLength(start, -1L) > maxContentLength;
         } catch (final NumberFormatException e) {
             return false;
         }
+    }
+
+    private ByteBuf initContentBuffer(final ChannelHandlerContext ctx, final long contentLength) {
+        if (contentLength == -1L) {
+            return ctx.alloc().compositeBuffer();
+        }
+
+        int initialBodyBufferSize;
+        if (contentLength < 0) {
+            initialBodyBufferSize = DEFAULT_INITIAL_BODY_BUFFER_SIZE;
+        } else if (contentLength > MAX_PREALLOCATED_BODY_BUFFER_BYTES) {
+            initialBodyBufferSize = MAX_PREALLOCATED_BODY_BUFFER_BYTES;
+        } else {
+            initialBodyBufferSize = (int) contentLength;
+        }
+
+        if (DEFAULT_BODY_LIMIT != -1) {
+            initialBodyBufferSize = (int) Math.min(initialBodyBufferSize, DEFAULT_BODY_LIMIT);
+        }
+
+
+        return ctx.alloc().compositeBuffer(initialBodyBufferSize);
     }
 
     private void releaseCurrentMessage() {
@@ -184,13 +214,10 @@ public class BodyHandler extends ChannelInboundHandlerAdapter {
     private void handlerContentLengthInvalid(final @NotNull ChannelHandlerContext ctx, final @NotNull Object msg) {
         currentRequest = null;
         try {
-            ctx.writeAndFlush(TOO_LARGE.retainedDuplicate()).addListener(new ChannelFutureListener() {
-                @Override
-                public void operationComplete(ChannelFuture future) throws Exception {
-                    if (!future.isSuccess()) {
-                        log.debug("Failed to send a 413 Request Entity Too Large.", future.cause());
-                        ctx.close();
-                    }
+            ctx.writeAndFlush(TOO_LARGE.retainedDuplicate()).addListener((ChannelFutureListener) future -> {
+                if (!future.isSuccess()) {
+                    log.debug("Failed to send a 413 Request Entity Too Large.", future.cause());
+                    ctx.close();
                 }
             });
         } finally {
@@ -210,7 +237,7 @@ public class BodyHandler extends ChannelInboundHandlerAdapter {
             response = EXPECTATION_FAILED.retainedDuplicate();
         } else if (HttpUtil.is100ContinueExpected(start)) {
             // if the request contains 100-continue but the content-length is too large, we return 413
-            if (getContentLength(start, -1L) <= maxContentLength) {
+            if (Netty.getContentLength(start, -1L) <= maxContentLength) {
                 response = CONTINUE.retainedDuplicate();
             } else {
                 ctx.fireUserEventTriggered(HttpExpectationFailedEvent.INSTANCE);

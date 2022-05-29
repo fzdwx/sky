@@ -39,7 +39,7 @@ public interface Transport<IMPL> {
 
     IMPL jsonSerializer(JsonSerializer serializer);
 
-    IMPL addSocketChannelHooks(Hooks<SocketChannel> hooks);
+    IMPL childHandler(Hooks<SocketChannel> hooks);
 
     ChannelFuture dispose();
 

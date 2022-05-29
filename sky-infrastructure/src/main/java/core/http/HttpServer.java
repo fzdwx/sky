@@ -99,7 +99,7 @@ public class HttpServer implements Transport<HttpServer> {
             }
         });
 
-        this.server.addSocketChannelHooks(channel -> {
+        this.server.childHandler(channel -> {
             channel.pipeline()
                     .addLast(new HttpServerCodec())
                     .addLast(new HttpContentDecompressor(false))
@@ -152,8 +152,8 @@ public class HttpServer implements Transport<HttpServer> {
     }
 
     @Override
-    public HttpServer addSocketChannelHooks(final Hooks<SocketChannel> hooks) {
-        this.server.addSocketChannelHooks(hooks);
+    public HttpServer childHandler(final Hooks<SocketChannel> hooks) {
+        this.server.childHandler(hooks);
         return this;
     }
 

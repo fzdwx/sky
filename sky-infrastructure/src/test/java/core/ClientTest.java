@@ -21,7 +21,7 @@ class ClientTest {
         new Thread(() -> {
             final Client c = new Client()
                     .withOptions(ChannelOption.TCP_NODELAY, true)
-                    .addSocketChannelHooks(ch -> {
+                    .childHandler(ch -> {
                         ch.pipeline().addLast(new ChannelInboundHandlerAdapter() {
 
                             @Override

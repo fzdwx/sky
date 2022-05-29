@@ -27,9 +27,9 @@ public class HttpServerHandler extends ChannelInboundHandlerAdapter {
             final HttpExceptionHandler exceptionHandler,
             final Boolean ssl,
             final JsonSerializer serializer) {
+        this.ssl = ssl;
         this.httpHandler = httpHandler;
         this.exceptionHandler = HttpExceptionHandler.defaultExceptionHandler(exceptionHandler);
-        this.ssl = ssl;
         this.serializer = serializer == null ? JsonSerializer.codec : serializer;
     }
 

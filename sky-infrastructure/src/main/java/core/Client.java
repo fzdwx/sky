@@ -136,7 +136,7 @@ public class Client implements Transport<Client> {
     }
 
     @Override
-    public Client addSocketChannelHooks(final Hooks<SocketChannel> hooks) {
+    public Client childHandler(final Hooks<SocketChannel> hooks) {
         checkStart();
         this.socketChannelInitHooks = hooks;
         return this;

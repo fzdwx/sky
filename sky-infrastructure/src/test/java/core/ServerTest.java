@@ -13,7 +13,7 @@ class ServerTest {
     void test_server() {
         new Server()
                 .log(LogLevel.INFO)
-                .addSocketChannelHooks(ch -> {
+                .childHandler(ch -> {
                     // add your handler
                 })
                 .listen(8888)

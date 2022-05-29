@@ -50,9 +50,9 @@ public class Server implements core.Transport<Server> {
     protected final Map<ChannelOption<?>, Object> childOptions = new HashMap<>();
     protected final List<ChannelHandler> serverHandlers = new ArrayList<>();
     protected final List<Hooks<SocketChannel>> scInit = new ArrayList<>();
+    protected final boolean enableEpoll;
     protected Map<AttributeKey<?>, Object> attrMap = Collections.map();
     protected Map<AttributeKey<?>, Object> childAttrMap = Collections.map();
-    protected final boolean enableEpoll;
     protected Class<? extends ServerChannel> channelType;
     protected Hooks<ChannelFuture> afterListen;
     protected Hooks<Server> onSuccessHooks;
@@ -136,122 +136,6 @@ public class Server implements core.Transport<Server> {
     }
 
     @Override
-    public ChannelFuture dispose() {
-        return startFuture.channel().closeFuture().syncUninterruptibly();
-    }
-
-    @Override
-    public void shutdown() {
-        checkNotStart();
-
-        close().addListener(f -> {
-            if (!this.worker.isShutdown()) {
-                this.worker.shutdownGracefully();
-            }
-            if (!this.boss.isShutdown()) {
-                this.boss.shutdownGracefully();
-            }
-
-            onShutDownHooks.call((ChannelFutureListener) f);
-        });
-    }
-
-    @Override
-    public ChannelFuture close() {
-        return startFuture.channel().close();
-    }
-
-    public Server boss(final int bossCount) {
-        checkStart();
-        this.boss = createBoss(bossCount);
-        return impl();
-    }
-
-    @Override
-    public Server worker(final int worker) {
-        checkStart();
-        this.worker = createWorker(worker);
-        return impl();
-    }
-
-    @Override
-    public Server log(final LoggingHandler loggingHandler) {
-        checkStart();
-        this.loggingHandler = loggingHandler;
-        return impl();
-    }
-
-    public Server ssl(final SslHandler sslHandler) {
-        checkStart();
-        this.sslHandler = sslHandler;
-        this.sslFlag = true;
-        return impl();
-    }
-
-    public Server channelType(Class<? extends ServerChannel> channelType) {
-        checkStart();
-        this.channelType = channelType;
-        return impl();
-    }
-
-    @Override
-    public Server jsonSerializer(final JsonSerializer serializer) {
-        checkStart();
-
-        this.serializer = serializer;
-        return impl();
-    }
-
-    public <T> Server serverOptions(ChannelOption<T> option, T t) {
-        checkStart();
-        serverOptions.put(option, t);
-        return this;
-    }
-
-    public <T> Server childOptions(ChannelOption<T> option, T t) {
-        checkStart();
-        childOptions.put(option, t);
-
-        return this;
-    }
-
-    public <T> Server attr(AttributeKey<T> key, T val) {
-        this.attrMap.put(key, val);
-        return this;
-    }
-
-    public <T> Server childAttr(AttributeKey<T> key, T val) {
-        this.childAttrMap.put(key, val);
-        return this;
-    }
-
-    public Server serverHandler(ChannelHandler handler) {
-        checkStart();
-        serverHandlers.add(handler);
-        return this;
-    }
-
-    @Override
-    public Server addSocketChannelHooks(Hooks<SocketChannel> hooks) {
-        Assert.nonNull(hooks, "socket channel init is null!");
-        checkStart();
-
-        scInit.add(hooks);
-
-        return impl();
-    }
-
-    @Override
-    public JsonSerializer jsonSerializer() {
-        return this.serializer;
-    }
-
-    @Override
-    public Server impl() {
-        return this;
-    }
-
-    @Override
     public Server afterListen(Hooks<ChannelFuture> hooks) {
         checkStart();
 
@@ -283,8 +167,124 @@ public class Server implements core.Transport<Server> {
     }
 
     @Override
+    public Server jsonSerializer(final JsonSerializer serializer) {
+        checkStart();
+
+        this.serializer = serializer;
+        return impl();
+    }
+
+    @Override
+    public Server childHandler(Hooks<SocketChannel> hooks) {
+        Assert.nonNull(hooks, "socket channel init is null!");
+        checkStart();
+
+        scInit.add(hooks);
+
+        return impl();
+    }
+
+    @Override
+    public ChannelFuture dispose() {
+        return startFuture.channel().closeFuture().syncUninterruptibly();
+    }
+
+    @Override
+    public void shutdown() {
+        checkNotStart();
+
+        close().addListener(f -> {
+            if (!this.worker.isShutdown()) {
+                this.worker.shutdownGracefully();
+            }
+            if (!this.boss.isShutdown()) {
+                this.boss.shutdownGracefully();
+            }
+
+            onShutDownHooks.call((ChannelFutureListener) f);
+        });
+    }
+
+    @Override
+    public ChannelFuture close() {
+        return startFuture.channel().close();
+    }
+
+    @Override
     public boolean ssl() {
         return this.sslFlag;
+    }
+
+    @Override
+    public JsonSerializer jsonSerializer() {
+        return this.serializer;
+    }
+
+    @Override
+    public Server impl() {
+        return this;
+    }
+
+    @Override
+    public Server worker(final int worker) {
+        checkStart();
+        this.worker = createWorker(worker);
+        return impl();
+    }
+
+    @Override
+    public Server log(final LoggingHandler loggingHandler) {
+        checkStart();
+        this.loggingHandler = loggingHandler;
+        return impl();
+    }
+
+    public Server boss(final int bossCount) {
+        checkStart();
+        this.boss = createBoss(bossCount);
+        return impl();
+    }
+
+    public Server ssl(final SslHandler sslHandler) {
+        checkStart();
+        this.sslHandler = sslHandler;
+        this.sslFlag = true;
+        return impl();
+    }
+
+    public Server channelType(Class<? extends ServerChannel> channelType) {
+        checkStart();
+        this.channelType = channelType;
+        return impl();
+    }
+
+    public <T> Server serverOptions(ChannelOption<T> option, T t) {
+        checkStart();
+        serverOptions.put(option, t);
+        return this;
+    }
+
+    public <T> Server childOptions(ChannelOption<T> option, T t) {
+        checkStart();
+        childOptions.put(option, t);
+
+        return this;
+    }
+
+    public <T> Server attr(AttributeKey<T> key, T val) {
+        this.attrMap.put(key, val);
+        return this;
+    }
+
+    public <T> Server childAttr(AttributeKey<T> key, T val) {
+        this.childAttrMap.put(key, val);
+        return this;
+    }
+
+    public Server serverHandler(ChannelHandler handler) {
+        checkStart();
+        serverHandlers.add(handler);
+        return this;
     }
 
     public int port() {
