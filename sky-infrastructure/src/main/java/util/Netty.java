@@ -783,6 +783,42 @@ public final class Netty {
         }
     }
 
+    public static String path(final String uri) {
+        if (uri.length() == 0) {
+            return "";
+        }
+        int i;
+        if (uri.charAt(0) == '/') {
+            i = 0;
+        } else {
+            i = uri.indexOf("://");
+            if (i == -1) {
+                i = 0;
+            } else {
+                i = uri.indexOf('/', i + 3);
+                if (i == -1) {
+                    // contains no /
+                    return "/";
+                }
+            }
+        }
+
+        int queryStart = uri.indexOf('?', i);
+        if (queryStart == -1) {
+            queryStart = uri.length();
+        }
+        return uri.substring(i, queryStart);
+    }
+
+    public static String query(final String uri) {
+        int i = uri.indexOf('?');
+        if (i == -1) {
+            return null;
+        } else {
+            return uri.substring(i + 1);
+        }
+    }
+
     static StringBuilder appendRequest(StringBuilder buf, HttpRequest req) {
         appendCommon(buf, req);
         appendInitialLine(buf, req);

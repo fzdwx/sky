@@ -87,6 +87,10 @@ public class AggHttpServerRequest extends AggregatedFullHttpMessage implements H
         }
     }
 
+    public InterfaceHttpPostRequestDecoder bodyDecoder() {
+        return this.postRequestDecoder;
+    }
+
     @Override
     public void destroy() {
         if (this.postRequestDecoder != null) {
@@ -168,6 +172,11 @@ public class AggHttpServerRequest extends AggregatedFullHttpMessage implements H
 
     @Override
     public String path() {
+        return null;
+    }
+
+    @Override
+    public String query() {
         return null;
     }
 
@@ -283,10 +292,6 @@ public class AggHttpServerRequest extends AggregatedFullHttpMessage implements H
     @Override
     public String toString() {
         return Netty.appendFullRequest(new StringBuilder(256), this).toString();
-    }
-
-    public InterfaceHttpPostRequestDecoder bodyDecoder() {
-        return this.postRequestDecoder;
     }
 
     private void offerInter(final HttpContent httpContent) {

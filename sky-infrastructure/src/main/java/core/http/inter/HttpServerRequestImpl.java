@@ -1,6 +1,5 @@
 package core.http.inter;
 
-import cn.hutool.core.util.StrUtil;
 import core.http.Headers;
 import core.http.ext.HttpServerRequest;
 import core.serializer.JsonSerializer;
@@ -55,6 +54,7 @@ public class HttpServerRequestImpl implements HttpServerRequest {
     private final boolean formUrlEncoderFlag;
     private HttpMethod methodType;
     private String path;
+    private String query;
     private InterfaceHttpPostRequestDecoder bodyDecoder;
     private KvMap params;
     private KvMap formAttributes;
@@ -163,10 +163,17 @@ public class HttpServerRequestImpl implements HttpServerRequest {
     @Override
     public String path() {
         if (this.path == null) {
-            final int endIndex = Netty.findPathEndIndex(uri());
-            this.path = StrUtil.sub(uri(), 0, endIndex);
+            this.path = Netty.path(uri());
         }
         return this.path;
+    }
+
+    @Override
+    public String query() {
+        if (this.query == null) {
+            this.query = Netty.query(uri());
+        }
+        return this.query;
     }
 
     @Override

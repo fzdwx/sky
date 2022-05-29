@@ -90,6 +90,8 @@ public interface HttpServerRequest {
 
     String path();
 
+    String query();
+
     /**
      * request type
      *
