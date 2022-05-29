@@ -1,16 +1,18 @@
 package core.http.ext;
 
+import core.http.Headers;
 import core.http.inter.AggHttpServerRequest;
 import core.http.inter.HttpServerRequestImpl;
 import core.serializer.JsonSerializer;
 import core.socket.WebSocket;
 import io.github.fzdwx.lambada.Seq;
+import io.github.fzdwx.lambada.anno.NonNull;
+import io.github.fzdwx.lambada.anno.Nullable;
 import io.github.fzdwx.lambada.fun.Hooks;
 import io.github.fzdwx.lambada.http.HttpMethod;
 import io.github.fzdwx.lambada.lang.NvMap;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
-import io.netty.handler.codec.http.HttpHeaders;
 import io.netty.handler.codec.http.HttpRequest;
 import io.netty.handler.codec.http.HttpVersion;
 import io.netty.handler.codec.http.multipart.Attribute;
@@ -38,7 +40,7 @@ public interface HttpServerRequest {
 
     HttpVersion version();
 
-    HttpHeaders headers();
+    Headers header();
 
     NvMap params();
 
@@ -57,16 +59,21 @@ public interface HttpServerRequest {
         return this;
     }
 
+    @Nullable
     ByteBuf readJson();
 
+    @NonNull
     default String readJsonString() {
         return Netty.read(readJson());
     }
 
+    @Nullable
     Attribute readBody(String key);
 
+    @Nullable
     FileUpload readFile(String key);
 
+    @Nullable
     Seq<FileUpload> readFiles();
 
     /**

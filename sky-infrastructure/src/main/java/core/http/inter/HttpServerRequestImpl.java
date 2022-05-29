@@ -1,6 +1,7 @@
 package core.http.inter;
 
 import cn.hutool.core.util.StrUtil;
+import core.http.Headers;
 import core.http.ext.HttpServerRequest;
 import core.serializer.JsonSerializer;
 import core.socket.Socket;
@@ -17,7 +18,6 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelPipeline;
 import io.netty.handler.codec.http.FullHttpRequest;
 import io.netty.handler.codec.http.HttpHeaderNames;
-import io.netty.handler.codec.http.HttpHeaders;
 import io.netty.handler.codec.http.HttpRequest;
 import io.netty.handler.codec.http.HttpVersion;
 import io.netty.handler.codec.http.multipart.Attribute;
@@ -47,15 +47,14 @@ public class HttpServerRequestImpl implements HttpServerRequest {
     private final FullHttpRequest nettyRequest;
     private final JsonSerializer serializer;
     private final boolean ssl;
+    private final Headers headers;
+    private final boolean multipartFlag;
+    private final boolean formUrlEncoderFlag;
     private HttpMethod methodType;
     private String path;
     private InterfaceHttpPostRequestDecoder bodyDecoder;
-    private boolean readBody;
     private NvMap params;
     private boolean websocketFlag;
-
-    private boolean multipartFlag;
-    private boolean formUrlEncoderFlag;
 
     public HttpServerRequestImpl(final ChannelHandlerContext ctx,
                                  final boolean ssl,
@@ -64,10 +63,10 @@ public class HttpServerRequestImpl implements HttpServerRequest {
         this.ctx = ctx;
         this.channel = ctx.channel();
         this.nettyRequest = msg;
+        this.headers = msg.header();
         this.ssl = ssl;
         this.serializer = serializer;
         this.bodyDecoder = msg.bodyDecoder();
-        this.readBody = true;
         this.multipartFlag = msg.multipart();
         this.formUrlEncoderFlag = msg.formUrlEncoder();
     }
@@ -102,8 +101,8 @@ public class HttpServerRequestImpl implements HttpServerRequest {
     }
 
     @Override
-    public HttpHeaders headers() {
-        return nettyRequest.headers();
+    public Headers header() {
+        return headers;
     }
 
     @Override
@@ -132,16 +131,22 @@ public class HttpServerRequestImpl implements HttpServerRequest {
 
     @Override
     public Attribute readBody(final String key) {
+        if (bodyDecoder == null) return null;
+
         return (Attribute) bodyDecoder.getBodyHttpData(key);
     }
 
     @Override
     public FileUpload readFile(String key) {
+        if (bodyDecoder == null) return null;
+
         return (FileUpload) bodyDecoder.getBodyHttpData(key);
     }
 
     @Override
     public Seq<FileUpload> readFiles() {
+        if (bodyDecoder == null) return null;
+
         return Seq.of(bodyDecoder.getBodyHttpDatas())
                 .filter(d -> d.getHttpDataType().equals(InterfaceHttpData.HttpDataType.FileUpload))
                 .typeOf(FileUpload.class);

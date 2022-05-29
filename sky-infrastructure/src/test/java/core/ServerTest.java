@@ -4,7 +4,7 @@ import io.netty.handler.logging.LogLevel;
 import org.junit.jupiter.api.Test;
 
 /**
- * @author <a href="mailto:likelovec@gmail.com">韦朕</a>
+ * @author <a href="mailto:likelovec@gmail.com">fzdwx</a>
  * @date 2022/5/6 15:44
  */
 class ServerTest {

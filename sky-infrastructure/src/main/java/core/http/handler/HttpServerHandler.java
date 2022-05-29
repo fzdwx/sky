@@ -8,7 +8,10 @@ import core.http.inter.AggHttpServerRequest;
 import core.serializer.JsonSerializer;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
+import io.netty.handler.codec.http.DefaultFullHttpResponse;
 import io.netty.handler.codec.http.FullHttpRequest;
+import io.netty.handler.codec.http.HttpResponseStatus;
+import io.netty.handler.codec.http.HttpVersion;
 import io.netty.util.ReferenceCountUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
@@ -58,13 +61,16 @@ public class HttpServerHandler extends ChannelInboundHandlerAdapter {
 
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
-        log.debug("http server handler exceptionCaught: {}", cause.getMessage());
+        log.debug("http server handler exceptionCaught: {}", cause.getMessage(), cause);
         final HttpServerRequest request = ctx.channel().attr(Netty.REQUEST_KEY).getAndSet(null);
         final HttpServerResponse response = ctx.channel().attr(Netty.RESPONSE_KEY).getAndSet(null);
         if (request != null && response != null) {
             log.debug("http server handler exceptionCaught and destroy request and response");
             exceptionHandler.handler(request, response, cause);
             request.destroy();
+        } else {
+            ctx.writeAndFlush(new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.INTERNAL_SERVER_ERROR, Netty.wrap(ctx.alloc(), cause.getMessage())))
+                    .addListener(Netty.close);
         }
     }
 

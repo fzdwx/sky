@@ -12,7 +12,7 @@ import io.netty.handler.logging.LoggingHandler;
 import java.net.InetSocketAddress;
 
 /**
- * @author <a href="mailto:likelovec@gmail.com">韦朕</a>
+ * @author <a href="mailto:likelovec@gmail.com">fzdwx</a>
  * @date 2022/5/6 14:34
  */
 public interface Transport<IMPL> extends Disposer {

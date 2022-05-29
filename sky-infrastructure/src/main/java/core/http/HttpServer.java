@@ -78,7 +78,7 @@ public class HttpServer implements Transport<HttpServer> {
      * start server
      */
     public Disposer listen(final int port) {
-        return this.listen(new InetSocketAddress(port));
+        return this.listen(new InetSocketAddress("localhost", port));
     }
 
     @Override
@@ -89,10 +89,11 @@ public class HttpServer implements Transport<HttpServer> {
         if (this.maxContentLength == 0) {
             this.maxContentLength = Netty.DEFAULT_MAX_CONTENT_LENGTH;
         }
+        final String serverOrigin = getServerOrigin(address);
 
         this.server.afterListen(f -> {
             if (f.isSuccess()) {
-                log.info(Console.cyan(Utils.PREFIX) + "HTTP server started Listen on " + scheme() + "://localhost:" + port());
+                log.info(Console.cyan(Utils.PREFIX) + "HTTP server started Listen on " + serverOrigin);
             }
 
             if (this.afterListenHooks != null) {
@@ -158,10 +159,6 @@ public class HttpServer implements Transport<HttpServer> {
         return this;
     }
 
-    public ChannelFuture dispose() {
-        return this.server.dispose();
-    }
-
     @Override
     public void shutdown() {
         this.server.shutdown();
@@ -205,6 +202,10 @@ public class HttpServer implements Transport<HttpServer> {
     public HttpServer log(final LoggingHandler loggingHandler) {
         this.server.log(loggingHandler);
         return this;
+    }
+
+    public ChannelFuture dispose() {
+        return this.server.dispose();
     }
 
     /**
@@ -288,5 +289,9 @@ public class HttpServer implements Transport<HttpServer> {
 
     public int port() {
         return this.server.port();
+    }
+
+    private String getServerOrigin(final InetSocketAddress address) {
+        return scheme() + "://" + address.getHostString() + ":" + address.getPort();
     }
 }

@@ -1,5 +1,6 @@
 package core.http.inter;
 
+import core.http.Headers;
 import core.http.ext.HttpServerRequest;
 import core.serializer.JsonSerializer;
 import core.socket.WebSocket;
@@ -12,7 +13,6 @@ import io.netty.handler.codec.http.DefaultFullHttpRequest;
 import io.netty.handler.codec.http.FullHttpRequest;
 import io.netty.handler.codec.http.HttpContent;
 import io.netty.handler.codec.http.HttpHeaderNames;
-import io.netty.handler.codec.http.HttpHeaders;
 import io.netty.handler.codec.http.HttpRequest;
 import io.netty.handler.codec.http.HttpVersion;
 import io.netty.handler.codec.http.LastHttpContent;
@@ -39,6 +39,7 @@ public class AggHttpServerRequest extends AggregatedFullHttpMessage implements H
 
     private boolean multipartFlag;
     private boolean formUrlEncoderFlag = false;
+    private Headers headers;
     private volatile InterfaceHttpPostRequestDecoder postRequestDecoder;
     private final Supplier<InterfaceHttpPostRequestDecoder> postRequestDecoderSupplier = () -> {
         if (!multipartFlag && !formUrlEncoderFlag) {
@@ -72,6 +73,7 @@ public class AggHttpServerRequest extends AggregatedFullHttpMessage implements H
             String contentType = this.contentType();
             this.formUrlEncoderFlag = contentType != null && Netty.isFormUrlEncoder(contentType.toLowerCase());
         }
+        this.headers = new Headers(nettyRequest.headers());
     }
 
     public void offer(HttpContent httpContent) {
@@ -108,6 +110,11 @@ public class AggHttpServerRequest extends AggregatedFullHttpMessage implements H
     @Override
     public HttpVersion version() {
         return this.message.protocolVersion();
+    }
+
+    @Override
+    public Headers header() {
+        return headers;
     }
 
     @Override
@@ -237,11 +244,6 @@ public class AggHttpServerRequest extends AggregatedFullHttpMessage implements H
     }
 
     @Override
-    public HttpHeaders headers() {
-        return this.message.headers();
-    }
-
-    @Override
     public FullHttpRequest retain() {
         super.retain();
         return this;
@@ -286,6 +288,6 @@ public class AggHttpServerRequest extends AggregatedFullHttpMessage implements H
     }
 
     public InterfaceHttpPostRequestDecoder bodyDecoder() {
-        return this.postRequestDecoder == null ? new HttpPostMultipartRequestDecoder(this) : this.postRequestDecoder;
+        return this.postRequestDecoder;
     }
 }

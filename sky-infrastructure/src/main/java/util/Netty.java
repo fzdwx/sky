@@ -1,8 +1,10 @@
 package util;
 
+import core.http.Headers;
 import core.http.ext.HttpServerRequest;
 import core.http.ext.HttpServerResponse;
 import io.github.fzdwx.lambada.Collections;
+import io.github.fzdwx.lambada.Lang;
 import io.github.fzdwx.lambada.lang.NvMap;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufAllocator;
@@ -57,6 +59,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 import java.util.function.BiConsumer;
+import java.util.stream.Collectors;
 
 import static io.netty.util.internal.ObjectUtil.checkPositiveOrZero;
 import static io.netty.util.internal.StringUtil.COMMA;
@@ -84,6 +87,8 @@ public final class Netty {
     public static Map<Charset, HttpDataFactory> HTTP_DATA_FACTORY_CACHE = Collections.map();
 
     public static String read(ByteBuf buf) {
+        if (buf == null) return Lang.EMPTY_STR;
+
         return new String(readBytes(buf));
     }
 
@@ -119,7 +124,7 @@ public final class Netty {
         return headers.contains(HttpHeaderNames.CONTENT_LENGTH);
     }
 
-    public static void setTransferEncodingChunked(HttpHeaders headers, boolean chunked) {
+    public static void setTransferEncodingChunked(Headers headers, boolean chunked) {
         if (chunked) {
             headers.set(HttpHeaderNames.TRANSFER_ENCODING, HttpHeaderValues.CHUNKED);
             headers.remove(HttpHeaderNames.CONTENT_LENGTH);
@@ -149,6 +154,17 @@ public final class Netty {
             }
         }
         return params;
+    }
+
+    public static String formatHeaders(Headers headers) {
+        return headers.entrySet().stream()
+                .map(entry -> {
+                    List<String> values = entry.getValue();
+                    return entry.getKey() + ":" + (values.size() == 1 ?
+                            "\"" + values.get(0) + "\"" :
+                            values.stream().map(s -> "\"" + s + "\"").collect(Collectors.joining(", ")));
+                })
+                .collect(Collectors.joining(", ", "[", "]"));
     }
 
     public static int findPathEndIndex(String uri) {

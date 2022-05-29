@@ -2,6 +2,7 @@ package core.http.inter;
 
 import core.common.ChannelOutBound;
 import core.common.NettyOutbound;
+import core.http.Headers;
 import core.http.ext.HttpServerRequest;
 import core.http.ext.HttpServerResponse;
 import core.serializer.JsonSerializer;
@@ -71,7 +72,7 @@ public class HttpServerResponseImpl extends ChannelOutBound implements HttpServe
             ctx.fireChannelRead(msg);
         }
     });
-    private final HttpHeaders headers;
+    private final Headers headers;
     private final HttpHeaders trailingHeaders = EmptyHttpHeaders.INSTANCE;
     private final HttpVersion version;
     private final boolean keepAlive;
@@ -102,10 +103,10 @@ public class HttpServerResponseImpl extends ChannelOutBound implements HttpServe
     public HttpServerResponseImpl(final Channel ch, final HttpServerRequest httpRequest) {
         super(ch);
         this.request = httpRequest;
-        this.headers = new DefaultHttpHeaders();
+        this.headers = new Headers(new DefaultHttpHeaders());
         this.version = httpRequest.version();
         this.status = HttpResponseStatus.OK;
-        this.keepAlive = (version == HttpVersion.HTTP_1_1 && !httpRequest.headers().contains(HttpHeaderNames.CONNECTION, HttpHeaderValues.CLOSE, true)) || (version == HttpVersion.HTTP_1_0 && httpRequest.headers().contains(HttpHeaderNames.CONNECTION, HttpHeaderValues.KEEP_ALIVE, true));
+        this.keepAlive = (version == HttpVersion.HTTP_1_1 && !httpRequest.header().contains(HttpHeaderNames.CONNECTION, HttpHeaderValues.CLOSE, true)) || (version == HttpVersion.HTTP_1_0 && httpRequest.header().contains(HttpHeaderNames.CONNECTION, HttpHeaderValues.KEEP_ALIVE, true));
         this.head = httpRequest.methodType() == HttpMethod.HEAD;
         this.serializer = httpRequest.serializer();
     }

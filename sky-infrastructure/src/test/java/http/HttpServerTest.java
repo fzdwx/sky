@@ -14,7 +14,7 @@ import org.junit.jupiter.api.Test;
 import java.time.Duration;
 
 /**
- * @author <a href="mailto:likelovec@gmail.com">韦朕</a>
+ * @author <a href="mailto:likelovec@gmail.com">fzdwx</a>
  * @date 2022/5/6 16:44
  */
 class HttpServerTest {
@@ -23,6 +23,11 @@ class HttpServerTest {
     @Test
     void test22() {
         HttpServer.create()
+                .requestHandler(((request, response) -> {
+                    System.out.println(request.remoteAddress().toString());
+                    // request.params()
+                    response.end();
+                }))
                 .listen(8888)
                 .dispose();
     }
