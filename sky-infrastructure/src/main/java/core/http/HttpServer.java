@@ -15,7 +15,6 @@ import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelOption;
 import io.netty.channel.socket.SocketChannel;
-import io.netty.handler.codec.http.HttpContentCompressor;
 import io.netty.handler.codec.http.HttpContentDecompressor;
 import io.netty.handler.codec.http.HttpServerCodec;
 import io.netty.handler.codec.http.HttpServerExpectContinueHandler;
@@ -111,7 +110,7 @@ public class HttpServer implements Transport<HttpServer> {
                     .addLast(new HttpServerCodec())
                     .addLast(new HttpContentDecompressor(false))
                     // todo 请求压缩
-                    .addLast(new HttpContentCompressor())
+                    // .addLast(new HttpContentCompressor())
                     .addLast(new ChunkedWriteHandler())
                     .addLast(new HttpServerExpectContinueHandler())
                     // .addLast(new HttpObjectAggregatorX(this.maxContentLength))

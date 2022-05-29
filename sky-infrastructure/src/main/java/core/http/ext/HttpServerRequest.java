@@ -12,6 +12,7 @@ import io.github.fzdwx.lambada.http.HttpMethod;
 import io.github.fzdwx.lambada.lang.KvMap;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
+import io.netty.handler.codec.DecoderResult;
 import io.netty.handler.codec.http.HttpRequest;
 import io.netty.handler.codec.http.HttpVersion;
 import io.netty.handler.codec.http.multipart.FileUpload;
@@ -34,6 +35,8 @@ public interface HttpServerRequest {
     boolean multipart();
 
     boolean formUrlEncoder();
+
+    DecoderResult decoderResult();
 
     SocketAddress remoteAddress();
 
@@ -88,8 +91,16 @@ public interface HttpServerRequest {
      */
     String uri();
 
+    /**
+     * url path like /a/b/c
+     *
+     * @return {@link String }
+     */
     String path();
 
+    /**
+     * url query like a=1&b=2
+     */
     String query();
 
     /**

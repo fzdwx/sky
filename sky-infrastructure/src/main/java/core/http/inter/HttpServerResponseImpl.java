@@ -1,7 +1,7 @@
 package core.http.inter;
 
 import core.common.ChannelOutBound;
-import core.common.NettyOutbound;
+import core.common.Outbound;
 import core.http.Headers;
 import core.http.ext.HttpServerRequest;
 import core.http.ext.HttpServerResponse;
@@ -15,7 +15,10 @@ import io.netty.buffer.ByteBufHolder;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelInboundHandler;
+import io.netty.channel.ChannelProgressiveFuture;
+import io.netty.channel.ChannelProgressiveFutureListener;
 import io.netty.channel.ChannelPromise;
+import io.netty.channel.DefaultFileRegion;
 import io.netty.handler.codec.http.DefaultHttpContent;
 import io.netty.handler.codec.http.DefaultHttpHeaders;
 import io.netty.handler.codec.http.EmptyHttpHeaders;
@@ -33,12 +36,14 @@ import io.netty.handler.codec.http.cookie.Cookie;
 import io.netty.handler.codec.http.cookie.DefaultCookie;
 import io.netty.handler.codec.http.cookie.ServerCookieEncoder;
 import io.netty.handler.stream.ChunkedInput;
+import io.netty.handler.stream.ChunkedNioFile;
 import io.netty.handler.stream.ChunkedNioStream;
-import io.netty.handler.stream.ChunkedStream;
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import util.Netty;
 
 import java.io.InputStream;
+import java.io.RandomAccessFile;
 import java.nio.channels.ReadableByteChannel;
 import java.util.ArrayList;
 import java.util.List;
@@ -112,7 +117,7 @@ public class HttpServerResponseImpl extends ChannelOutBound implements HttpServe
     }
 
     @Override
-    public NettyOutbound send(final ByteBuf data, final boolean flush) {
+    public Outbound send(final ByteBuf data, final boolean flush) {
         if (!ch.isActive()) {
             return then(ChannelException.beforeSend());
         }
@@ -130,12 +135,6 @@ public class HttpServerResponseImpl extends ChannelOutBound implements HttpServe
     }
 
     @Override
-    public NettyOutbound sendChunk(final InputStream in, final int chunkSize) {
-        chunked();
-        return send(Netty.empty, true).then(h -> super.sendChunk(in, chunkSize)).then(end(Netty.empty));
-    }
-
-    @Override
     public Object wrapData(final ByteBuf data) {
 
         bytesWritten += data.readableBytes();
@@ -150,12 +149,58 @@ public class HttpServerResponseImpl extends ChannelOutBound implements HttpServe
         return response;
     }
 
+    @SneakyThrows
     @Override
-    public ChunkedInput<?> wrapChunkData(final InputStream in, final int chunkSize) {
-        if (in instanceof ReadableByteChannel) {
-            return new HttpChunkedInput(new ChunkedNioStream((ReadableByteChannel) in, chunkSize));
+    public Outbound sendStream(final InputStream in, final int chunkSize) {
+        chunked();
+        return send(Netty.empty, true).then(h -> super.sendStream(in, chunkSize)).then(end(Netty.empty));
+    }
+
+    @Override
+    public ChunkedInput<?> wrapStreamData(final InputStream in, final int chunkSize) {
+        // if (in instanceof ReadableByteChannel) {
+        return new HttpChunkedInput(new ChunkedNioStream((ReadableByteChannel) in, chunkSize));
+        // }
+        // return new HttpChunkedInput(new ChunkedStream(in, chunkSize));
+    }
+
+    @SneakyThrows
+    @Override
+    public ChannelFuture sendFile(RandomAccessFile file, int chunkSize, final boolean flush,
+                                  final ChannelProgressiveFutureListener channelProgressiveFutureListener) {
+        // chunked();
+        this.headers.set(HttpHeaderNames.CONTENT_LENGTH, file.length());
+        return send(Netty.empty).then(h -> {
+            ChannelFuture f = super.sendFile(file, chunkSize, flush, new ChannelProgressiveFutureListener() {
+                @Override
+                public void operationProgressed(final ChannelProgressiveFuture future, final long progress, final long total) throws Exception {
+                    channelProgressiveFutureListener.operationProgressed(future, progress, total);
+                }
+
+                @Override
+                public void operationComplete(final ChannelProgressiveFuture future) throws Exception {
+                    channelProgressiveFutureListener.operationComplete(future);
+                }
+            });
+
+            if (!request.ssl()) { // if use DefaultFileRegion
+                f = ch.writeAndFlush(LastHttpContent.EMPTY_LAST_CONTENT);
+            }
+
+            if (!keepAlive) {
+                f.addListener(Netty.close);
+            }
+
+        }).then();
+    }
+
+    @SneakyThrows
+    @Override
+    public Object wrapFile(final RandomAccessFile file, final int chunkSize) {
+        if (request.ssl()) {
+            return new HttpChunkedInput(new ChunkedNioFile(file.getChannel(), chunkSize));
         }
-        return new HttpChunkedInput(new ChunkedStream(in, chunkSize));
+        return new DefaultFileRegion(file.getChannel(), 0, file.length());
     }
 
     @Override
@@ -315,11 +360,11 @@ public class HttpServerResponseImpl extends ChannelOutBound implements HttpServe
         return promise;
     }
 
-    boolean headWritten() {
+    private boolean headWritten() {
         return headWritten > 0;
     }
 
-    boolean endWritten() {
+    private boolean endWritten() {
         return endWritten > 0;
     }
 

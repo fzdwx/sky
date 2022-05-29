@@ -1,7 +1,7 @@
 package core.http.ext;
 
 import util.Netty;
-import core.common.NettyOutbound;
+import core.common.Outbound;
 import core.http.inter.HttpServerResponseImpl;
 import io.github.fzdwx.lambada.Lang;
 import io.github.fzdwx.lambada.fun.Hooks;
@@ -24,7 +24,7 @@ import java.nio.charset.Charset;
  * @date 2022/3/18 15:23
  * @since 0.06
  */
-public interface HttpServerResponse extends NettyOutbound {
+public interface HttpServerResponse extends Outbound {
 
     static HttpServerResponseImpl create(Channel channel, final HttpServerRequest httpRequest) {
         return new HttpServerResponseImpl(channel, httpRequest);
@@ -208,11 +208,11 @@ public interface HttpServerResponse extends NettyOutbound {
         h.call(html(html));
     }
 
-    default NettyOutbound write(ByteBuf buf) {
+    default Outbound write(ByteBuf buf) {
         return send(buf, false);
     }
 
-    default NettyOutbound write(byte[] bytes) {
+    default Outbound write(byte[] bytes) {
         return write(Netty.wrap(alloc(), bytes));
     }
 
@@ -226,7 +226,7 @@ public interface HttpServerResponse extends NettyOutbound {
         return this;
     }
 
-    default NettyOutbound write(String s, Charset charset) {
+    default Outbound write(String s, Charset charset) {
         return write(s.getBytes(charset));
     }
 
@@ -235,7 +235,7 @@ public interface HttpServerResponse extends NettyOutbound {
         return this;
     }
 
-    default NettyOutbound write(String s) {
+    default Outbound write(String s) {
         return write(s, Lang.CHARSET);
     }
 

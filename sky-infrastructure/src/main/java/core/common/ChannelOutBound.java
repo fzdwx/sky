@@ -4,12 +4,17 @@ import exception.ChannelException;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufAllocator;
 import io.netty.channel.Channel;
+import io.netty.channel.ChannelFuture;
+import io.netty.channel.ChannelProgressiveFutureListener;
+import io.netty.handler.stream.ChunkedFile;
 import io.netty.handler.stream.ChunkedInput;
 import io.netty.handler.stream.ChunkedNioStream;
 import io.netty.handler.stream.ChunkedStream;
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.InputStream;
+import java.io.RandomAccessFile;
 import java.nio.channels.ReadableByteChannel;
 
 /**
@@ -17,7 +22,7 @@ import java.nio.channels.ReadableByteChannel;
  * @date 2022/03/23 14:26:54
  */
 @Slf4j
-public abstract class ChannelOutBound implements NettyOutbound {
+public abstract class ChannelOutBound implements Outbound {
 
     protected final Channel ch;
 
@@ -36,7 +41,7 @@ public abstract class ChannelOutBound implements NettyOutbound {
     }
 
     @Override
-    public NettyOutbound send(final ByteBuf data, boolean flush) {
+    public Outbound send(final ByteBuf data, boolean flush) {
 
         if (!channel().isActive()) {
             return then(ChannelException.beforeSend());
@@ -51,15 +56,6 @@ public abstract class ChannelOutBound implements NettyOutbound {
         return this.then(this.ch.write(msg));
     }
 
-    @Override
-    public NettyOutbound sendChunk(final InputStream in, final int chunkSize) {
-        if (!channel().isActive()) {
-            return then(ChannelException.beforeSend());
-        }
-
-        return then(ch.writeAndFlush(wrapChunkData(in, chunkSize)));
-    }
-
     /**
      * when write data to peer,will call this method wrap data
      *
@@ -69,16 +65,45 @@ public abstract class ChannelOutBound implements NettyOutbound {
         return data;
     }
 
+    @Override
+    public Outbound sendStream(final InputStream in, final int chunkSize) {
+        if (!channel().isActive()) {
+            return then(ChannelException.beforeSend());
+        }
+
+        return then(ch.writeAndFlush(wrapStreamData(in, chunkSize)));
+    }
+
     /**
      * when write chunk data to peer,will call this method wrap data
      *
-     * @see #sendChunk(InputStream, int)
+     * @see #sendStream(InputStream, int)
      */
-    public ChunkedInput<?> wrapChunkData(final InputStream in, final int chunkSize) {
+    public ChunkedInput<?> wrapStreamData(final InputStream in, final int chunkSize) {
         if (in instanceof ReadableByteChannel) {
             return new ChunkedNioStream((ReadableByteChannel) in, chunkSize);
         }
         return new ChunkedStream(in, chunkSize);
     }
 
+    @Override
+    public ChannelFuture sendFile(final RandomAccessFile file, final int chunkSize, final boolean flush,
+                                  final ChannelProgressiveFutureListener channelProgressiveFutureListener) {
+        if (!channel().isActive()) {
+            return then(ChannelException.beforeSend()).then();
+        }
+
+        if (flush) {
+            return ch.writeAndFlush(wrapFile(file, chunkSize), ch.newProgressivePromise()).addListener(channelProgressiveFutureListener);
+        }
+        return ch.write(wrapFile(file, chunkSize), ch.newProgressivePromise()).addListener(channelProgressiveFutureListener);
+    }
+
+    /**
+     * when write file to peer,will call this method wrap data
+     */
+    @SneakyThrows
+    public Object wrapFile(final RandomAccessFile file, final int chunkSize) {
+        return new ChunkedFile(file, chunkSize);
+    }
 }

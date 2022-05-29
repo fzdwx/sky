@@ -5,16 +5,18 @@ import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufAllocator;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
+import io.netty.channel.ChannelProgressiveFutureListener;
 import io.netty.channel.ChannelPromise;
 import util.Netty;
 
 import java.io.InputStream;
+import java.io.RandomAccessFile;
 
 /**
  * @author <a href="mailto:likelovec@gmail.com">fzdwx</a>
  * @date 2022/3/23 10:11
  */
-public interface NettyOutbound {
+public interface Outbound {
 
     Channel channel();
 
@@ -23,44 +25,52 @@ public interface NettyOutbound {
     /**
      * send data to peer.
      */
-    NettyOutbound send(ByteBuf data, boolean flush);
+    Outbound send(ByteBuf data, boolean flush);
 
-    NettyOutbound sendChunk(InputStream in, int chunkSize);
+    Outbound sendStream(InputStream in, int chunkSize);
 
-    default NettyOutbound send(ByteBuf data) {
+    /**
+     * send file
+     *
+     * @apiNote only {@link core.http.ext.HttpServerResponse} correctly implement this method
+     */
+    ChannelFuture sendFile(RandomAccessFile file, int chunkSize, final boolean flush,
+                           final ChannelProgressiveFutureListener channelProgressiveFutureListener);
+
+    default Outbound send(ByteBuf data) {
         return send(data, false);
     }
 
-    default NettyOutbound send(byte[] data) {
+    default Outbound send(byte[] data) {
         return send(Netty.wrap(alloc(), data));
     }
 
-    default NettyOutbound sendAndFlush(byte[] data) {
+    default Outbound sendAndFlush(byte[] data) {
         return send(Netty.wrap(alloc(), data), true);
     }
 
-    default NettyOutbound then(Throwable t) {
-        return new CopyNettyOutbound.ErrorOutBoundThen(this, t);
+    default Outbound then(Throwable t) {
+        return new CopyOutbound.ErrorOutBoundThen(this, t);
     }
 
-    default NettyOutbound then(final ChannelFuture f) {
-        return new CopyNettyOutbound.NormalOutBoundThen(this, f);
+    default Outbound then(final ChannelFuture f) {
+        return new CopyOutbound.NormalOutBoundThen(this, f);
     }
 
     default ChannelFuture then() {
         return channel().newSucceededFuture();
     }
 
-    default NettyOutbound then(Hooks<Void> h) {
+    default Outbound then(Hooks<Void> h) {
         ChannelPromise cp = channel().newPromise();
         then().addListener(f -> {
             try {
-                h.call(null);
                 cp.setSuccess();
             } catch (Exception e) {
                 cp.setFailure(e);
             }
         });
+        h.call(null);
         return then(cp);
     }
 }

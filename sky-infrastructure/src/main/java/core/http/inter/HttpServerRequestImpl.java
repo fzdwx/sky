@@ -15,6 +15,7 @@ import io.netty.buffer.ByteBuf;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelPipeline;
+import io.netty.handler.codec.DecoderResult;
 import io.netty.handler.codec.http.FullHttpRequest;
 import io.netty.handler.codec.http.HttpHeaderNames;
 import io.netty.handler.codec.http.HttpRequest;
@@ -95,6 +96,11 @@ public class HttpServerRequestImpl implements HttpServerRequest {
     @Override
     public boolean formUrlEncoder() {
         return formUrlEncoderFlag;
+    }
+
+    @Override
+    public DecoderResult decoderResult() {
+        return nettyRequest.decoderResult();
     }
 
     @Override
