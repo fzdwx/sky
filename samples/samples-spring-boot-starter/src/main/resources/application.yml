@@ -1,2 +1,4 @@
 server:
   port: 10086
+  sky:
+    static-file: on

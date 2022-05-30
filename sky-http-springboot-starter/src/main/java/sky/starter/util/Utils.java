@@ -8,5 +8,5 @@ import io.github.fzdwx.lambada.Console;
  */
 public class Utils {
 
-    public static String DEBUG_PREFIX = Console.green("[Sky debug] ");
+    public final static String DEBUG_PREFIX = Console.green("[Sky debug] ");
 }

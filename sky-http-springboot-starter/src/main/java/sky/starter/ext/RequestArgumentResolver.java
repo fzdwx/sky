@@ -1,8 +1,8 @@
 package sky.starter.ext;
 
-import http.HttpServerRequest;
-import http.HttpServerResponse;
-import io.github.fzdwx.lambada.lang.NvMap;
+import core.http.ext.HttpServerRequest;
+import core.http.ext.HttpServerResponse;
+import io.github.fzdwx.lambada.lang.KvMap;
 import sky.starter.bean.PathVariableResolver;
 import sky.starter.bean.RequestParamResolver;
 import sky.starter.domain.SkyHttpMethod;
@@ -25,5 +25,5 @@ public interface RequestArgumentResolver {
     /**
      * do resolve
      */
-    Object apply(HttpServerRequest request, final HttpServerResponse response, SkyHttpMethod.SkyHttpMethodParameter parameter, NvMap parVals);
+    Object apply(HttpServerRequest request, final HttpServerResponse response, SkyHttpMethod.SkyHttpMethodParameter parameter, KvMap parVals);
 }

@@ -1,10 +1,10 @@
 package sky.starter.bean;
 
-import http.HttpServer;
+import core.http.HttpServer;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.web.server.WebServer;
 import org.springframework.boot.web.server.WebServerException;
-import sky.starter.props.SkyHttpServerProps;
+import sky.starter.props.SkyWebServerProps;
 
 import static sky.starter.util.Utils.DEBUG_PREFIX;
 
@@ -19,18 +19,18 @@ public class SkyWebServer implements WebServer {
 
     private final int port;
     private final HttpServer server;
-    private final SkyHttpServerProps skyHttpServerProps;
+    private final SkyWebServerProps skyWebServerProps;
 
     public SkyWebServer(final HttpServer server,
-                        final SkyHttpServerProps skyHttpServerProps) {
-        this.port = skyHttpServerProps.getPort();
+                        final SkyWebServerProps skyWebServerProps) {
+        this.port = skyWebServerProps.getPort();
         this.server = server;
-        this.skyHttpServerProps = skyHttpServerProps;
+        this.skyWebServerProps = skyWebServerProps;
     }
 
     @Override
     public void start() throws WebServerException {
-        if (skyHttpServerProps.enableDebug()) {
+        if (skyWebServerProps.enableDebug()) {
             log.info(DEBUG_PREFIX + "start SkyHttpServer");
         }
         server.listen(getPort());
@@ -38,7 +38,7 @@ public class SkyWebServer implements WebServer {
 
     @Override
     public void stop() throws WebServerException {
-        if (skyHttpServerProps.enableDebug()) {
+        if (skyWebServerProps.enableDebug()) {
             log.info(DEBUG_PREFIX + "stop SkyHttpServer");
         }
         server.shutdown();

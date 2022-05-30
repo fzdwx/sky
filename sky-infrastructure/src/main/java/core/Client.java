@@ -1,5 +1,7 @@
 package core;
 
+import core.channelHandler.ReconnectHandler;
+import core.thread.SkyThreadFactory;
 import io.github.fzdwx.lambada.fun.Hooks;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.Channel;
@@ -8,6 +10,8 @@ import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelOption;
 import io.netty.channel.EventLoopGroup;
+import io.netty.channel.epoll.Epoll;
+import io.netty.channel.epoll.EpollEventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
@@ -16,7 +20,7 @@ import io.netty.handler.ssl.SslContextBuilder;
 import io.netty.handler.ssl.SslHandler;
 import io.netty.handler.ssl.util.InsecureTrustManagerFactory;
 import lombok.extern.slf4j.Slf4j;
-import serializer.JsonSerializer;
+import core.serializer.JsonSerializer;
 
 import java.net.InetSocketAddress;
 import java.time.Duration;
@@ -26,7 +30,7 @@ import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 
 /**
- * @author <a href="mailto:likelovec@gmail.com">韦朕</a>
+ * @author <a href="mailto:likelovec@gmail.com">fzdwx</a>
  * @date 2022/5/11 15:10
  */
 @Slf4j
@@ -53,9 +57,12 @@ public class Client implements Transport<Client> {
     private Hooks<ChannelFuture> afterListen;
     private Hooks<Client> onSuccessHooks;
     private Hooks<Throwable> onFailureHooks;
+    private Hooks<ChannelFutureListener> onShutDownHooks;
+    private boolean enableEpoll;
 
     public Client() {
         this.bootstrap = new Bootstrap();
+        this.enableEpoll = Epoll.isAvailable();
     }
 
     @Override
@@ -66,7 +73,7 @@ public class Client implements Transport<Client> {
             this.bootstrap = bootstrap.option((ChannelOption<Object>) entry.getKey(), entry.getValue());
         }
 
-        bootstrap.group(worker).channel(channelType).handler(channelInitializer());
+        bootstrap.group(worker).channel(channelType).handler(workerHandler());
 
         connect();
 
@@ -114,21 +121,28 @@ public class Client implements Transport<Client> {
     }
 
     @Override
-    public Client withSerializer(final JsonSerializer serializer) {
+    public Client onShutDown(final Hooks<ChannelFutureListener> hooks) {
+        checkStart();
+
+        this.onShutDownHooks = hooks;
+        return impl();
+    }
+
+    @Override
+    public Client jsonSerializer(final JsonSerializer serializer) {
         checkStart();
         this.serializer = serializer;
         return this;
     }
 
     @Override
-    public Client withInitChannel(final Hooks<SocketChannel> hooks) {
+    public Client childHandler(final Hooks<SocketChannel> hooks) {
         checkStart();
         this.socketChannelInitHooks = hooks;
         return this;
     }
 
-    @Override
-    public ChannelInitializer<SocketChannel> channelInitializer() {
+    public ChannelInitializer<SocketChannel> workerHandler() {
         checkNotStart();
         return new ChannelInitializer<SocketChannel>() {
             @Override
@@ -162,7 +176,10 @@ public class Client implements Transport<Client> {
     @Override
     public void shutdown() {
         checkNotStart();
-        this.worker.shutdownGracefully();
+        close().addListener(f -> {
+            this.worker.shutdownGracefully();
+            onShutDownHooks.call((ChannelFutureListener) f);
+        });
     }
 
     @Override
@@ -171,12 +188,12 @@ public class Client implements Transport<Client> {
     }
 
     @Override
-    public boolean sslFlag() {
+    public boolean ssl() {
         return this.sslFlag;
     }
 
     @Override
-    public JsonSerializer serializer() {
+    public JsonSerializer jsonSerializer() {
         return this.serializer;
     }
 
@@ -186,14 +203,14 @@ public class Client implements Transport<Client> {
     }
 
     @Override
-    public Client withWorker(final EventLoopGroup worker) {
+    public Client worker(final int worker) {
         checkStart();
-        this.worker = worker;
+        this.worker = createWorker(worker);
         return this;
     }
 
     @Override
-    public Client withLog(final LoggingHandler loggingHandler) {
+    public Client log(final LoggingHandler loggingHandler) {
         checkStart();
         this.loggingHandler = loggingHandler;
         return this;
@@ -332,6 +349,16 @@ public class Client implements Transport<Client> {
         if (this.serializer == null) {
             this.serializer = JsonSerializer.codec;
         }
+    }
+
+    private EventLoopGroup createWorker(final int workerCnt) {
+        EventLoopGroup group;
+        if (this.enableEpoll) {
+            group = new EpollEventLoopGroup(workerCnt, new SkyThreadFactory("Epoll-chServer-Boss"));
+        } else {
+            group = new NioEventLoopGroup(workerCnt, new SkyThreadFactory("NIO-chServer-Boss"));
+        }
+        return group;
     }
 
 }

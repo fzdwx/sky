@@ -1,8 +1,8 @@
 package sky.starter.bean;
 
-import http.HttpServerRequest;
-import http.HttpServerResponse;
-import io.github.fzdwx.lambada.lang.NvMap;
+import core.http.ext.HttpServerRequest;
+import core.http.ext.HttpServerResponse;
+import io.github.fzdwx.lambada.lang.KvMap;
 import org.springframework.web.bind.annotation.RequestBody;
 import sky.starter.domain.SkyHttpMethod;
 import sky.starter.ext.RequestArgumentResolver;
@@ -21,7 +21,7 @@ public class RequestBodyResolver implements RequestArgumentResolver {
     }
 
     @Override
-    public Object apply(final HttpServerRequest request, final HttpServerResponse response, final SkyHttpMethod.SkyHttpMethodParameter parameter, final NvMap parVals) {
-        return request.serializer().toBean(request.readJsonString(), parameter.getParameterType());
+    public Object apply(final HttpServerRequest request, final HttpServerResponse response, final SkyHttpMethod.SkyHttpMethodParameter parameter, final KvMap parVals) {
+        return request.serializer().toBean(request.bodyToString(), parameter.getParameterType());
     }
 }

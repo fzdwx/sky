@@ -1,10 +1,10 @@
 package sky.starter.bean;
 
-import http.HttpServerRequest;
-import http.HttpServerResponse;
+import core.http.ext.HttpServerRequest;
+import core.http.ext.HttpServerResponse;
 import io.github.fzdwx.lambada.Assert;
 import io.github.fzdwx.lambada.Lang;
-import io.github.fzdwx.lambada.lang.NvMap;
+import io.github.fzdwx.lambada.lang.KvMap;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.RequestParam;
 import sky.starter.domain.SkyHttpMethod;
@@ -29,7 +29,7 @@ public class RequestParamResolver implements RequestArgumentResolver {
 
     @Override
     public Object apply(final HttpServerRequest request, final HttpServerResponse response, final SkyHttpMethod.SkyHttpMethodParameter parameter,
-                        final NvMap parVals) {
+                        final KvMap parVals) {
 
         final java.util.Map<String, Object> attr = parameter.getRequestParamAttr();
         final boolean required = (boolean) attr.get("required");

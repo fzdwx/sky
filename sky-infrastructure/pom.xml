@@ -5,7 +5,7 @@
     <parent>
         <artifactId>sky</artifactId>
         <groupId>io.github.fzdwx</groupId>
-        <version>0.10.7</version>
+        <version>0.11</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
@@ -32,6 +32,10 @@
         <dependency>
             <groupId>com.alibaba.fastjson2</groupId>
             <artifactId>fastjson2</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>javax.servlet</groupId>
+            <artifactId>servlet-api</artifactId>
         </dependency>
     </dependencies>
 

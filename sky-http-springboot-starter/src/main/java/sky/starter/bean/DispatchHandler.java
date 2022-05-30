@@ -1,12 +1,13 @@
 package sky.starter.bean;
 
-import http.HttpServerRequest;
-import http.HttpServerResponse;
-import http.ext.HttpHandler;
+import core.http.ext.HttpServerRequest;
+import core.http.ext.HttpServerResponse;
+import core.http.ext.HttpHandler;
+import core.http.handler.StaticFileHandler;
 import io.github.fzdwx.lambada.http.HttpPath;
 import io.github.fzdwx.lambada.http.Route;
 import io.github.fzdwx.lambada.http.Router;
-import io.github.fzdwx.lambada.lang.NvMap;
+import io.github.fzdwx.lambada.lang.KvMap;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
@@ -14,6 +15,7 @@ import sky.starter.domain.SkyHttpMethod;
 import sky.starter.domain.SkyRouteDefinition;
 import sky.starter.ext.RequestArgumentResolver;
 import sky.starter.ext.RequestResultHandler;
+import sky.starter.props.SkyWebServerProps;
 
 import java.util.Collection;
 
@@ -30,13 +32,18 @@ public class DispatchHandler implements HttpHandler {
     private final Router<SkyRouteDefinition> router;
     private final Collection<RequestResultHandler> resultHandlers;
     private final Collection<RequestArgumentResolver> argumentResolvers;
+    private StaticFileHandler fileHandler;
 
     public DispatchHandler(final Router<SkyRouteDefinition> router,
                            final RequestResultHandlerContainer resultHandlers,
-                           final RequestArgumentResolverContainer argumentResolvers) {
+                           final RequestArgumentResolverContainer argumentResolvers,
+                           final SkyWebServerProps props) {
         this.router = router;
         this.resultHandlers = resultHandlers.container();
         this.argumentResolvers = argumentResolvers.container();
+        if (props.sky.staticFile) {
+            fileHandler = StaticFileHandler.create();
+        }
     }
 
     @SneakyThrows
@@ -45,7 +52,11 @@ public class DispatchHandler implements HttpHandler {
         final String path = HttpPath.format(request.path());
         final Route<SkyRouteDefinition> route = router.match(request.methodType(), path);
         if (route == null) {
-            notFound(request, response);
+            if (fileHandler != null) {
+                fileHandler.handle(request, response);
+            } else {
+                notFound(request, response);
+            }
             return;
         }
 
@@ -100,7 +111,7 @@ public class DispatchHandler implements HttpHandler {
         }
 
         final Object[] arguments = new Object[methodParameters.length];
-        final NvMap pathVal = route.extract(request.uri());
+        final KvMap pathVal = route.extract(request.uri());
 
         for (int i = 0; i < methodParameters.length; i++) {
             final SkyHttpMethod.SkyHttpMethodParameter parameter = methodParameters[i];

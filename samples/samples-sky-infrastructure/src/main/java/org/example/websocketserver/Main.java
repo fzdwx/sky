@@ -1,6 +1,6 @@
 package org.example.websocketserver;
 
-import http.HttpServer;
+import core.http.HttpServer;
 
 /**
  * @author <a href="mailto:likelovec@gmail.com">fzdwx</a>
@@ -9,7 +9,7 @@ import http.HttpServer;
 public class Main {
 
     public static void main(String[] args) {
-        HttpServer.create().handle((req, resp) -> {
+        HttpServer.create().requestHandler((req, resp) -> {
                     req.upgradeToWebSocket(ws -> {
 
                         System.out.println(ws.scheme());

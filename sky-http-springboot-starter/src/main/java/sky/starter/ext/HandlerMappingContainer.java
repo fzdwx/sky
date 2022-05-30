@@ -20,7 +20,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.servlet.handler.HandlerMethodMappingNamingStrategy;
 import org.springframework.web.util.pattern.PathPatternParser;
 import sky.starter.domain.SkyHttpMethod;
-import sky.starter.props.SkyHttpServerProps;
+import sky.starter.props.SkyWebServerProps;
 
 import java.lang.reflect.Method;
 import java.util.Arrays;
@@ -39,7 +39,7 @@ import static sky.starter.util.Utils.DEBUG_PREFIX;
 @Slf4j
 public abstract class HandlerMappingContainer<T> implements InitializingBean, EmbeddedValueResolverAware, ApplicationContextAware {
 
-    protected final SkyHttpServerProps skyHttpServerProps;
+    protected final SkyWebServerProps skyWebServerProps;
     protected ApplicationContext context;
     protected StringValueResolver stringValueResolver;
     protected PathPatternParser patternParser = new PathPatternParser();
@@ -48,8 +48,8 @@ public abstract class HandlerMappingContainer<T> implements InitializingBean, Em
     @Setter
     private HandlerMethodMappingNamingStrategy<T> namingStrategy;
 
-    public HandlerMappingContainer(final SkyHttpServerProps skyHttpServerProps) {
-        this.skyHttpServerProps = skyHttpServerProps;
+    public HandlerMappingContainer(final SkyWebServerProps skyWebServerProps) {
+        this.skyWebServerProps = skyWebServerProps;
     }
 
     @Override
@@ -96,7 +96,7 @@ public abstract class HandlerMappingContainer<T> implements InitializingBean, Em
             try {
                 beanType = context.getType(beanName);
             } catch (Exception e) {
-                if (skyHttpServerProps.enableDebug()) {
+                if (skyWebServerProps.enableDebug()) {
                     log.info(DEBUG_PREFIX + "could not resolve type for bean {}", beanName, e);
                 }
             }
@@ -119,7 +119,7 @@ public abstract class HandlerMappingContainer<T> implements InitializingBean, Em
         }
 
         Class<?> userType = ClassUtils.getUserClass(handlerType);
-        if (skyHttpServerProps.enableDebug()) {
+        if (skyWebServerProps.enableDebug()) {
             log.info(DEBUG_PREFIX + "find handler {}", userType);
         }
 
@@ -131,7 +131,7 @@ public abstract class HandlerMappingContainer<T> implements InitializingBean, Em
             }
         });
 
-        if (skyHttpServerProps.enableDebug()) {
+        if (skyWebServerProps.enableDebug()) {
             log.info(DEBUG_PREFIX + formatMappings(userType, methods));
         }
 

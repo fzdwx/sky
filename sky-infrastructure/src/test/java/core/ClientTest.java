@@ -1,16 +1,16 @@
 package core;
 
-import io.github.fzdwx.lambada.Threads;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.channel.ChannelOption;
 import org.junit.jupiter.api.Test;
+import util.Netty;
 
 import java.time.Duration;
 
 /**
- * @author <a href="mailto:likelovec@gmail.com">韦朕</a>
+ * @author <a href="mailto:likelovec@gmail.com">fzdwx</a>
  * @date 2022/5/11 16:08
  */
 class ClientTest {
@@ -18,9 +18,9 @@ class ClientTest {
     @Test
     void test2() {
         new Thread(() -> {
-            final Client c = new Client()
+            new Client()
                     .withOptions(ChannelOption.TCP_NODELAY, true)
-                    .withInitChannel(ch -> {
+                    .childHandler(ch -> {
                         ch.pipeline().addLast(new ChannelInboundHandlerAdapter() {
 
                             @Override
@@ -37,10 +37,7 @@ class ClientTest {
                     .withEnableAutoReconnect(Duration.ofSeconds(10))
                     .listen("localhost", 8888);
 
-            c.dispose();
         }).start();
-
-        Threads.sleep(Duration.ofDays(5));
     }
 
     @Test

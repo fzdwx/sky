@@ -1,6 +1,6 @@
 package sky.starter.bean;
 
-import http.HttpServer;
+import core.http.HttpServer;
 import org.springframework.boot.web.server.ConfigurableWebServerFactory;
 import org.springframework.boot.web.server.WebServer;
 import org.springframework.boot.web.servlet.ServletContextInitializer;
@@ -8,7 +8,7 @@ import org.springframework.boot.web.servlet.server.AbstractServletWebServerFacto
 import org.springframework.context.ResourceLoaderAware;
 import org.springframework.context.event.EventListener;
 import org.springframework.core.io.ResourceLoader;
-import sky.starter.props.SkyHttpServerProps;
+import sky.starter.props.SkyWebServerProps;
 
 /**
  * Sky webServer builder.
@@ -19,15 +19,15 @@ import sky.starter.props.SkyHttpServerProps;
 public class SkyWebServerFactory extends AbstractServletWebServerFactory implements ConfigurableWebServerFactory, ResourceLoaderAware {
 
     private final DispatchHandler dispatchHandler;
-    private SkyHttpServerProps skyHttpServerProps;
+    private SkyWebServerProps skyWebServerProps;
     private HttpServer httpServer;
 
     public SkyWebServerFactory(final HttpServer httpServer,
-                               final SkyHttpServerProps skyHttpServerProps,
+                               final SkyWebServerProps skyWebServerProps,
                                final DispatchHandler dispatchHandler) {
-        super(skyHttpServerProps.getPort());
+        super(skyWebServerProps.getPort());
         this.httpServer = httpServer;
-        this.skyHttpServerProps = skyHttpServerProps;
+        this.skyWebServerProps = skyWebServerProps;
         this.dispatchHandler = dispatchHandler;
     }
 
@@ -53,8 +53,8 @@ public class SkyWebServerFactory extends AbstractServletWebServerFactory impleme
 
     private SkyWebServer getSkyWebServer(final ServletContextInitializer[] initializers) {
         // TODO: 2022/5/18 customize exception handler
-        httpServer.handle(dispatchHandler);
-        return new SkyWebServer(httpServer, skyHttpServerProps);
+        httpServer.requestHandler(dispatchHandler);
+        return new SkyWebServer(httpServer, skyWebServerProps);
     }
 
 }

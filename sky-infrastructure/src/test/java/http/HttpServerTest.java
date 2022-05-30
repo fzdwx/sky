@@ -2,7 +2,9 @@ package http;
 
 import com.alibaba.fastjson2.JSON;
 import com.alibaba.fastjson2.JSONObject;
-import http.ext.HttpHandler;
+import core.http.HttpServer;
+import core.http.ext.HttpHandler;
+import core.http.route.Router;
 import io.github.fzdwx.lambada.Seq;
 import io.github.fzdwx.lambada.Threads;
 import io.github.fzdwx.lambada.http.ContentType;
@@ -13,10 +15,21 @@ import org.junit.jupiter.api.Test;
 import java.time.Duration;
 
 /**
- * @author <a href="mailto:likelovec@gmail.com">韦朕</a>
+ * @author <a href="mailto:likelovec@gmail.com">fzdwx</a>
  * @date 2022/5/6 16:44
  */
 class HttpServerTest {
+
+
+    @Test
+    void test22() {
+        HttpServer.create()
+                .requestHandler(((request, response) -> {
+                    response.end();
+                }))
+                .listen(8888)
+                .dispose();
+    }
 
     @Test
     void test_http() {
@@ -61,7 +74,7 @@ class HttpServerTest {
 
         // 动态添加路由
         router.POST("/d", (req, res) -> {
-            final JSONObject jsonObject = JSON.parseObject(req.readJsonString());
+            final JSONObject jsonObject = JSON.parseObject(req.bodyToString());
 
             final String path = jsonObject.getString("path");
             final String text = jsonObject.getString("text");
@@ -73,9 +86,10 @@ class HttpServerTest {
             res.end();
         });
 
-        final int port = 8888;
+        final int port = 9999;
         HttpServer.create()
-                .handle((req, response) -> {
+                .requestHandler((req, response) -> {
+
                     final Route<HttpHandler> route = router.match(req);
 
                     if (route != null) {
@@ -84,7 +98,7 @@ class HttpServerTest {
                     }
 
                     response.notFound(req.toString());
-
+                    // response.end();
                 })
                 .listen(port)
                 .dispose();

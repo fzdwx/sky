@@ -6,12 +6,6 @@ import io.github.fzdwx.lambada.http.UrlEncode;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.util.ResourceUtils;
 
-import io.github.fzdwx.lambada.anno.Nullable;
-import io.github.fzdwx.lambada.http.ContentType;
-import io.github.fzdwx.lambada.http.UrlEncode;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.util.ResourceUtils;
-
 import javax.servlet.RequestDispatcher;
 import javax.servlet.Servlet;
 import javax.servlet.ServletContext;
@@ -58,7 +52,7 @@ public class SkyServletContext implements ServletContext {
         }
 
         if (invalid) {
-            log.warn("pathInvalid {}", this.path);
+            log.warn("path invalid {}", this.path);
         }
         encodedPath = UrlEncode.DEFAULT.encode(this.path, StandardCharsets.UTF_8);
     }
