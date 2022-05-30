@@ -116,10 +116,13 @@ public class SkyWebServerAutoConfiguration {
      */
     @Bean
     @ConditionalOnMissingBean
-    DispatchHandler dispatchHandler(Router<SkyRouteDefinition> router, RequestResultHandlerContainer requestResultHandlerContainer,
-                                    RequestArgumentResolverContainer requestArgumentResolverContainer) {
+    DispatchHandler dispatchHandler(
+            Router<SkyRouteDefinition> router,
+            SkyWebServerProps props,
+            RequestResultHandlerContainer requestResultHandlerContainer,
+            RequestArgumentResolverContainer requestArgumentResolverContainer) {
 
-        return new DispatchHandler(router, requestResultHandlerContainer, requestArgumentResolverContainer);
+        return new DispatchHandler(router, requestResultHandlerContainer, requestArgumentResolverContainer,props);
     }
 
     /**

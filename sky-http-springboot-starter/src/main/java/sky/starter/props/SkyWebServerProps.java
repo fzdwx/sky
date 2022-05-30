@@ -1,9 +1,9 @@
 package sky.starter.props;
 
-import cn.hutool.core.util.RandomUtil;
 import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import sky.starter.util.SkyBanner;
+import util.AvailablePort;
 
 /**
  * @author <a href="mailto:likelovec@gmail.com">fzdwx</a>
@@ -29,7 +29,7 @@ public class SkyWebServerProps {
 
     public int getPort() {
         if (this.port == 0) {
-            this.port = RandomUtil.randomInt(65535);
+            this.port = AvailablePort.random();
         }
         return port;
     }
@@ -55,5 +55,10 @@ public class SkyWebServerProps {
          * use debug model.
          */
         public Boolean debug = false;
+
+        /**
+         * enable static file
+         */
+        public Boolean staticFile = false;
     }
 }
