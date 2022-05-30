@@ -91,7 +91,7 @@ public class StaticFileHandler implements HttpHandler {
         }
 
         if (file.isDirectory()) {
-            if (uri.endsWith("/")) {
+            if (uri.endsWith(StringPool.SLASH)) {
                 final String html = getFileListing(file, uri);
                 response.html(html);
             } else {
