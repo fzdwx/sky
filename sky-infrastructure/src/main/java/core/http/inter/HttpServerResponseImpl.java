@@ -15,7 +15,6 @@ import io.netty.buffer.ByteBufHolder;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelInboundHandler;
-import io.netty.channel.ChannelProgressiveFuture;
 import io.netty.channel.ChannelProgressiveFutureListener;
 import io.netty.channel.ChannelPromise;
 import io.netty.channel.DefaultFileRegion;
@@ -168,29 +167,37 @@ public class HttpServerResponseImpl extends ChannelOutBound implements HttpServe
     @Override
     public ChannelFuture sendFile(RandomAccessFile file, int chunkSize, final boolean flush,
                                   final ChannelProgressiveFutureListener channelProgressiveFutureListener) {
-        // chunked();
         this.headers.set(HttpHeaderNames.CONTENT_LENGTH, file.length());
+
         return send(Netty.empty).then(h -> {
-            ChannelFuture f = super.sendFile(file, chunkSize, flush, new ChannelProgressiveFutureListener() {
-                @Override
-                public void operationProgressed(final ChannelProgressiveFuture future, final long progress, final long total) throws Exception {
-                    channelProgressiveFutureListener.operationProgressed(future, progress, total);
-                }
 
-                @Override
-                public void operationComplete(final ChannelProgressiveFuture future) throws Exception {
-                    channelProgressiveFutureListener.operationComplete(future);
-                }
-            });
+            super.sendFile(file, chunkSize, flush, channelProgressiveFutureListener);
 
-            if (!request.ssl()) { // if use DefaultFileRegion
-                f = ch.writeAndFlush(LastHttpContent.EMPTY_LAST_CONTENT);
-            }
+            end();
 
-            if (!keepAlive) {
-                f.addListener(Netty.close);
-            }
+            // ChannelFuture f = super.sendFile(file, chunkSize, flush, new ChannelProgressiveFutureListener() {
+            //     @Override
+            //     public void operationProgressed(final ChannelProgressiveFuture future, final long progress, final long total) throws Exception {
+            //         if (channelProgressiveFutureListener != null) {
+            //             channelProgressiveFutureListener.operationProgressed(future, progress, total);
+            //         }
+            //     }
+            //
+            //     @Override
+            //     public void operationComplete(final ChannelProgressiveFuture future) throws Exception {
+            //         if (channelProgressiveFutureListener != null) {
+            //             channelProgressiveFutureListener.operationComplete(future);
+            //         }
+            //     }
+            // });
 
+            // if (!request.ssl()) { // if use DefaultFileRegion
+            //     f = ch.writeAndFlush(LastHttpContent.EMPTY_LAST_CONTENT);
+            // }
+
+            // if (!keepAlive) {
+            //     f.addListener(Netty.close);
+            // }
         }).then();
     }
 
@@ -400,7 +407,7 @@ public class HttpServerResponseImpl extends ChannelOutBound implements HttpServe
             this.closed = true;
             this.ch.writeAndFlush(msg, promise).addListener(Netty.close);
         } else {
-            this.ch.write(msg, promise);
+            this.ch.writeAndFlush(msg, promise);
         }
     }
 

@@ -1,5 +1,7 @@
 package core.common;
 
+import io.github.fzdwx.lambada.anno.NonNull;
+import io.github.fzdwx.lambada.anno.Nullable;
 import io.github.fzdwx.lambada.fun.Hooks;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufAllocator;
@@ -34,8 +36,30 @@ public interface Outbound {
      *
      * @apiNote only {@link core.http.ext.HttpServerResponse} correctly implement this method
      */
-    ChannelFuture sendFile(RandomAccessFile file, int chunkSize, final boolean flush,
-                           final ChannelProgressiveFutureListener channelProgressiveFutureListener);
+    ChannelFuture sendFile(@NonNull final RandomAccessFile file,
+                           final int chunkSize, final boolean flush,
+                           @Nullable final ChannelProgressiveFutureListener channelProgressiveFutureListener);
+
+    default ChannelFuture sendFile(final RandomAccessFile file, final int chunkSize,
+                                   final ChannelProgressiveFutureListener channelProgressiveFutureListener) {
+        return sendFile(file, chunkSize, false, channelProgressiveFutureListener);
+    }
+
+    default ChannelFuture sendFile(final RandomAccessFile file, final int chunkSize) {
+        return sendFile(file, chunkSize, false, null);
+    }
+
+    default ChannelFuture sendFileAndFlush(final RandomAccessFile file, final int chunkSize,
+                                           final ChannelProgressiveFutureListener channelProgressiveFutureListener) {
+        return sendFile(file, chunkSize, true, channelProgressiveFutureListener);
+    }
+
+    /**
+     * @see #sendFile(RandomAccessFile, int, boolean, ChannelProgressiveFutureListener)
+     */
+    default ChannelFuture sendFileAndFlush(final RandomAccessFile file, final int chunkSize) {
+        return sendFile(file, chunkSize, true, null);
+    }
 
     default Outbound send(ByteBuf data) {
         return send(data, false);

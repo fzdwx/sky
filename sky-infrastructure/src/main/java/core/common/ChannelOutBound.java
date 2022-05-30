@@ -1,6 +1,7 @@
 package core.common;
 
 import exception.ChannelException;
+import io.github.fzdwx.lambada.Assert;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufAllocator;
 import io.netty.channel.Channel;
@@ -92,11 +93,25 @@ public abstract class ChannelOutBound implements Outbound {
         if (!channel().isActive()) {
             return then(ChannelException.beforeSend()).then();
         }
+        Assert.gt0(chunkSize, "chunkSize must >0 ");
+        Assert.nonNull(file, "file is null");
 
+        ChannelFuture f;
         if (flush) {
-            return ch.writeAndFlush(wrapFile(file, chunkSize), ch.newProgressivePromise()).addListener(channelProgressiveFutureListener);
+            if (channelProgressiveFutureListener != null) {
+                f = ch.writeAndFlush(wrapFile(file, chunkSize), ch.newProgressivePromise()).addListener(channelProgressiveFutureListener);
+            } else {
+                f = ch.writeAndFlush(wrapFile(file, chunkSize));
+            }
+        } else {
+            if (channelProgressiveFutureListener != null) {
+                f = ch.write(wrapFile(file, chunkSize), ch.newProgressivePromise()).addListener(channelProgressiveFutureListener);
+
+            } else {
+                f = ch.write(wrapFile(file, chunkSize));
+            }
         }
-        return ch.write(wrapFile(file, chunkSize), ch.newProgressivePromise()).addListener(channelProgressiveFutureListener);
+        return f;
     }
 
     /**

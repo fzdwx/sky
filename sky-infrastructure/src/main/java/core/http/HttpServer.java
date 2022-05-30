@@ -16,6 +16,7 @@ import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelOption;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.handler.codec.http.HttpContentDecompressor;
+import io.netty.handler.codec.http.HttpObjectAggregator;
 import io.netty.handler.codec.http.HttpServerCodec;
 import io.netty.handler.codec.http.HttpServerExpectContinueHandler;
 import io.netty.handler.logging.LogLevel;
@@ -113,8 +114,8 @@ public class HttpServer implements Transport<HttpServer> {
                     // .addLast(new HttpContentCompressor())
                     .addLast(new ChunkedWriteHandler())
                     .addLast(new HttpServerExpectContinueHandler())
-                    // .addLast(new HttpObjectAggregatorX(this.maxContentLength))
                     .addLast(BodyHandler.create(this.maxContentLength))
+                    .addLast(new HttpObjectAggregator(maxContentLength))
                     .addLast(new HttpServerHandler(httpHandler, exceptionHandler, sslFlag, jsonSerializer()));
         }).listen(address);
 
