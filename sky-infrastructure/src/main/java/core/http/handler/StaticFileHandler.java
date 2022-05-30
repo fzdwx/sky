@@ -129,7 +129,8 @@ public class StaticFileHandler implements HttpHandler {
     }
 
     private void prepareHeaders(final HttpServerResponse response, final File file) {
-        response.contentType(Lang.defVal(ContentType.parseFromFileName(file.getPath()), ContentType.TEXT_PLAIN.value));
+        final String contentType = Lang.defVal(ContentType.parseFromFileName(file.getPath()), ContentType.TEXT_PLAIN.value);
+        response.contentType(ContentType.addUtf8(contentType));
         final FastDateFormat dateFormatter = FastDateFormat.getInstance(HTTP_DATE_FORMAT, TIME_ZONE, Locale.US);
 
         // Date header
