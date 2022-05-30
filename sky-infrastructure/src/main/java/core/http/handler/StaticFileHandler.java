@@ -118,9 +118,7 @@ public class StaticFileHandler implements HttpHandler {
         //endregion
 
         prepareHeaders(response, file);
-        response.sendFile(raf, Netty.DEFAULT_CHUNK_SIZE).addListener(f -> {
-            System.out.println("f.cause() = " + f.cause());
-        });
+        response.sendFile(raf, Netty.DEFAULT_CHUNK_SIZE);
     }
 
     @Override
