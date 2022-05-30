@@ -54,7 +54,11 @@ public class StaticFileHandler implements HttpHandler {
         this.baseDir = initBaseDir(baseDir);
         this.workspace = initWorkspace(workspace);
 
-        log.info(Utils.PREFIX + "baseDir:" + this.baseDir);
+        log.info(Utils.PREFIX + "path :" + this.baseDir + this.workspace);
+    }
+
+    public static HttpHandler create() {
+        return create(null);
     }
 
     public static HttpHandler create(final String workspace) {

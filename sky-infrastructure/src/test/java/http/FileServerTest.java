@@ -13,7 +13,8 @@ public class FileServerTest {
     @Test
     void test_run() {
         HttpServer.create()
-                .requestHandler(StaticFileHandler.create("src/test"))
+                .requestHandler(StaticFileHandler.create())
+                // .requestHandler(StaticFileHandler.create("src/test"))
                 .listen(8888)
                 .dispose();
     }
