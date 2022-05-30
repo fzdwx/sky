@@ -1,5 +1,6 @@
 package core.http.handler;
 
+import cn.hutool.core.date.format.FastDateFormat;
 import core.http.ext.HttpHandler;
 import core.http.ext.HttpServerRequest;
 import core.http.ext.HttpServerResponse;
@@ -19,7 +20,6 @@ import java.io.File;
 import java.io.RandomAccessFile;
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
-import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.GregorianCalendar;
@@ -43,6 +43,8 @@ public class StaticFileHandler implements HttpHandler {
 
     public static final String HTTP_DATE_GMT_TIMEZONE = "GMT";
 
+    public static final TimeZone TIME_ZONE = TimeZone.getTimeZone(HTTP_DATE_GMT_TIMEZONE);
+
     public static final String HTTP_DATE_FORMAT = "EEE, dd MMM yyyy HH:mm:ss zzz";
 
     private static final Pattern INSECURE_URI = Pattern.compile(".*[<>&\"].*");
@@ -57,28 +59,29 @@ public class StaticFileHandler implements HttpHandler {
         log.info(Utils.PREFIX + "path :" + this.baseDir + this.workspace);
     }
 
-    public static HttpHandler create() {
+    public static StaticFileHandler create() {
         return create(null);
     }
 
-    public static HttpHandler create(final String workspace) {
+    public static StaticFileHandler create(final String workspace) {
         return create(System.getProperty("user.dir"), workspace);
     }
 
-    public static HttpHandler create(final String baseDir, final String workspace) {
+    public static StaticFileHandler create(final String baseDir, final String workspace) {
         return new StaticFileHandler(baseDir, workspace);
     }
 
-    @Override
-    public void handle(final HttpServerRequest request, final HttpServerResponse response) {
+    public void handle(final HttpServerRequest request, final HttpServerResponse response, final String uri) {
         if (!HttpMethod.GET.matches(request.methodType())) {
             response.status(HttpResponseStatus.METHOD_NOT_ALLOWED).end();
             return;
         }
 
-        final String uri = request.uri();
         final String filePath = sanitizeUri(uri);
-        System.out.println(filePath);
+        if (filePath == null) {
+            response.status(FORBIDDEN).end();
+            return;
+        }
 
         //region check file status
         final File file = Io.newFile(filePath);
@@ -104,11 +107,13 @@ public class StaticFileHandler implements HttpHandler {
 
         if (checkModify(request, file)) {
             response.status(NOT_MODIFIED).end();
+            return;
         }
 
         final RandomAccessFile raf = Io.toRaf(file);
         if (raf == null) {
             response.notFound();
+            return;
         }
         //endregion
 
@@ -118,10 +123,14 @@ public class StaticFileHandler implements HttpHandler {
         });
     }
 
+    @Override
+    public void handle(final HttpServerRequest request, final HttpServerResponse response) {
+        handle(request, response, request.uri());
+    }
+
     private void prepareHeaders(final HttpServerResponse response, final File file) {
         response.contentType(Lang.defVal(ContentType.parseFromFileName(file.getPath()), ContentType.TEXT_PLAIN.value));
-        SimpleDateFormat dateFormatter = new SimpleDateFormat(HTTP_DATE_FORMAT, Locale.US);
-        dateFormatter.setTimeZone(TimeZone.getTimeZone(HTTP_DATE_GMT_TIMEZONE));
+        final FastDateFormat dateFormatter = FastDateFormat.getInstance(HTTP_DATE_FORMAT, TIME_ZONE, Locale.US);
 
         // Date header
         Calendar time = new GregorianCalendar();
@@ -139,7 +148,7 @@ public class StaticFileHandler implements HttpHandler {
     private boolean checkModify(HttpServerRequest req, final File file) {
         String ifModifiedSince = req.headers().get(HttpHeaderNames.IF_MODIFIED_SINCE);
         if (ifModifiedSince != null && !ifModifiedSince.isEmpty()) {
-            SimpleDateFormat dateFormatter = new SimpleDateFormat(HTTP_DATE_FORMAT);
+            final FastDateFormat dateFormatter = FastDateFormat.getInstance(HTTP_DATE_FORMAT, TIME_ZONE, Locale.US);
             Date ifModifiedSinceDate = dateFormatter.parse(ifModifiedSince);
 
             // Only compare up to the second because the datetime format we send to the client
