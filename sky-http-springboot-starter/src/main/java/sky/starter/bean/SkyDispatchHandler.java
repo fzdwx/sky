@@ -26,7 +26,7 @@ import java.util.Collection;
  * @date 2022/5/18 15:00
  */
 @Slf4j
-public class DispatchHandler implements HttpHandler {
+public class SkyDispatchHandler implements HttpHandler {
 
     static Object[] EMPTY_ARGS = new Object[0];
     private final Router<SkyRouteDefinition> router;
@@ -34,10 +34,10 @@ public class DispatchHandler implements HttpHandler {
     private final Collection<RequestArgumentResolver> argumentResolvers;
     private StaticFileHandler fileHandler;
 
-    public DispatchHandler(final Router<SkyRouteDefinition> router,
-                           final RequestResultHandlerContainer resultHandlers,
-                           final RequestArgumentResolverContainer argumentResolvers,
-                           final SkyWebServerProps props) {
+    public SkyDispatchHandler(final Router<SkyRouteDefinition> router,
+                              final RequestResultHandlerContainer resultHandlers,
+                              final RequestArgumentResolverContainer argumentResolvers,
+                              final SkyWebServerProps props) {
         this.router = router;
         this.resultHandlers = resultHandlers.container();
         this.argumentResolvers = argumentResolvers.container();
