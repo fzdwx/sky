@@ -8,6 +8,8 @@ import io.github.fzdwx.lambada.Lang;
 import io.github.fzdwx.lambada.lang.KvMap;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufAllocator;
+import io.netty.buffer.ByteBufHolder;
+import io.netty.buffer.ByteBufUtil;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
@@ -227,6 +229,23 @@ public final class Netty {
             return false;
         }
         return contentType.contains("application/x-www-form-urlencoded");
+    }
+
+    public static String toPrettyHexDump(Object msg) {
+        Objects.requireNonNull(msg, "msg");
+        String result;
+        if (msg instanceof ByteBufHolder &&
+                !Objects.equals(Unpooled.EMPTY_BUFFER, ((ByteBufHolder) msg).content())) {
+            ByteBuf buffer = ((ByteBufHolder) msg).content();
+            result = "\n" + ByteBufUtil.prettyHexDump(buffer);
+        }
+        else if (msg instanceof ByteBuf) {
+            result = "\n" + ByteBufUtil.prettyHexDump((ByteBuf) msg);
+        }
+        else {
+            result = msg.toString();
+        }
+        return result;
     }
 
     public static HttpDataFactory dataFactory(Charset charset) {

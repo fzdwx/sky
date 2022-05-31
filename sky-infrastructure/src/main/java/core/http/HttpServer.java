@@ -5,6 +5,7 @@ import core.Transport;
 import core.common.Disposer;
 import core.http.ext.HttpExceptionHandler;
 import core.http.ext.HttpHandler;
+import core.http.handler.AccessLogHandler;
 import core.http.handler.BodyHandler;
 import core.http.handler.HttpServerHandler;
 import core.serializer.JsonSerializer;
@@ -14,6 +15,7 @@ import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelOption;
+import io.netty.channel.ChannelPipeline;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.handler.codec.http.HttpContentDecompressor;
 import io.netty.handler.codec.http.HttpObjectAggregator;
@@ -45,6 +47,7 @@ public class HttpServer implements Transport<HttpServer> {
     private HttpHandler httpHandler;
     private HttpExceptionHandler exceptionHandler;
     private Hooks<ChannelFuture> afterListenHooks;
+    private boolean enableAccessLog = false;
 
 
     private HttpServer() {
@@ -107,17 +110,23 @@ public class HttpServer implements Transport<HttpServer> {
         });
 
         this.server.childHandler(channel -> {
-            channel.pipeline()
-                    .addLast(new HttpServerCodec())
-                    .addLast(new HttpContentDecompressor(false))
-                    // todo 请求压缩
-                    // .addLast(new HttpContentCompressor())
-                    .addLast(new ChunkedWriteHandler())
-                    .addLast(new HttpServerExpectContinueHandler())
-                    .addLast(BodyHandler.create(this.maxContentLength))
-                    .addLast(new HttpObjectAggregator(maxContentLength))
-                    .addLast(new HttpServerHandler(httpHandler, exceptionHandler, sslFlag, jsonSerializer()));
-        }).listen(address);
+                    final ChannelPipeline p = channel.pipeline();
+                    p.addLast(new HttpServerCodec())
+                            .addLast(new HttpContentDecompressor(false))
+                            // todo 请求压缩
+                            // .addLast(new HttpContentCompressor())
+                            .addLast(new ChunkedWriteHandler())
+                            .addLast(new HttpServerExpectContinueHandler())
+                            .addLast(BodyHandler.create(this.maxContentLength));
+                    if (enableAccessLog) {
+                        p.addLast(new AccessLogHandler());
+                    }
+                    p.addLast(new HttpObjectAggregator(maxContentLength))
+                            .addLast(new HttpServerHandler(httpHandler, exceptionHandler, sslFlag, jsonSerializer()));
+
+
+                })
+                .listen(address);
 
         return this;
     }
@@ -191,6 +200,14 @@ public class HttpServer implements Transport<HttpServer> {
     @Override
     public HttpServer worker(final int worker) {
         this.server.worker(worker);
+        return this;
+    }
+
+    /**
+     * enable accessLog
+     */
+    public HttpServer accessLog() {
+        this.enableAccessLog = true;
         return this;
     }
 
