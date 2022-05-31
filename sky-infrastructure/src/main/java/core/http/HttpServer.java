@@ -121,7 +121,8 @@ public class HttpServer implements Transport<HttpServer> {
                     if (enableAccessLog) {
                         p.addLast(new AccessLogHandler());
                     }
-                    p.addLast(new HttpObjectAggregator(maxContentLength))
+                    p
+                            .addLast(new HttpObjectAggregator(maxContentLength))
                             .addLast(new HttpServerHandler(httpHandler, exceptionHandler, sslFlag, jsonSerializer()));
 
 
