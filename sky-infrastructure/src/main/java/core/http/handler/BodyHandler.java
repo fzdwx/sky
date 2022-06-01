@@ -12,6 +12,7 @@ import io.netty.handler.codec.http.DefaultHttpRequest;
 import io.netty.handler.codec.http.FullHttpResponse;
 import io.netty.handler.codec.http.HttpContent;
 import io.netty.handler.codec.http.HttpExpectationFailedEvent;
+import io.netty.handler.codec.http.HttpHeaderNames;
 import io.netty.handler.codec.http.HttpHeaderValues;
 import io.netty.handler.codec.http.HttpMessage;
 import io.netty.handler.codec.http.HttpMethod;
@@ -24,7 +25,6 @@ import io.netty.util.ReferenceCountUtil;
 import lombok.extern.slf4j.Slf4j;
 import util.Netty;
 
-import static com.google.common.net.HttpHeaders.EXPECT;
 import static io.netty.handler.codec.http.HttpHeaderNames.CONNECTION;
 import static io.netty.handler.codec.http.HttpHeaderNames.CONTENT_LENGTH;
 
@@ -249,7 +249,7 @@ public class BodyHandler extends ChannelInboundHandlerAdapter {
 
 
         if (response != null) {
-            start.headers().remove(EXPECT);
+            start.headers().remove(HttpHeaderNames.EXPECT);
             ctx.writeAndFlush(response).addListener(Netty.close);
             return false;
         }
