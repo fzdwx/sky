@@ -111,21 +111,21 @@ public class HttpServer implements Transport<HttpServer> {
 
         this.server.childHandler(channel -> {
                     final ChannelPipeline p = channel.pipeline();
-                    p.addLast(new HttpServerCodec())
-                            .addLast(new HttpContentDecompressor(false))
-                            // todo 请求压缩
-                            // .addLast(new HttpContentCompressor())
-                            .addLast(new ChunkedWriteHandler())
-                            .addLast(new HttpServerExpectContinueHandler())
-                            .addLast(BodyHandler.create(this.maxContentLength));
+
+                    p.addLast(new HttpServerCodec());
+                    p.addLast(new HttpContentDecompressor(false));
+                    // todo 请求压缩
+                    //  p.addLast(new HttpContentCompressor());
+                    p.addLast(new ChunkedWriteHandler());
+                    p.addLast(new HttpServerExpectContinueHandler());
+                    p.addLast(BodyHandler.create(this.maxContentLength));
+
                     if (enableAccessLog) {
                         p.addLast(new AccessLogHandler());
                     }
-                    p
-                            .addLast(new HttpObjectAggregator(maxContentLength))
-                            .addLast(new HttpServerHandler(httpHandler, exceptionHandler, sslFlag, jsonSerializer()));
 
-
+                    p.addLast(new HttpObjectAggregator(maxContentLength));
+                    p.addLast(new HttpServerHandler(httpHandler, exceptionHandler, sslFlag, jsonSerializer()));
                 })
                 .listen(address);
 
