@@ -1,5 +1,7 @@
 package core.group;
 
+import core.socket.Socket;
+import io.github.fzdwx.lambada.anno.NotNull;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufHolder;
 import io.netty.channel.ChannelFuture;
@@ -10,8 +12,6 @@ import io.netty.util.concurrent.EventExecutor;
 import io.netty.util.internal.PlatformDependent;
 import io.netty.util.internal.StringUtil;
 import lombok.RequiredArgsConstructor;
-import org.jetbrains.annotations.NotNull;
-import core.socket.Socket;
 
 import java.util.LinkedHashMap;
 import java.util.Map;

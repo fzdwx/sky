@@ -5,6 +5,7 @@ import core.serializer.JsonSerializer;
 import core.thread.SkyThreadFactory;
 import io.github.fzdwx.lambada.Assert;
 import io.github.fzdwx.lambada.Collections;
+import io.github.fzdwx.lambada.anno.NotNull;
 import io.github.fzdwx.lambada.fun.Hooks;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.Channel;
@@ -25,7 +26,6 @@ import io.netty.handler.logging.LoggingHandler;
 import io.netty.handler.ssl.SslHandler;
 import io.netty.util.AttributeKey;
 import lombok.extern.slf4j.Slf4j;
-import org.jetbrains.annotations.NotNull;
 import util.AvailablePort;
 import util.Utils;
 

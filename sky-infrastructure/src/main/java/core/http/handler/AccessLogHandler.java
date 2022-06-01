@@ -1,12 +1,13 @@
 package core.http.handler;
 
+import io.github.fzdwx.lambada.anno.NotNull;
 import io.netty.channel.ChannelDuplexHandler;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelPromise;
 import io.netty.handler.codec.http.HttpRequest;
 import io.netty.handler.codec.http.HttpResponse;
 import io.netty.handler.codec.http.LastHttpContent;
-import org.jetbrains.annotations.NotNull;
+
 
 /**
  * print access log.

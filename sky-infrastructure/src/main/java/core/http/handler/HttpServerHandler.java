@@ -6,6 +6,7 @@ import core.http.ext.HttpServerRequest;
 import core.http.ext.HttpServerResponse;
 import core.http.inter.AggHttpServerRequest;
 import core.serializer.JsonSerializer;
+import io.github.fzdwx.lambada.anno.NotNull;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.handler.codec.http.DefaultFullHttpResponse;
@@ -14,7 +15,6 @@ import io.netty.handler.codec.http.HttpResponseStatus;
 import io.netty.handler.codec.http.HttpVersion;
 import io.netty.util.ReferenceCountUtil;
 import lombok.extern.slf4j.Slf4j;
-import org.jetbrains.annotations.NotNull;
 import util.Netty;
 
 @Slf4j
