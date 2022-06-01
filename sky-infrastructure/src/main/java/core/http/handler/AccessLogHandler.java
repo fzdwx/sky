@@ -1,5 +1,8 @@
 package core.http.handler;
 
+import core.http.ext.AccessLogMapper;
+import core.http.inter.AccessLogArgsBuilder;
+import io.github.fzdwx.lambada.Lang;
 import io.github.fzdwx.lambada.anno.NotNull;
 import io.netty.channel.ChannelDuplexHandler;
 import io.netty.channel.ChannelHandlerContext;
@@ -17,10 +20,20 @@ import io.netty.handler.codec.http.LastHttpContent;
  */
 public class AccessLogHandler extends ChannelDuplexHandler {
 
+    private final AccessLogMapper mapper;
+    private AccessLogArgsBuilder builder;
+
+    public AccessLogHandler(final AccessLogMapper mapper) { this.mapper = mapper; }
+
     @Override
     public void channelRead(@NotNull final ChannelHandlerContext ctx, @NotNull final Object msg) throws Exception {
         if ((msg instanceof HttpRequest)) {
-            System.out.println("accessLog request");
+            final HttpRequest req = (HttpRequest) msg;
+
+            if (Lang.isNull(builder)) {
+                builder = new AccessLogArgsBuilder(ctx.channel().remoteAddress());
+            }
+            builder.mountRequest(req);
         }
 
         ctx.fireChannelRead(msg);

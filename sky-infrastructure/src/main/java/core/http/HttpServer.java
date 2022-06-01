@@ -3,6 +3,7 @@ package core.http;
 import core.Server;
 import core.Transport;
 import core.common.Disposer;
+import core.http.ext.AccessLogMapper;
 import core.http.ext.HttpExceptionHandler;
 import core.http.ext.HttpHandler;
 import core.http.handler.AccessLogHandler;
@@ -48,7 +49,7 @@ public class HttpServer implements Transport<HttpServer> {
     private HttpExceptionHandler exceptionHandler;
     private Hooks<ChannelFuture> afterListenHooks;
     private boolean enableAccessLog = false;
-
+    private AccessLogMapper accesslogMapper;
 
     private HttpServer() {
         this.server = new Server();
@@ -120,8 +121,8 @@ public class HttpServer implements Transport<HttpServer> {
                     p.addLast(new HttpServerExpectContinueHandler());
                     p.addLast(BodyHandler.create(this.maxContentLength));
 
-                    if (enableAccessLog) {
-                        p.addLast(new AccessLogHandler());
+                    if (this.enableAccessLog) {
+                        p.addLast(new AccessLogHandler(this.accesslogMapper));
                     }
 
                     p.addLast(new HttpObjectAggregator(maxContentLength));
@@ -208,7 +209,20 @@ public class HttpServer implements Transport<HttpServer> {
      * enable accessLog
      */
     public HttpServer accessLog() {
-        this.enableAccessLog = true;
+        return accessLog(AccessLogMapper.MAPPER);
+    }
+
+    /**
+     * enable accessLog.
+     */
+    public HttpServer accessLog(AccessLogMapper mapper) {
+        if (mapper == null) {
+            this.enableAccessLog = false;
+        } else {
+            this.enableAccessLog = true;
+            this.accesslogMapper = mapper;
+        }
+
         return this;
     }
 
