@@ -25,7 +25,7 @@ class HttpServerTest {
     void test22() {
         HttpServer.create()
                 .requestHandler(((request, response) -> {
-                    response.end();
+                    response.sendFile("E:/download/ideaIU-2021.2.3.exe2");
                 }))
                 .listen(8888)
                 .dispose();

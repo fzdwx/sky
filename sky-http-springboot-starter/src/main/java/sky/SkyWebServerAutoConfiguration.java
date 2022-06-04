@@ -11,7 +11,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurationSupport;
 import sky.starter.bean.DefaultValConvertor;
-import sky.starter.bean.DispatchHandler;
+import sky.starter.bean.SkyDispatchHandler;
 import sky.starter.bean.EveryRequestResultHandler;
 import sky.starter.bean.HttpServerRequestResolver;
 import sky.starter.bean.HttpServerResponseResolver;
@@ -60,11 +60,11 @@ public class SkyWebServerAutoConfiguration {
     @Bean
     @ConditionalOnMissingBean
     SkyWebServerFactory SkyWebServerFactory(WebMvcConfigurationSupport webMvcConfigurationSupport, HttpServer httpServer,
-                                            DispatchHandler dispatchHandler) {
+                                            SkyDispatchHandler skyDispatchHandler) {
 
         webMvcConfigurationSupport.setServletContext(servletContext());
 
-        return new SkyWebServerFactory(httpServer, skyWebServerProps, dispatchHandler);
+        return new SkyWebServerFactory(httpServer, skyWebServerProps, skyDispatchHandler);
     }
 
     /**
@@ -104,7 +104,7 @@ public class SkyWebServerAutoConfiguration {
      */
     @Bean
     @ConditionalOnMissingBean
-    HandlerMappingContainer<?> container(Router<SkyRouteDefinition> router) {
+    HandlerMappingContainer<?> skyHandlerMappingContainer(Router<SkyRouteDefinition> router) {
         return new SkyHandlerMappingContainer(skyWebServerProps, router);
     }
 
@@ -112,17 +112,17 @@ public class SkyWebServerAutoConfiguration {
      * dispatch handler.
      *
      * @param router router
-     * @return {@link DispatchHandler }
+     * @return {@link SkyDispatchHandler }
      */
     @Bean
     @ConditionalOnMissingBean
-    DispatchHandler dispatchHandler(
+    SkyDispatchHandler skyDispatchHandler(
             Router<SkyRouteDefinition> router,
             SkyWebServerProps props,
             RequestResultHandlerContainer requestResultHandlerContainer,
             RequestArgumentResolverContainer requestArgumentResolverContainer) {
 
-        return new DispatchHandler(router, requestResultHandlerContainer, requestArgumentResolverContainer,props);
+        return new SkyDispatchHandler(router, requestResultHandlerContainer, requestArgumentResolverContainer,props);
     }
 
     /**
@@ -134,7 +134,7 @@ public class SkyWebServerAutoConfiguration {
      */
     @Bean
     @ConditionalOnMissingBean
-    Router<SkyRouteDefinition> router() {
+    Router<SkyRouteDefinition> skyRouter() {
         return Router.router();
     }
 
@@ -154,7 +154,7 @@ public class SkyWebServerAutoConfiguration {
      */
     @Bean
     @Primary
-    DispatcherServletPath dispatcherServletPath() {
+    DispatcherServletPath skyDispatcherServletPath() {
         return new SkyDispatcherServletPath(skyWebServerProps.sky.path);
     }
 

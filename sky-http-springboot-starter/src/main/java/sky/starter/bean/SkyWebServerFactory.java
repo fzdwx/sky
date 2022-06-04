@@ -18,17 +18,17 @@ import sky.starter.props.SkyWebServerProps;
  */
 public class SkyWebServerFactory extends AbstractServletWebServerFactory implements ConfigurableWebServerFactory, ResourceLoaderAware {
 
-    private final DispatchHandler dispatchHandler;
+    private final SkyDispatchHandler skyDispatchHandler;
     private SkyWebServerProps skyWebServerProps;
     private HttpServer httpServer;
 
     public SkyWebServerFactory(final HttpServer httpServer,
                                final SkyWebServerProps skyWebServerProps,
-                               final DispatchHandler dispatchHandler) {
+                               final SkyDispatchHandler skyDispatchHandler) {
         super(skyWebServerProps.getPort());
         this.httpServer = httpServer;
         this.skyWebServerProps = skyWebServerProps;
-        this.dispatchHandler = dispatchHandler;
+        this.skyDispatchHandler = skyDispatchHandler;
     }
 
     @EventListener
@@ -53,7 +53,7 @@ public class SkyWebServerFactory extends AbstractServletWebServerFactory impleme
 
     private SkyWebServer getSkyWebServer(final ServletContextInitializer[] initializers) {
         // TODO: 2022/5/18 customize exception handler
-        httpServer.requestHandler(dispatchHandler);
+        httpServer.requestHandler(skyDispatchHandler);
         return new SkyWebServer(httpServer, skyWebServerProps);
     }
 

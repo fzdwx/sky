@@ -52,8 +52,9 @@ public class SkyServletContext implements ServletContext {
         }
 
         if (invalid) {
-            log.warn("path invalid {}", this.path);
+            log.debug("path invalid {}", this.path);
         }
+
         encodedPath = UrlEncode.DEFAULT.encode(this.path, StandardCharsets.UTF_8);
     }
 
