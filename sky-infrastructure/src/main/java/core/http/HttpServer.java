@@ -14,6 +14,7 @@ import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelOption;
+import io.netty.channel.EventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.handler.codec.http.HttpContentDecompressor;
 import io.netty.handler.codec.http.HttpObjectAggregator;
@@ -50,10 +51,10 @@ public class HttpServer implements Transport<HttpServer> {
     private HttpServer() {
         this.server = new Server();
 
-        this.serverOptions(ChannelOption.SO_BACKLOG, 1024);
-        this.childOptions(ChannelOption.TCP_NODELAY, true);
-        this.childOptions(ChannelOption.SO_KEEPALIVE, true);
-        this.childOptions(ChannelOption.SO_REUSEADDR, true);
+        serverOptions(ChannelOption.SO_BACKLOG, 1024);
+        childOptions(ChannelOption.TCP_NODELAY, true);
+        childOptions(ChannelOption.SO_KEEPALIVE, true);
+        childOptions(ChannelOption.SO_REUSEADDR, true);
     }
 
     private HttpServer(Server server) {
@@ -198,7 +199,7 @@ public class HttpServer implements Transport<HttpServer> {
      * @see #log(LoggingHandler)
      */
     public HttpServer log(final LogLevel logLevel) {
-        return this.log(new LoggingHandler(logLevel));
+        return log(new LoggingHandler(logLevel));
     }
 
     /**
@@ -206,6 +207,21 @@ public class HttpServer implements Transport<HttpServer> {
      */
     public HttpServer log(final LoggingHandler loggingHandler) {
         this.server.log(loggingHandler);
+        return this;
+    }
+
+    public HttpServer worker(final EventLoopGroup worker) {
+        this.server.worker(worker);
+        return this;
+    }
+
+    public HttpServer boss(final EventLoopGroup boss) {
+        this.server.boss(boss);
+        return this;
+    }
+
+    public HttpServer group(final EventLoopGroup boss, final EventLoopGroup worker) {
+        this.server.group(boss, worker);
         return this;
     }
 

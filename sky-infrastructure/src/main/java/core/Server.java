@@ -186,11 +186,6 @@ public class Server implements core.Transport<Server> {
     }
 
     @Override
-    public ChannelFuture dispose() {
-        return startFuture.channel().closeFuture().syncUninterruptibly();
-    }
-
-    @Override
     public void shutdown() {
         checkNotStart();
 
@@ -228,22 +223,49 @@ public class Server implements core.Transport<Server> {
 
     @Override
     public Server worker(final int worker) {
-        checkStart();
-        this.worker = createWorker(worker);
-        return impl();
+        return worker(createWorker(worker));
     }
 
     @Override
     public Server log(final LoggingHandler loggingHandler) {
         checkStart();
         this.loggingHandler = loggingHandler;
-        return impl();
+        return this;
+    }
+
+    @Override
+    public ChannelFuture dispose() {
+        return startFuture.channel().closeFuture().syncUninterruptibly();
     }
 
     public Server boss(final int bossCount) {
+        return boss(createBoss(bossCount));
+    }
+
+    public Server boss(final EventLoopGroup boss) {
         checkStart();
-        this.boss = createBoss(bossCount);
-        return impl();
+        Assert.nonNull(boss, "boss event loop group must not null");
+
+        this.boss = boss;
+        return this;
+    }
+
+    public Server worker(final EventLoopGroup worker) {
+        checkStart();
+        Assert.nonNull(worker, "worker event loop group must not null");
+
+        this.worker = worker;
+        return this;
+    }
+
+    public Server group(final EventLoopGroup boss, final EventLoopGroup worker) {
+        checkStart();
+        Assert.nonNull(boss, "boss event loop group must not null");
+        Assert.nonNull(worker, "worker event loop group must not null");
+
+        this.worker = worker;
+        this.boss = boss;
+        return this;
     }
 
     public Server ssl(final SslHandler sslHandler) {
