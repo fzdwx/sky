@@ -24,6 +24,7 @@ import http.HttpServerRequest;
 
 @SpringBootApplication
 @RestController
+@UseSkyWebServer
 public class BurstServerApplication {
 
     public static void main(String[] args) {
