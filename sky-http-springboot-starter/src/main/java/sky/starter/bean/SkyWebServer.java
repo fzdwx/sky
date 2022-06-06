@@ -34,7 +34,7 @@ public class SkyWebServer implements WebServer {
         }
 
         server.onFailure(f -> {
-            log.error(DEBUG_PREFIX + "start SkyHttpServer failure", f);
+            log.error(util.Utils.PREFIX + "start SkyHttpServer failure", f);
             System.exit(1);
         }).listen(getPort());
     }
