@@ -110,8 +110,7 @@ public class Server implements core.Transport<Server> {
                 .childHandler(buildWorkerHandler())
                 .channel(this.channelType)
                 .group(this.boss, this.worker)
-                .bind(address)
-                .syncUninterruptibly();
+                .bind(address);
 
         this.startFuture
                 .addListener(f -> {
