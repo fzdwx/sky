@@ -21,8 +21,7 @@ public class SkyWebServer implements WebServer {
     private final HttpServer server;
     private final SkyWebServerProps skyWebServerProps;
 
-    public SkyWebServer(final HttpServer server,
-                        final SkyWebServerProps skyWebServerProps) {
+    public SkyWebServer(final HttpServer server, final SkyWebServerProps skyWebServerProps) {
         this.port = skyWebServerProps.getPort();
         this.server = server;
         this.skyWebServerProps = skyWebServerProps;
@@ -33,7 +32,11 @@ public class SkyWebServer implements WebServer {
         if (skyWebServerProps.enableDebug()) {
             log.info(DEBUG_PREFIX + "start SkyHttpServer");
         }
-        server.listen(getPort());
+
+        server.onFailure(f -> {
+            log.error(DEBUG_PREFIX + "start SkyHttpServer failure", f);
+            System.exit(1);
+        }).listen(getPort());
     }
 
     @Override
