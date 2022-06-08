@@ -16,7 +16,6 @@ import io.netty.handler.codec.http.HttpHeaderNames;
 import io.netty.handler.codec.http.HttpHeaderValues;
 import io.netty.handler.codec.http.HttpMessage;
 import io.netty.handler.codec.http.HttpMethod;
-import io.netty.handler.codec.http.HttpObject;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import io.netty.handler.codec.http.HttpUtil;
 import io.netty.handler.codec.http.HttpVersion;
@@ -101,10 +100,10 @@ public class BodyHandler extends ChannelInboundHandlerAdapter {
 
     @Override
     public void channelRead(@NotNull final ChannelHandlerContext ctx, @NotNull final Object msg) throws Exception {
-        if (!(msg instanceof HttpObject)) {
-            ReferenceCountUtil.release(msg);
-            return;
-        }
+        // if (!(msg instanceof HttpObject)) {
+        //     ReferenceCountUtil.release(msg);
+        //     return;
+        // }
 
         if (msg instanceof DefaultHttpRequest) {
             if (currentRequest != null) {
@@ -152,9 +151,12 @@ public class BodyHandler extends ChannelInboundHandlerAdapter {
                 ctx.fireChannelRead(currentRequest);
                 currentRequest = null;
             }
-        } else {
-            ReferenceCountUtil.release(msg);
+            // } else {
+            // ReferenceCountUtil.release(msg);
         }
+
+        // FIX: websocket message frame discard.
+        super.channelRead(ctx, msg);
     }
 
     @Override
