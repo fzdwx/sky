@@ -5,6 +5,7 @@ import core.serializer.JsonSerializer;
 import core.thread.SkyThreadFactory;
 import io.github.fzdwx.lambada.Assert;
 import io.github.fzdwx.lambada.Collections;
+import io.github.fzdwx.lambada.anno.NotNull;
 import io.github.fzdwx.lambada.fun.Hooks;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.Channel;
@@ -25,7 +26,6 @@ import io.netty.handler.logging.LoggingHandler;
 import io.netty.handler.ssl.SslHandler;
 import io.netty.util.AttributeKey;
 import lombok.extern.slf4j.Slf4j;
-import org.jetbrains.annotations.NotNull;
 import util.AvailablePort;
 import util.Utils;
 
@@ -110,8 +110,7 @@ public class Server implements core.Transport<Server> {
                 .childHandler(buildWorkerHandler())
                 .channel(this.channelType)
                 .group(this.boss, this.worker)
-                .bind(address)
-                .syncUninterruptibly();
+                .bind(address);
 
         this.startFuture
                 .addListener(f -> {
@@ -186,11 +185,6 @@ public class Server implements core.Transport<Server> {
     }
 
     @Override
-    public ChannelFuture dispose() {
-        return startFuture.channel().closeFuture().syncUninterruptibly();
-    }
-
-    @Override
     public void shutdown() {
         checkNotStart();
 
@@ -228,22 +222,49 @@ public class Server implements core.Transport<Server> {
 
     @Override
     public Server worker(final int worker) {
-        checkStart();
-        this.worker = createWorker(worker);
-        return impl();
+        return worker(createWorker(worker));
     }
 
     @Override
     public Server log(final LoggingHandler loggingHandler) {
         checkStart();
         this.loggingHandler = loggingHandler;
-        return impl();
+        return this;
+    }
+
+    @Override
+    public ChannelFuture dispose() {
+        return startFuture.channel().closeFuture().syncUninterruptibly();
     }
 
     public Server boss(final int bossCount) {
+        return boss(createBoss(bossCount));
+    }
+
+    public Server boss(final EventLoopGroup boss) {
         checkStart();
-        this.boss = createBoss(bossCount);
-        return impl();
+        Assert.nonNull(boss, "boss event loop group must not null");
+
+        this.boss = boss;
+        return this;
+    }
+
+    public Server worker(final EventLoopGroup worker) {
+        checkStart();
+        Assert.nonNull(worker, "worker event loop group must not null");
+
+        this.worker = worker;
+        return this;
+    }
+
+    public Server group(final EventLoopGroup boss, final EventLoopGroup worker) {
+        checkStart();
+        Assert.nonNull(boss, "boss event loop group must not null");
+        Assert.nonNull(worker, "worker event loop group must not null");
+
+        this.worker = worker;
+        this.boss = boss;
+        return this;
     }
 
     public Server ssl(final SslHandler sslHandler) {

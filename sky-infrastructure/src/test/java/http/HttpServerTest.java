@@ -10,6 +10,7 @@ import io.github.fzdwx.lambada.Threads;
 import io.github.fzdwx.lambada.http.ContentType;
 import io.github.fzdwx.lambada.http.HttpMethod;
 import io.github.fzdwx.lambada.http.Route;
+import io.netty.handler.codec.http.websocketx.WebSocketCloseStatus;
 import org.junit.jupiter.api.Test;
 
 import java.time.Duration;
@@ -25,7 +26,39 @@ class HttpServerTest {
     void test22() {
         HttpServer.create()
                 .requestHandler(((request, response) -> {
-                    response.end();
+                    response.sendFile("E:/download/ideaIU-2021.2.3.exe2");
+                }))
+                .listen(8888)
+                .dispose();
+    }
+
+    @Test
+    void test_websocket() {
+        HttpServer.create()
+                .requestHandler(((request, response) -> {
+                    request.upgradeToWebSocket(ws -> {
+
+                        ws.mountOpen(h -> {
+                            ws.send("tttttt");
+                        });
+
+                        ws.mountBinary(h -> {
+                            ws.send("hello").addListener(f -> {
+                                System.out.println(f.cause());
+                            });
+
+                            ws.reject(WebSocketCloseStatus.INTERNAL_SERVER_ERROR);
+                        });
+
+                        ws.mountText(s -> {
+                            ws.send("hello").addListener(f -> {
+                                System.out.println(f.cause());
+                            });
+                            ws.reject(WebSocketCloseStatus.ENDPOINT_UNAVAILABLE);
+                        });
+
+                    });
+
                 }))
                 .listen(8888)
                 .dispose();

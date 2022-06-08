@@ -40,6 +40,13 @@ public interface Outbound {
                            final int chunkSize, final boolean flush,
                            @Nullable final ChannelProgressiveFutureListener channelProgressiveFutureListener);
 
+    /**
+     * send file and set chunk size is {@link Netty#DEFAULT_CHUNK_SIZE} (8192)
+     */
+    default ChannelFuture sendFile(RandomAccessFile file) {
+        return sendFile(file, Netty.DEFAULT_CHUNK_SIZE);
+    }
+
     default ChannelFuture sendFile(final RandomAccessFile file, final int chunkSize,
                                    final ChannelProgressiveFutureListener channelProgressiveFutureListener) {
         return sendFile(file, chunkSize, false, channelProgressiveFutureListener);

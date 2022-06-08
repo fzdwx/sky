@@ -1,8 +1,8 @@
-package core.socket;
+package core.http.ext;
 
-import core.socket.inter.WebSocketImpl;
-import util.Netty;
-import core.http.ext.HttpServerRequest;
+import core.socket.Listener;
+import core.socket.Socket;
+import core.http.inter.WebSocketImpl;
 import io.github.fzdwx.lambada.fun.Hooks;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelFuture;
@@ -10,10 +10,12 @@ import io.netty.handler.codec.http.websocketx.BinaryWebSocketFrame;
 import io.netty.handler.codec.http.websocketx.PingWebSocketFrame;
 import io.netty.handler.codec.http.websocketx.PongWebSocketFrame;
 import io.netty.handler.codec.http.websocketx.TextWebSocketFrame;
+import io.netty.handler.codec.http.websocketx.WebSocketCloseStatus;
 import io.netty.handler.codec.http.websocketx.WebSocketScheme;
 import io.netty.handler.codec.http.websocketx.extensions.compression.WebSocketServerCompressionHandler;
 import io.netty.handler.timeout.IdleStateHandler;
 import io.netty.util.AttributeKey;
+import util.Netty;
 
 import java.util.concurrent.TimeUnit;
 
@@ -34,6 +36,40 @@ public interface WebSocket extends Listener, Socket {
      * ret scheme
      */
     WebSocketScheme scheme();
+
+    /**
+     * close websocket connection
+     *
+     * @return {@link ChannelFuture }
+     */
+    @Override
+    ChannelFuture reject();
+
+    @Override
+    <T> WebSocket attr(String key, T value);
+
+    @Override
+    <T> WebSocket attr(AttributeKey<T> key, T value);
+
+    @Override
+    <T> T attr(String key);
+
+    @Override
+    <T> T attr(AttributeKey<T> key);
+
+    @Override
+    boolean hasAttr(String key);
+
+    @Override
+    boolean hasAttr(AttributeKey<?> key);
+
+    /**
+     * close websocket connection and customer close status.
+     *
+     * @param status {@link WebSocketCloseStatus}
+     * @return {@link ChannelFuture }
+     */
+    ChannelFuture reject(WebSocketCloseStatus status);
 
     /**
      * set subProtocols
@@ -167,22 +203,4 @@ public interface WebSocket extends Listener, Socket {
      * on error while call this method.
      */
     WebSocket mountError(Hooks<Throwable> h);
-
-    @Override
-    <T> WebSocket attr(String key, T value);
-
-    @Override
-    <T> WebSocket attr(AttributeKey<T> key, T value);
-
-    @Override
-    <T> T attr(String key);
-
-    @Override
-    <T> T attr(AttributeKey<T> key);
-
-    @Override
-    boolean hasAttr(String key);
-
-    @Override
-    boolean hasAttr(AttributeKey<?> key);
 }

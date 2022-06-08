@@ -1,8 +1,10 @@
 package core.http.ext;
 
-import util.Netty;
 import core.common.Outbound;
 import core.http.inter.HttpServerResponseImpl;
+import core.serializer.JsonSerializer;
+import io.github.fzdwx.lambada.Assert;
+import io.github.fzdwx.lambada.Io;
 import io.github.fzdwx.lambada.Lang;
 import io.github.fzdwx.lambada.fun.Hooks;
 import io.github.fzdwx.lambada.http.ContentType;
@@ -10,11 +12,13 @@ import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
+import io.netty.channel.ChannelProgressiveFutureListener;
 import io.netty.handler.codec.http.HttpHeaders;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import io.netty.handler.codec.http.HttpVersion;
-import core.serializer.JsonSerializer;
+import util.Netty;
 
+import java.io.RandomAccessFile;
 import java.nio.charset.Charset;
 
 /**
@@ -165,6 +169,19 @@ public interface HttpServerResponse extends Outbound {
     ChannelFuture end(ByteBuf buf);
 
     /**
+     * send file
+     *
+     * @throws IllegalArgumentException when file not found
+     * @see #sendFile(RandomAccessFile, int, boolean, ChannelProgressiveFutureListener)
+     */
+    default ChannelFuture sendFile(String filePath) throws IllegalArgumentException {
+        final RandomAccessFile file = Io.newRaf(filePath);
+        Assert.nonNull(file, "file not found: " + filePath);
+
+        return sendFile(file);
+    }
+
+    /**
      * @see #end(ByteBuf)
      */
     default ChannelFuture end(byte[] bytes) {
@@ -251,4 +268,5 @@ public interface HttpServerResponse extends Outbound {
     default ChannelFuture writeFlush(byte[] bytes) {
         return sendAndFlush(bytes).then();
     }
+
 }

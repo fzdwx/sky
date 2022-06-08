@@ -28,11 +28,6 @@ public class SocketImpl implements Socket {
     }
 
     @Override
-    public ChannelFuture reject(final String text) {
-        return this.send(text).addListener(future -> this.reject());
-    }
-
-    @Override
     public ChannelFuture send(final String text) {
         return this.channel.writeAndFlush(text.getBytes());
     }

@@ -3,7 +3,7 @@ package core.http.inter;
 import core.http.Headers;
 import core.http.ext.HttpServerRequest;
 import core.serializer.JsonSerializer;
-import core.socket.WebSocket;
+import core.http.ext.WebSocket;
 import io.github.fzdwx.lambada.fun.Hooks;
 import io.github.fzdwx.lambada.http.HttpMethod;
 import io.github.fzdwx.lambada.lang.KvMap;

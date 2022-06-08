@@ -3,8 +3,10 @@ package core.http;
 import core.Server;
 import core.Transport;
 import core.common.Disposer;
+import core.http.ext.AccessLogMapper;
 import core.http.ext.HttpExceptionHandler;
 import core.http.ext.HttpHandler;
+import core.http.handler.AccessLogHandler;
 import core.http.handler.BodyHandler;
 import core.http.handler.HttpServerHandler;
 import core.serializer.JsonSerializer;
@@ -14,6 +16,8 @@ import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelOption;
+import io.netty.channel.EventLoopGroup;
+import io.netty.channel.ChannelPipeline;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.handler.codec.http.HttpContentDecompressor;
 import io.netty.handler.codec.http.HttpObjectAggregator;
@@ -45,15 +49,16 @@ public class HttpServer implements Transport<HttpServer> {
     private HttpHandler httpHandler;
     private HttpExceptionHandler exceptionHandler;
     private Hooks<ChannelFuture> afterListenHooks;
-
+    private boolean enableAccessLog = false;
+    private AccessLogMapper accesslogMapper;
 
     private HttpServer() {
         this.server = new Server();
 
-        this.serverOptions(ChannelOption.SO_BACKLOG, 1024);
-        this.childOptions(ChannelOption.TCP_NODELAY, true);
-        this.childOptions(ChannelOption.SO_KEEPALIVE, true);
-        this.childOptions(ChannelOption.SO_REUSEADDR, true);
+        serverOptions(ChannelOption.SO_BACKLOG, 1024);
+        childOptions(ChannelOption.TCP_NODELAY, true);
+        childOptions(ChannelOption.SO_KEEPALIVE, true);
+        childOptions(ChannelOption.SO_REUSEADDR, true);
     }
 
     private HttpServer(Server server) {
@@ -107,17 +112,24 @@ public class HttpServer implements Transport<HttpServer> {
         });
 
         this.server.childHandler(channel -> {
-            channel.pipeline()
-                    .addLast(new HttpServerCodec())
-                    .addLast(new HttpContentDecompressor(false))
+                    final ChannelPipeline p = channel.pipeline();
+
+                    p.addLast(new HttpServerCodec());
+                    p.addLast(new HttpContentDecompressor(false));
                     // todo 请求压缩
-                    // .addLast(new HttpContentCompressor())
-                    .addLast(new ChunkedWriteHandler())
-                    .addLast(new HttpServerExpectContinueHandler())
-                    .addLast(BodyHandler.create(this.maxContentLength))
-                    .addLast(new HttpObjectAggregator(maxContentLength))
-                    .addLast(new HttpServerHandler(httpHandler, exceptionHandler, sslFlag, jsonSerializer()));
-        }).listen(address);
+                    //  p.addLast(new HttpContentCompressor());
+                    p.addLast(new ChunkedWriteHandler());
+                    p.addLast(new HttpServerExpectContinueHandler());
+                    p.addLast(BodyHandler.create(this.maxContentLength));
+
+                    if (this.enableAccessLog) {
+                        p.addLast(new AccessLogHandler(this.accesslogMapper));
+                    }
+
+                    p.addLast(new HttpObjectAggregator(maxContentLength));
+                    p.addLast(new HttpServerHandler(httpHandler, exceptionHandler, sslFlag, jsonSerializer()));
+                })
+                .listen(address);
 
         return this;
     }
@@ -195,6 +207,27 @@ public class HttpServer implements Transport<HttpServer> {
     }
 
     /**
+     * enable accessLog
+     */
+    public HttpServer accessLog() {
+        return accessLog(AccessLogMapper.MAPPER);
+    }
+
+    /**
+     * enable accessLog.
+     */
+    public HttpServer accessLog(AccessLogMapper mapper) {
+        if (mapper == null) {
+            this.enableAccessLog = false;
+        } else {
+            this.enableAccessLog = true;
+            this.accesslogMapper = mapper;
+        }
+
+        return this;
+    }
+
+    /**
      * @see #log(LoggingHandler)
      */
     public HttpServer log(final LogLevel logLevel) {
@@ -206,6 +239,21 @@ public class HttpServer implements Transport<HttpServer> {
      */
     public HttpServer log(final LoggingHandler loggingHandler) {
         this.server.log(loggingHandler);
+        return this;
+    }
+
+    public HttpServer worker(final EventLoopGroup worker) {
+        this.server.worker(worker);
+        return this;
+    }
+
+    public HttpServer boss(final EventLoopGroup boss) {
+        this.server.boss(boss);
+        return this;
+    }
+
+    public HttpServer group(final EventLoopGroup boss, final EventLoopGroup worker) {
+        this.server.group(boss, worker);
         return this;
     }
 

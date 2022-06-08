@@ -13,6 +13,7 @@ public class FileServerTest {
     @Test
     void test_run() {
         HttpServer.create()
+                .accessLog()
                 .requestHandler(StaticFileHandler.create())
                 // .requestHandler(StaticFileHandler.create("src/test"))
                 .listen(8888)
