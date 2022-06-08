@@ -1,8 +1,8 @@
-package core.socket.inter;
+package core.http.inter;
 
 import core.http.ext.HttpServerRequest;
 import core.socket.Socket;
-import core.socket.WebSocket;
+import core.http.ext.WebSocket;
 import io.github.fzdwx.lambada.fun.Hooks;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.Channel;

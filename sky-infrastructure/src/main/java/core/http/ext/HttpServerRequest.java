@@ -4,7 +4,6 @@ import core.http.Headers;
 import core.http.inter.AggHttpServerRequest;
 import core.http.inter.HttpServerRequestImpl;
 import core.serializer.JsonSerializer;
-import core.socket.WebSocket;
 import io.github.fzdwx.lambada.anno.NonNull;
 import io.github.fzdwx.lambada.anno.Nullable;
 import io.github.fzdwx.lambada.fun.Hooks;
