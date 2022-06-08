@@ -28,13 +28,6 @@ public interface Socket {
     ChannelFuture reject();
 
     /**
-     * close session.
-     *
-     * @since 0.07
-     */
-    ChannelFuture reject(String text);
-
-    /**
      * send text to client.
      *
      * @since 0.06

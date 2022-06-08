@@ -1,22 +1,24 @@
 package core.socket.inter;
 
-import util.Netty;
 import core.http.ext.HttpServerRequest;
+import core.socket.Socket;
+import core.socket.WebSocket;
 import io.github.fzdwx.lambada.fun.Hooks;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
 import io.netty.handler.codec.http.websocketx.BinaryWebSocketFrame;
+import io.netty.handler.codec.http.websocketx.CloseWebSocketFrame;
 import io.netty.handler.codec.http.websocketx.PingWebSocketFrame;
 import io.netty.handler.codec.http.websocketx.PongWebSocketFrame;
 import io.netty.handler.codec.http.websocketx.TextWebSocketFrame;
+import io.netty.handler.codec.http.websocketx.WebSocketCloseStatus;
 import io.netty.handler.codec.http.websocketx.WebSocketScheme;
 import io.netty.handler.codec.http.websocketx.extensions.compression.WebSocketServerCompressionHandler;
 import io.netty.handler.timeout.IdleStateHandler;
 import io.netty.util.AttributeKey;
 import lombok.Getter;
-import core.socket.Socket;
-import core.socket.WebSocket;
+import util.Netty;
 
 /**
  * default impl websocket.
@@ -56,16 +58,6 @@ public class WebSocketImpl implements WebSocket {
     }
 
     @Override
-    public ChannelFuture reject() {
-        return socket.reject();
-    }
-
-    @Override
-    public ChannelFuture reject(final String text) {
-        return socket.reject(text);
-    }
-
-    @Override
     public ChannelFuture send(final String text) {
         return send(text.getBytes());
     }
@@ -78,6 +70,48 @@ public class WebSocketImpl implements WebSocket {
     @Override
     public WebSocketScheme scheme() {
         return scheme;
+    }
+
+    @Override
+    public ChannelFuture reject() {
+        return reject(WebSocketCloseStatus.NORMAL_CLOSURE);
+    }
+
+    @Override
+    public <T> WebSocket attr(final String key, final T value) {
+        this.socket.attr(key, value);
+        return this;
+    }
+
+    @Override
+    public <T> WebSocket attr(final AttributeKey<T> key, final T value) {
+        this.socket.attr(key, value);
+        return this;
+    }
+
+    @Override
+    public <T> T attr(final String key) {
+        return this.socket.attr(key);
+    }
+
+    @Override
+    public <T> T attr(final AttributeKey<T> key) {
+        return this.socket.attr(key);
+    }
+
+    @Override
+    public boolean hasAttr(final String key) {
+        return this.socket.hasAttr(key);
+    }
+
+    @Override
+    public boolean hasAttr(final AttributeKey<?> key) {
+        return this.socket.hasAttr(key);
+    }
+
+    @Override
+    public ChannelFuture reject(final WebSocketCloseStatus status) {
+        return socket.channel().writeAndFlush(new CloseWebSocketFrame(status)).addListener(Netty.close);
     }
 
     @Override
@@ -201,39 +235,6 @@ public class WebSocketImpl implements WebSocket {
         this.errorHooks = h;
         return this;
     }
-
-    @Override
-    public <T> WebSocket attr(final String key, final T value) {
-        this.socket.attr(key, value);
-        return this;
-    }
-
-    @Override
-    public <T> WebSocket attr(final AttributeKey<T> key, final T value) {
-        this.socket.attr(key, value);
-        return this;
-    }
-
-    @Override
-    public <T> T attr(final String key) {
-        return this.socket.attr(key);
-    }
-
-    @Override
-    public <T> T attr(final AttributeKey<T> key) {
-        return this.socket.attr(key);
-    }
-
-    @Override
-    public boolean hasAttr(final String key) {
-        return this.socket.hasAttr(key);
-    }
-
-    @Override
-    public boolean hasAttr(final AttributeKey<?> key) {
-        return this.socket.hasAttr(key);
-    }
-
 
     @Override
     public void beforeHandshake(final Socket session) throws RuntimeException {
