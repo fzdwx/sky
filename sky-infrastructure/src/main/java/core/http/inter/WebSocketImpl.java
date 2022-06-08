@@ -1,8 +1,8 @@
 package core.http.inter;
 
 import core.http.ext.HttpServerRequest;
-import core.socket.Socket;
 import core.http.ext.WebSocket;
+import core.socket.Socket;
 import io.github.fzdwx.lambada.fun.Hooks;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.Channel;
@@ -13,6 +13,7 @@ import io.netty.handler.codec.http.websocketx.PingWebSocketFrame;
 import io.netty.handler.codec.http.websocketx.PongWebSocketFrame;
 import io.netty.handler.codec.http.websocketx.TextWebSocketFrame;
 import io.netty.handler.codec.http.websocketx.WebSocketCloseStatus;
+import io.netty.handler.codec.http.websocketx.WebSocketFrameAggregator;
 import io.netty.handler.codec.http.websocketx.WebSocketScheme;
 import io.netty.handler.codec.http.websocketx.extensions.compression.WebSocketServerCompressionHandler;
 import io.netty.handler.timeout.IdleStateHandler;
@@ -45,6 +46,7 @@ public class WebSocketImpl implements WebSocket {
     private WebSocketServerCompressionHandler compressionHandler;
     private IdleStateHandler idleStateHandler;
     private WebSocketScheme scheme;
+    private WebSocketFrameAggregator webSocketFrameAggregator = new WebSocketFrameAggregator(Integer.MAX_VALUE);
 
     public WebSocketImpl(Socket socket, final HttpServerRequest httpServerRequest) {
         this.socket = socket;
@@ -134,6 +136,17 @@ public class WebSocketImpl implements WebSocket {
     @Override
     public WebSocketServerCompressionHandler compressionHandler() {
         return this.compressionHandler;
+    }
+
+    @Override
+    public WebSocket webSocketFrameAggregator(final WebSocketFrameAggregator webSocketFrameAggregator) {
+        this.webSocketFrameAggregator = webSocketFrameAggregator;
+        return this;
+    }
+
+    @Override
+    public WebSocketFrameAggregator webSocketFrameAggregator() {
+        return this.webSocketFrameAggregator;
     }
 
     @Override

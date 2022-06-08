@@ -2,7 +2,6 @@ package core.http.handler;
 
 import core.socket.Listener;
 import core.socket.Socket;
-import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.handler.codec.http.websocketx.BinaryWebSocketFrame;
@@ -56,7 +55,6 @@ public class WebSocketHandler extends SimpleChannelInboundHandler<WebSocketFrame
             return;
         }
 
-        // todo dispatch ping pong
         if (msg instanceof PingWebSocketFrame) {
             listener.onPing(msg.content());
         }
@@ -64,8 +62,9 @@ public class WebSocketHandler extends SimpleChannelInboundHandler<WebSocketFrame
             listener.onPong(msg.content());
         }
 
+        // TODO 是否需要让服务端手动处理 close frame
         if (msg instanceof CloseWebSocketFrame) {
-            ctx.writeAndFlush(msg.retainedDuplicate()).addListener(ChannelFutureListener.CLOSE);
+            ctx.channel().close();
         }
     }
 }

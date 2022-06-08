@@ -1,8 +1,9 @@
 package core.http.ext;
 
+import core.http.inter.WebSocketImpl;
 import core.socket.Listener;
 import core.socket.Socket;
-import core.http.inter.WebSocketImpl;
+import io.github.fzdwx.lambada.anno.Nullable;
 import io.github.fzdwx.lambada.fun.Hooks;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelFuture;
@@ -11,6 +12,7 @@ import io.netty.handler.codec.http.websocketx.PingWebSocketFrame;
 import io.netty.handler.codec.http.websocketx.PongWebSocketFrame;
 import io.netty.handler.codec.http.websocketx.TextWebSocketFrame;
 import io.netty.handler.codec.http.websocketx.WebSocketCloseStatus;
+import io.netty.handler.codec.http.websocketx.WebSocketFrameAggregator;
 import io.netty.handler.codec.http.websocketx.WebSocketScheme;
 import io.netty.handler.codec.http.websocketx.extensions.compression.WebSocketServerCompressionHandler;
 import io.netty.handler.timeout.IdleStateHandler;
@@ -131,6 +133,21 @@ public interface WebSocket extends Listener, Socket {
      * get {@link WebSocketServerCompressionHandler}.
      */
     WebSocketServerCompressionHandler compressionHandler();
+
+    /**
+     * customer webSocketFrameAggregator
+     *
+     * @param webSocketFrameAggregator bodyAggregator
+     * @return {@link WebSocket }
+     * @apiNote maxContentLength is {@link Integer#MAX_VALUE}
+     */
+    WebSocket webSocketFrameAggregator(@Nullable WebSocketFrameAggregator webSocketFrameAggregator);
+
+    /**
+     * get webSocketFrameAggregator
+     */
+    @Nullable
+    WebSocketFrameAggregator webSocketFrameAggregator();
 
     /**
      * @since 0.07
