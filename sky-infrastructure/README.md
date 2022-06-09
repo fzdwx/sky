@@ -8,7 +8,7 @@ It encapsulates a layer on netty, which is easier to use
 <dependency>
   <groupId>io.github.fzdwx</groupId>
   <artifactId>sky-infrastructure</artifactId>
-  <version>0.11.2</version>
+  <version>0.11.3-dev</version>
 </dependency>
 ```
 

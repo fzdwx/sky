@@ -1,7 +1,7 @@
 package sky.starter.domain;
 
 import io.github.fzdwx.lambada.http.Router;
-import io.github.fzdwx.lambada.lang.StringPool;
+import io.github.fzdwx.lambada.lang.StrPool;
 import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -215,8 +215,8 @@ public class SkyHandlerInfo {
         }
         SortedSet<PathPattern> result = new TreeSet<>();
         for (String path : patterns) {
-            if (StringUtils.hasText(path) && !path.startsWith(StringPool.SLASH)) {
-                path = StringPool.SLASH + path;
+            if (StringUtils.hasText(path) && !path.startsWith(StrPool.SLASH)) {
+                path = StrPool.SLASH + path;
             }
             result.add(parser.parse(path));
         }
