@@ -8,7 +8,7 @@ import io.github.fzdwx.lambada.Io;
 import io.github.fzdwx.lambada.Lang;
 import io.github.fzdwx.lambada.http.ContentType;
 import io.github.fzdwx.lambada.http.HttpMethod;
-import io.github.fzdwx.lambada.lang.StrPool;
+import io.github.fzdwx.lambada.lang.StringPool;
 import io.netty.handler.codec.http.HttpHeaderNames;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import lombok.SneakyThrows;
@@ -91,11 +91,11 @@ public class StaticFileHandler implements HttpHandler {
         }
 
         if (file.isDirectory()) {
-            if (uri.endsWith(StrPool.SLASH)) {
+            if (uri.endsWith(StringPool.SLASH)) {
                 final String html = getFileListing(file, uri);
                 response.html(html);
             } else {
-                response.redirect(uri + StrPool.SLASH_CHAR);
+                response.redirect(uri + StringPool.SLASH_CHAR);
             }
             return;
         }
