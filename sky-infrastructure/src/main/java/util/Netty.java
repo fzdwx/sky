@@ -96,11 +96,7 @@ public final class Netty {
     }
 
     public static byte[] readBytes(ByteBuf buf) {
-        final byte[] dest = new byte[buf.readableBytes()];
-
-        buf.readBytes(dest);
-
-        return dest;
+        return ByteBufUtil.getBytes(buf);
     }
 
     public static ByteBuf wrap(final ByteBufAllocator alloc, final byte[] binary) {
@@ -197,7 +193,7 @@ public final class Netty {
 
     public static void removeHandler(final Channel channel, final String handlerName) {
         if (channel.isActive() && channel.pipeline()
-                                          .context(handlerName) != null) {
+                .context(handlerName) != null) {
             channel.pipeline()
                     .remove(handlerName);
         }
@@ -205,7 +201,7 @@ public final class Netty {
 
     public static void replaceHandler(Channel channel, String handlerName, ChannelHandler handler) {
         if (channel.isActive() && channel.pipeline()
-                                          .context(handlerName) != null) {
+                .context(handlerName) != null) {
             channel.pipeline()
                     .replace(handlerName, handlerName, handler);
 
@@ -238,11 +234,9 @@ public final class Netty {
                 !Objects.equals(Unpooled.EMPTY_BUFFER, ((ByteBufHolder) msg).content())) {
             ByteBuf buffer = ((ByteBufHolder) msg).content();
             result = "\n" + ByteBufUtil.prettyHexDump(buffer);
-        }
-        else if (msg instanceof ByteBuf) {
+        } else if (msg instanceof ByteBuf) {
             result = "\n" + ByteBufUtil.prettyHexDump((ByteBuf) msg);
-        }
-        else {
+        } else {
             result = msg.toString();
         }
         return result;
@@ -264,7 +258,7 @@ public final class Netty {
      */
     public static boolean isOriginForm(URI uri) {
         return uri.getScheme() == null && uri.getSchemeSpecificPart() == null &&
-               uri.getHost() == null && uri.getAuthority() == null;
+                uri.getHost() == null && uri.getAuthority() == null;
     }
 
     /**
@@ -273,9 +267,9 @@ public final class Netty {
      */
     public static boolean isAsteriskForm(URI uri) {
         return "*".equals(uri.getPath()) &&
-               uri.getScheme() == null && uri.getSchemeSpecificPart() == null &&
-               uri.getHost() == null && uri.getAuthority() == null && uri.getQuery() == null &&
-               uri.getFragment() == null;
+                uri.getScheme() == null && uri.getSchemeSpecificPart() == null &&
+                uri.getHost() == null && uri.getAuthority() == null && uri.getQuery() == null &&
+                uri.getFragment() == null;
     }
 
     /**
@@ -287,8 +281,8 @@ public final class Netty {
      */
     public static boolean isKeepAlive(HttpMessage message) {
         return !message.headers().containsValue(HttpHeaderNames.CONNECTION, HttpHeaderValues.CLOSE, true) &&
-               (message.protocolVersion().isKeepAliveDefault() ||
-                message.headers().containsValue(HttpHeaderNames.CONNECTION, HttpHeaderValues.KEEP_ALIVE, true));
+                (message.protocolVersion().isKeepAliveDefault() ||
+                        message.headers().containsValue(HttpHeaderNames.CONNECTION, HttpHeaderValues.KEEP_ALIVE, true));
     }
 
     /**
@@ -438,8 +432,8 @@ public final class Netty {
      */
     public static boolean is100ContinueExpected(HttpMessage message) {
         return isExpectHeaderValid(message)
-               // unquoted tokens in the expect header are case-insensitive, thus 100-continue is case insensitive
-               && message.headers().contains(HttpHeaderNames.EXPECT, HttpHeaderValues.CONTINUE, true);
+                // unquoted tokens in the expect header are case-insensitive, thus 100-continue is case insensitive
+                && message.headers().contains(HttpHeaderNames.EXPECT, HttpHeaderValues.CONTINUE, true);
     }
 
     /**
@@ -873,15 +867,15 @@ public final class Netty {
         if (message instanceof HttpRequest) {
             HttpRequest req = (HttpRequest) message;
             if (HttpMethod.GET.equals(req.method()) &&
-                h.contains(HttpHeaderNames.SEC_WEBSOCKET_KEY1) &&
-                h.contains(HttpHeaderNames.SEC_WEBSOCKET_KEY2)) {
+                    h.contains(HttpHeaderNames.SEC_WEBSOCKET_KEY1) &&
+                    h.contains(HttpHeaderNames.SEC_WEBSOCKET_KEY2)) {
                 return 8;
             }
         } else if (message instanceof HttpResponse) {
             HttpResponse res = (HttpResponse) message;
             if (res.status().code() == 101 &&
-                h.contains(HttpHeaderNames.SEC_WEBSOCKET_ORIGIN) &&
-                h.contains(HttpHeaderNames.SEC_WEBSOCKET_LOCATION)) {
+                    h.contains(HttpHeaderNames.SEC_WEBSOCKET_ORIGIN) &&
+                    h.contains(HttpHeaderNames.SEC_WEBSOCKET_LOCATION)) {
                 return 16;
             }
         }
@@ -897,7 +891,7 @@ public final class Netty {
          * that expectation."
          */
         return message instanceof HttpRequest &&
-               message.protocolVersion().compareTo(HttpVersion.HTTP_1_1) >= 0;
+                message.protocolVersion().compareTo(HttpVersion.HTTP_1_1) >= 0;
     }
 
     private static void appendCommon(StringBuilder buf, HttpMessage msg) {

@@ -2,7 +2,6 @@ package core.http.handler;
 
 import core.socket.Listener;
 import core.socket.Socket;
-import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.handler.codec.http.websocketx.BinaryWebSocketFrame;
@@ -11,6 +10,7 @@ import io.netty.handler.codec.http.websocketx.PingWebSocketFrame;
 import io.netty.handler.codec.http.websocketx.PongWebSocketFrame;
 import io.netty.handler.codec.http.websocketx.TextWebSocketFrame;
 import io.netty.handler.codec.http.websocketx.WebSocketFrame;
+import util.Netty;
 
 /**
  * handler websocket frame.
@@ -46,26 +46,29 @@ public class WebSocketHandler extends SimpleChannelInboundHandler<WebSocketFrame
 
     @Override
     protected void channelRead0(final ChannelHandlerContext ctx, final WebSocketFrame msg) throws Exception {
-        if (msg instanceof TextWebSocketFrame) {
-            listener.onText(session, ((TextWebSocketFrame) msg).text());
-            return;
-        }
+        try {
+            if (msg instanceof TextWebSocketFrame) {
+                listener.onText(session, ((TextWebSocketFrame) msg).text());
+            } else {
 
-        if (msg instanceof BinaryWebSocketFrame) {
-            listener.onBinary(session, msg.content());
-            return;
-        }
+                if (msg instanceof BinaryWebSocketFrame) {
+                    listener.onBinary(session, Netty.readBytes(msg.content()));
+                } else if (msg instanceof PingWebSocketFrame) {
+                    listener.onPing(Netty.readBytes(msg.content()));
+                } else if (msg instanceof PongWebSocketFrame) {
+                    listener.onPong(Netty.readBytes(msg.content()));
+                }
 
-        // todo dispatch ping pong
-        if (msg instanceof PingWebSocketFrame) {
-            listener.onPing(msg.content());
-        }
-        if (msg instanceof PongWebSocketFrame) {
-            listener.onPong(msg.content());
-        }
-
-        if (msg instanceof CloseWebSocketFrame) {
-            ctx.writeAndFlush(msg.retainedDuplicate()).addListener(ChannelFutureListener.CLOSE);
+                // TODO
+                //  1.是否需要让服务端手动处理  close frame
+                //  2.客户端是否会通过close frame 来传递数据?
+                if (msg instanceof CloseWebSocketFrame) {
+                    listener.onclose(session);
+                    ctx.channel().close();
+                }
+            }
+        } finally {
+            msg.release();
         }
     }
 }

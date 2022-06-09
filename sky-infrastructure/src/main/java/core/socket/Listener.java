@@ -1,7 +1,5 @@
 package core.socket;
 
-import io.netty.buffer.ByteBuf;
-
 /**
  * @author <a href="mailto:likelovec@gmail.com">fzdwx</a>
  * @date 2022/3/18 12:26
@@ -50,15 +48,15 @@ public interface Listener {
 
     void onText(Socket session, final String text);
 
-    default void onBinary(Socket session, ByteBuf content) {
+    default void onBinary(Socket session, byte[] content) {
 
     }
 
-    default void onPing(ByteBuf ping) {
+    default void onPing(byte[] ping) {
 
     }
 
-    default void onPong(ByteBuf pong) {
+    default void onPong(byte[] pong) {
 
     }
 

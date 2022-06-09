@@ -2,10 +2,11 @@ package core.http.inter;
 
 import core.http.Headers;
 import core.http.ext.HttpServerRequest;
+import core.http.ext.WebSocket;
+import core.http.handler.BodyHandler;
+import core.http.handler.WebSocketHandler;
 import core.serializer.JsonSerializer;
 import core.socket.Socket;
-import core.http.ext.WebSocket;
-import core.http.handler.WebSocketHandler;
 import io.github.fzdwx.lambada.Collections;
 import io.github.fzdwx.lambada.Lang;
 import io.github.fzdwx.lambada.fun.Hooks;
@@ -204,6 +205,9 @@ public class HttpServerRequestImpl implements HttpServerRequest {
 
         // handshake
         webSocket.beforeHandshake(session);
+        if (!webSocket.channel().isActive() || !webSocket.channel().isOpen()) {
+            return;
+        }
 
         //region parse subProtocol
         if (Lang.isNotBlank(webSocket.subProtocols())) {
@@ -228,6 +232,11 @@ public class HttpServerRequestImpl implements HttpServerRequest {
                 pipeline.addLast(webSocket.compressionHandler());
             }
 
+            // websocket frame body aggregator
+            if (webSocket.webSocketFrameAggregator() != null) {
+                pipeline.addLast(webSocket.webSocketFrameAggregator());
+            }
+
             // add handler
             pipeline.addLast(new WebSocketHandler(webSocket, session));
 
@@ -237,6 +246,9 @@ public class HttpServerRequestImpl implements HttpServerRequest {
                 } else {
                     handShaker.close(session.channel(), new CloseWebSocketFrame());
                 }
+
+                // remove Http request body aggregator
+                pipeline.remove(BodyHandler.class);
             });
         } else {
             sendUnsupportedVersionResponse(session.channel());

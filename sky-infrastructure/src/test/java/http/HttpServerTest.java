@@ -36,7 +36,15 @@ class HttpServerTest {
     void test_websocket() {
         HttpServer.create()
                 .requestHandler(((request, response) -> {
+
                     request.upgradeToWebSocket(ws -> {
+
+                        ws.mountBeforeHandshake(h -> {
+
+                            // ws.send("hello");
+
+                            // response.end("不能建立连接");
+                        });
 
                         ws.mountOpen(h -> {
                             ws.send("tttttt");
@@ -54,7 +62,7 @@ class HttpServerTest {
                             ws.send("hello").addListener(f -> {
                                 System.out.println(f.cause());
                             });
-                            ws.reject(WebSocketCloseStatus.ENDPOINT_UNAVAILABLE);
+                            // ws.reject(WebSocketCloseStatus.ENDPOINT_UNAVAILABLE);
                         });
 
                     });

@@ -1,10 +1,9 @@
 package core.http.inter;
 
 import core.http.ext.HttpServerRequest;
-import core.socket.Socket;
 import core.http.ext.WebSocket;
+import core.socket.Socket;
 import io.github.fzdwx.lambada.fun.Hooks;
-import io.netty.buffer.ByteBuf;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
 import io.netty.handler.codec.http.websocketx.BinaryWebSocketFrame;
@@ -13,6 +12,7 @@ import io.netty.handler.codec.http.websocketx.PingWebSocketFrame;
 import io.netty.handler.codec.http.websocketx.PongWebSocketFrame;
 import io.netty.handler.codec.http.websocketx.TextWebSocketFrame;
 import io.netty.handler.codec.http.websocketx.WebSocketCloseStatus;
+import io.netty.handler.codec.http.websocketx.WebSocketFrameAggregator;
 import io.netty.handler.codec.http.websocketx.WebSocketScheme;
 import io.netty.handler.codec.http.websocketx.extensions.compression.WebSocketServerCompressionHandler;
 import io.netty.handler.timeout.IdleStateHandler;
@@ -37,14 +37,15 @@ public class WebSocketImpl implements WebSocket {
     private Hooks<Void> openHooks;
     private Hooks<Object> eventHooks;
     private Hooks<String> textHooks;
-    private Hooks<ByteBuf> binaryHooks;
-    private Hooks<ByteBuf> pingHooks;
-    private Hooks<ByteBuf> pongHooks;
+    private Hooks<byte[]> binaryHooks;
+    private Hooks<byte[]> pingHooks;
+    private Hooks<byte[]> pongHooks;
     private Hooks<Void> closeHooks;
     private Hooks<Throwable> errorHooks;
     private WebSocketServerCompressionHandler compressionHandler;
     private IdleStateHandler idleStateHandler;
     private WebSocketScheme scheme;
+    private WebSocketFrameAggregator webSocketFrameAggregator = new WebSocketFrameAggregator(Integer.MAX_VALUE);
 
     public WebSocketImpl(Socket socket, final HttpServerRequest httpServerRequest) {
         this.socket = socket;
@@ -137,6 +138,17 @@ public class WebSocketImpl implements WebSocket {
     }
 
     @Override
+    public WebSocket webSocketFrameAggregator(final WebSocketFrameAggregator webSocketFrameAggregator) {
+        this.webSocketFrameAggregator = webSocketFrameAggregator;
+        return this;
+    }
+
+    @Override
+    public WebSocketFrameAggregator webSocketFrameAggregator() {
+        return this.webSocketFrameAggregator;
+    }
+
+    @Override
     public WebSocket send(final String text, final Hooks<ChannelFuture> h) {
         h.call(send(text));
         return this;
@@ -207,19 +219,19 @@ public class WebSocketImpl implements WebSocket {
     }
 
     @Override
-    public WebSocket mountBinary(final Hooks<ByteBuf> h) {
+    public WebSocket mountBinary(final Hooks<byte[]> h) {
         this.binaryHooks = h;
         return this;
     }
 
     @Override
-    public WebSocket mountPing(final Hooks<ByteBuf> p) {
+    public WebSocket mountPing(final Hooks<byte[]> p) {
         this.pingHooks = p;
         return this;
     }
 
     @Override
-    public WebSocket mountPong(final Hooks<ByteBuf> p) {
+    public WebSocket mountPong(final Hooks<byte[]> p) {
         this.pongHooks = p;
         return this;
     }
@@ -272,21 +284,21 @@ public class WebSocketImpl implements WebSocket {
     }
 
     @Override
-    public void onBinary(final Socket session, final ByteBuf content) {
+    public void onBinary(final Socket session, final byte[] content) {
         if (binaryHooks != null) {
             binaryHooks.call(content);
         }
     }
 
     @Override
-    public void onPing(final ByteBuf ping) {
+    public void onPing(final byte[] ping) {
         if (pingHooks != null) {
             pingHooks.call(ping);
         }
     }
 
     @Override
-    public void onPong(final ByteBuf pong) {
+    public void onPong(final byte[] pong) {
         if (pongHooks != null) {
             pongHooks.call(pong);
         }
