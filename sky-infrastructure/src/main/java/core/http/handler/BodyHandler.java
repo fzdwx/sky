@@ -153,10 +153,11 @@ public class BodyHandler extends ChannelInboundHandlerAdapter {
             }
             // } else {
             // ReferenceCountUtil.release(msg);
+        } else {
+            // FIX: websocket message frame discard.
+            super.channelRead(ctx, msg);
         }
 
-        // FIX: websocket message frame discard.
-        super.channelRead(ctx, msg);
     }
 
     @Override

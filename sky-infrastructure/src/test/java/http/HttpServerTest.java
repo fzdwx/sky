@@ -41,8 +41,9 @@ class HttpServerTest {
 
                         ws.mountBeforeHandshake(h -> {
 
-                            ws.send("hello");
-                            // ws.reject();
+                            // ws.send("hello");
+
+                            // response.end("不能建立连接");
                         });
 
                         ws.mountOpen(h -> {
