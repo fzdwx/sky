@@ -5,7 +5,6 @@ import core.socket.Listener;
 import core.socket.Socket;
 import io.github.fzdwx.lambada.anno.Nullable;
 import io.github.fzdwx.lambada.fun.Hooks;
-import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelFuture;
 import io.netty.handler.codec.http.websocketx.BinaryWebSocketFrame;
 import io.netty.handler.codec.http.websocketx.PingWebSocketFrame;
@@ -197,17 +196,17 @@ public interface WebSocket extends Listener, Socket {
     /**
      * when client send {@link  BinaryWebSocketFrame}
      */
-    WebSocket mountBinary(Hooks<ByteBuf> h);
+    WebSocket mountBinary(Hooks<byte[]> h);
 
     /**
      * when client send {@link  PingWebSocketFrame}
      */
-    WebSocket mountPing(Hooks<ByteBuf> p);
+    WebSocket mountPing(Hooks<byte[]> p);
 
     /**
      * when client send {@link  PongWebSocketFrame}
      */
-    WebSocket mountPong(Hooks<ByteBuf> p);
+    WebSocket mountPong(Hooks<byte[]> p);
 
     /**
      * on client or server close connection while call this method.

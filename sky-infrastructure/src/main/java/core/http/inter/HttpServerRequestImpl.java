@@ -237,9 +237,6 @@ public class HttpServerRequestImpl implements HttpServerRequest {
                 pipeline.addLast(webSocket.webSocketFrameAggregator());
             }
 
-            // remove Http request body aggregator
-            pipeline.remove(BodyHandler.class);
-
             // add handler
             pipeline.addLast(new WebSocketHandler(webSocket, session));
 
@@ -249,6 +246,9 @@ public class HttpServerRequestImpl implements HttpServerRequest {
                 } else {
                     handShaker.close(session.channel(), new CloseWebSocketFrame());
                 }
+
+                // remove Http request body aggregator
+                pipeline.remove(BodyHandler.class);
             });
         } else {
             sendUnsupportedVersionResponse(session.channel());

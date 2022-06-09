@@ -10,6 +10,7 @@ import io.netty.handler.codec.http.websocketx.PingWebSocketFrame;
 import io.netty.handler.codec.http.websocketx.PongWebSocketFrame;
 import io.netty.handler.codec.http.websocketx.TextWebSocketFrame;
 import io.netty.handler.codec.http.websocketx.WebSocketFrame;
+import util.Netty;
 
 /**
  * handler websocket frame.
@@ -45,26 +46,29 @@ public class WebSocketHandler extends SimpleChannelInboundHandler<WebSocketFrame
 
     @Override
     protected void channelRead0(final ChannelHandlerContext ctx, final WebSocketFrame msg) throws Exception {
-        if (msg instanceof TextWebSocketFrame) {
-            listener.onText(session, ((TextWebSocketFrame) msg).text());
-            return;
-        }
+        try {
+            if (msg instanceof TextWebSocketFrame) {
+                listener.onText(session, ((TextWebSocketFrame) msg).text());
+            } else {
 
-        if (msg instanceof BinaryWebSocketFrame) {
-            listener.onBinary(session, msg.content());
-            return;
-        }
+                if (msg instanceof BinaryWebSocketFrame) {
+                    listener.onBinary(session, Netty.readBytes(msg.content()));
+                } else if (msg instanceof PingWebSocketFrame) {
+                    listener.onPing(Netty.readBytes(msg.content()));
+                } else if (msg instanceof PongWebSocketFrame) {
+                    listener.onPong(Netty.readBytes(msg.content()));
+                }
 
-        if (msg instanceof PingWebSocketFrame) {
-            listener.onPing(msg.content());
-        }
-        if (msg instanceof PongWebSocketFrame) {
-            listener.onPong(msg.content());
-        }
-
-        // TODO 是否需要让服务端手动处理 close frame
-        if (msg instanceof CloseWebSocketFrame) {
-            ctx.channel().close();
+                // TODO
+                //  1.是否需要让服务端手动处理  close frame
+                //  2.客户端是否会通过close frame 来传递数据?
+                if (msg instanceof CloseWebSocketFrame) {
+                    listener.onclose(session);
+                    ctx.channel().close();
+                }
+            }
+        } finally {
+            msg.release();
         }
     }
 }
