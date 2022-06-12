@@ -15,7 +15,7 @@
 <dependency>
   <groupId>io.github.fzdwx</groupId>
   <artifactId>sky-http-springboot-starter</artifactId>
-  <version>0.11.3-dev</version>
+  <version>0.11.3</version>
 </dependency>
 ```
 
