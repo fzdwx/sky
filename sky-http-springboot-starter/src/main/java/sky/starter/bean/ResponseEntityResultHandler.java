@@ -19,6 +19,9 @@ public class ResponseEntityResultHandler implements RequestResultHandler {
 
     @Override
     public boolean support(final Object result, final SkyRouteDefinition definition) {
+        if (result == null) {
+            return false;
+        }
         return result instanceof ResponseEntity<?>;
     }
 

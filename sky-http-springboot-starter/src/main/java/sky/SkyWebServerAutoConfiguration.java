@@ -11,7 +11,6 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurationSupport;
 import sky.starter.bean.DefaultValConvertor;
-import sky.starter.bean.SkyDispatchHandler;
 import sky.starter.bean.EveryRequestResultHandler;
 import sky.starter.bean.HttpServerRequestResolver;
 import sky.starter.bean.HttpServerResponseResolver;
@@ -22,7 +21,9 @@ import sky.starter.bean.RequestParamResolver;
 import sky.starter.bean.RequestResultHandlerContainer;
 import sky.starter.bean.ResponseBodyRequestResultHandler;
 import sky.starter.bean.ResponseEntityResultHandler;
+import sky.starter.bean.SkyDispatchHandler;
 import sky.starter.bean.SkyHandlerMappingContainer;
+import sky.starter.bean.SkyResponseRequestResultHandler;
 import sky.starter.bean.SkyWebServer;
 import sky.starter.bean.SkyWebServerFactory;
 import sky.starter.domain.SkyRouteDefinition;
@@ -96,6 +97,7 @@ public class SkyWebServerAutoConfiguration {
                 .add(new ResponseBodyRequestResultHandler())
                 .add(new EveryRequestResultHandler())
                 .add(new ResponseEntityResultHandler())
+                .add(new SkyResponseRequestResultHandler())
                 ;
     }
 
