@@ -18,7 +18,7 @@
         <maven.compiler.target>1.8</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
-        <lambda.version>0.10.8-dev</lambda.version>
+        <lambda.version>0.10.9-dev</lambda.version>
         <sky.version>0.11.4-dev</sky.version>
 
 
