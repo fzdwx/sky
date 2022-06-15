@@ -91,7 +91,9 @@ public class HttpServer implements Transport<HttpServer> {
      * start server
      */
     public Disposer listen(final int port) {
-        return this.listen(new InetSocketAddress(Netty.localhost, port));
+        // fix https://github.com/fzdwx/sky/issues/32
+        //      new InetSocketAddress(Netty.localhost, port)
+        return this.listen(new InetSocketAddress(port));
     }
 
     @Override
