@@ -2,6 +2,7 @@ package core.http.ext;
 
 import core.common.Outbound;
 import core.http.inter.HttpServerResponseImpl;
+import core.http.response.HttpResponse;
 import core.serializer.JsonSerializer;
 import io.github.fzdwx.lambada.Assert;
 import io.github.fzdwx.lambada.Io;
@@ -115,16 +116,14 @@ public interface HttpServerResponse extends Outbound {
      * return 404 response and write message
      */
     default ChannelFuture notFound(final String message) {
-        return this.status(HttpResponseStatus.NOT_FOUND)
-                .end(message);
+        return this.status(HttpResponseStatus.NOT_FOUND).end(message);
     }
 
     /**
      * return 404 response
      */
     default ChannelFuture notFound() {
-        return this.status(HttpResponseStatus.NOT_FOUND)
-                .end();
+        return this.status(HttpResponseStatus.NOT_FOUND).end();
     }
 
     /**
@@ -179,6 +178,29 @@ public interface HttpServerResponse extends Outbound {
         Assert.nonNull(file, "file not found: " + filePath);
 
         return sendFile(file);
+    }
+
+
+    /**
+     * end of http response.
+     */
+    default ChannelFuture end(HttpResponse<?> body) {
+        this.status(body.status());
+
+        final ChannelFuture cf;
+        int type = body.type();
+        if (type == HttpResponse.Type.TO_STRING) {
+            if (body.body() == null) {
+                cf = this.end();
+            } else {
+                cf = this.end(body.body().toString());
+            }
+        } else if (type == HttpResponse.Type.JSON) {
+            cf = this.json(body.body());
+        } else {
+            cf = channel().newFailedFuture(new UnknownError());
+        }
+        return cf;
     }
 
     /**
@@ -268,5 +290,4 @@ public interface HttpServerResponse extends Outbound {
     default ChannelFuture writeFlush(byte[] bytes) {
         return sendAndFlush(bytes).then();
     }
-
 }

@@ -28,6 +28,7 @@ import io.netty.handler.codec.http.multipart.InterfaceHttpPostRequestDecoder;
 import io.netty.handler.codec.http.websocketx.CloseWebSocketFrame;
 import io.netty.handler.codec.http.websocketx.WebSocketServerHandshaker;
 import io.netty.handler.codec.http.websocketx.WebSocketServerHandshakerFactory;
+import lombok.extern.slf4j.Slf4j;
 import util.Netty;
 
 import java.io.IOException;
@@ -44,6 +45,7 @@ import static io.netty.handler.codec.http.websocketx.WebSocketServerHandshakerFa
  * @date 2022/3/18 19:58
  * @since 0.06
  */
+@Slf4j
 public class HttpServerRequestImpl implements HttpServerRequest {
 
     private final ChannelHandlerContext ctx;
@@ -54,6 +56,7 @@ public class HttpServerRequestImpl implements HttpServerRequest {
     private final Headers headers;
     private final boolean multipartFlag;
     private final boolean formUrlEncoderFlag;
+    private final String host;
     private HttpMethod methodType;
     private String path;
     private String query;
@@ -62,20 +65,38 @@ public class HttpServerRequestImpl implements HttpServerRequest {
     private KvMap formAttributes;
     private Map<String, FileUpload> uploadFiles;
     private boolean websocketFlag;
+    private String url;
 
-    public HttpServerRequestImpl(final ChannelHandlerContext ctx,
-                                 final boolean ssl,
-                                 final AggHttpServerRequest msg,
-                                 final JsonSerializer serializer) {
+    public HttpServerRequestImpl(final ChannelHandlerContext ctx, final boolean ssl, final AggHttpServerRequest msg, final JsonSerializer serializer,
+                                 final String serverOrigin) {
         this.ctx = ctx;
         this.channel = ctx.channel();
         this.nettyRequest = msg;
         this.headers = msg.headers();
         this.ssl = ssl;
         this.serializer = serializer;
+        this.host = Netty.getHost(msg.headers(), serverOrigin);
         this.bodyDecoder = msg.bodyDecoder();
         this.multipartFlag = msg.multipart();
         this.formUrlEncoderFlag = msg.formUrlEncoder();
+    }
+
+    @Override
+    public String host() {
+        return this.host;
+    }
+
+    @Override
+    public String url() {
+        if (this.url == null) {
+            this.url = this.scheme() + "://" + host + uri();
+        }
+        return this.url;
+    }
+
+    @Override
+    public String scheme() {
+        return ssl() ? "https" : "http";
     }
 
     @Override
@@ -215,8 +236,7 @@ public class HttpServerRequestImpl implements HttpServerRequest {
         }
         //endregion
 
-        final WebSocketServerHandshaker handShaker =
-                new WebSocketServerHandshakerFactory(getWebSocketLocation(webSocket, nettyRequest), subProtocols, true).newHandshaker(nettyRequest);
+        final WebSocketServerHandshaker handShaker = new WebSocketServerHandshakerFactory(getWebSocketLocation(webSocket, nettyRequest), subProtocols, true).newHandshaker(nettyRequest);
 
         if (handShaker != null) {
             final ChannelPipeline pipeline = ctx.pipeline();
