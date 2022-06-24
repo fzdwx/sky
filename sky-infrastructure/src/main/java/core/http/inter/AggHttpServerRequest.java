@@ -92,6 +92,21 @@ public class AggHttpServerRequest extends AggregatedFullHttpMessage implements H
     }
 
     @Override
+    public String host() {
+        return null;
+    }
+
+    @Override
+    public String url() {
+        return null;
+    }
+
+    @Override
+    public String scheme() {
+        return ssl() ? "https" : "http";
+    }
+
+    @Override
     public void destroy() {
         if (this.postRequestDecoder != null) {
             this.postRequestDecoder.destroy();

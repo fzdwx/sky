@@ -72,8 +72,18 @@ public class Server implements core.Transport<Server> {
     protected ServerBootstrap serverBootstrap;
 
     public Server() {
+        this(Epoll.isAvailable());
+    }
+
+    /**
+     * new server
+     *
+     * @param useEpoll 使用epoll
+     * @apiNote Epoll.isAvailable();
+     */
+    public Server(boolean useEpoll) {
         this.serverBootstrap = new ServerBootstrap();
-        this.enableEpoll = Epoll.isAvailable();
+        this.enableEpoll = useEpoll;
 
         if (enableEpoll) {
             this.channelType = EpollServerSocketChannel.class;

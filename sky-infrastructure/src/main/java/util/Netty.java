@@ -832,6 +832,20 @@ public final class Netty {
         }
     }
 
+    public static String getHost(final Headers headers, final String serverOrigin) {
+        String host = headers.get(":authority") != null ? headers.get(":authority") : null;
+
+        if (host == null) {
+            host = headers.get("Host") != null ? headers.get("Host") : null;
+        }
+
+        if (host == null) {
+            int idx = serverOrigin.indexOf("://");
+            host = serverOrigin.substring(idx + 3);
+        }
+        return host;
+    }
+
     static StringBuilder appendRequest(StringBuilder buf, HttpRequest req) {
         appendCommon(buf, req);
         appendInitialLine(buf, req);

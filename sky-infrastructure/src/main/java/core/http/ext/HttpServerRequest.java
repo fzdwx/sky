@@ -30,6 +30,25 @@ import java.util.Collection;
 public interface HttpServerRequest {
 
     /**
+     * get headers Host or :authority
+     *
+     * @return {@link String }
+     */
+    String host();
+
+    /**
+     * get full request url
+     *
+     * @return {@link String }
+     */
+    String url();
+
+    /**
+     * @return the scheme of the request
+     */
+    String scheme();
+
+    /**
      * Release resources and end the life cycle
      */
     void destroy();
@@ -184,7 +203,11 @@ public interface HttpServerRequest {
      */
     String contentType();
 
-    static HttpServerRequest create(final ChannelHandlerContext ctx, final boolean ssl, AggHttpServerRequest msg, final JsonSerializer serializer) {
-        return new HttpServerRequestImpl(ctx, ssl, msg, serializer);
+    static HttpServerRequest create(final ChannelHandlerContext ctx,
+                                    final boolean ssl,
+                                    final AggHttpServerRequest msg,
+                                    final JsonSerializer serializer,
+                                    final String serverOrigin) {
+        return new HttpServerRequestImpl(ctx, ssl, msg, serializer, serverOrigin);
     }
 }

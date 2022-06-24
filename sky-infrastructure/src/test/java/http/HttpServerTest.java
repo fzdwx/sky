@@ -4,6 +4,7 @@ import com.alibaba.fastjson2.JSON;
 import com.alibaba.fastjson2.JSONObject;
 import core.http.HttpServer;
 import core.http.ext.HttpHandler;
+import core.http.response.HttpResponse;
 import core.http.route.Router;
 import io.github.fzdwx.lambada.Seq;
 import io.github.fzdwx.lambada.Threads;
@@ -27,6 +28,17 @@ class HttpServerTest {
         HttpServer.create()
                 .requestHandler(((request, response) -> {
                     response.sendFile("E:/download/ideaIU-2021.2.3.exe2");
+                }))
+                .listen(8888)
+                .dispose();
+    }
+
+    @Test
+    void testHost() {
+        HttpServer.create()
+                .requestHandler(((request, response) -> {
+                    response.end(HttpResponse.json("host", request.host())
+                            .put("url", request.url()));
                 }))
                 .listen(8888)
                 .dispose();
