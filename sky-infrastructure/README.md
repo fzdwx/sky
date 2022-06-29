@@ -6,9 +6,9 @@ It encapsulates a layer on netty, which is easier to use
 
 ```xml
 <dependency>
-  <groupId>io.github.fzdwx</groupId>
-  <artifactId>sky-infrastructure</artifactId>
-  <version>0.11.3.1</version>
+    <groupId>io.github.fzdwx</groupId>
+    <artifactId>sky-infrastructure</artifactId>
+    <version>0.11.3.2</version>
 </dependency>
 ```
 

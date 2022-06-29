@@ -15,7 +15,7 @@
 <dependency>
   <groupId>io.github.fzdwx</groupId>
   <artifactId>sky-http-springboot-starter</artifactId>
-  <version>0.11.3.1</version>
+  <version>0.11.3.2</version>
 </dependency>
 ```
 
@@ -24,7 +24,6 @@ import http.HttpServerRequest;
 
 @SpringBootApplication
 @RestController
-@UseSkyWebServer
 public class BurstServerApplication {
 
     public static void main(String[] args) {

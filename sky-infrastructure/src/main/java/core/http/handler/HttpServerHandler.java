@@ -24,16 +24,19 @@ public class HttpServerHandler extends ChannelInboundHandlerAdapter {
     private final boolean ssl;
     private final HttpExceptionHandler exceptionHandler;
     private final JsonSerializer serializer;
+    private final String serverOrigin;
 
     public HttpServerHandler(
             final HttpHandler httpHandler,
             final HttpExceptionHandler exceptionHandler,
             final Boolean ssl,
-            final JsonSerializer serializer) {
+            final JsonSerializer serializer,
+            final String serverOrigin) {
         this.ssl = ssl;
         this.httpHandler = httpHandler;
         this.exceptionHandler = HttpExceptionHandler.defaultExceptionHandler(exceptionHandler);
         this.serializer = serializer == null ? JsonSerializer.codec : serializer;
+        this.serverOrigin = serverOrigin;
     }
 
     @Override
@@ -83,7 +86,7 @@ public class HttpServerHandler extends ChannelInboundHandlerAdapter {
 
     public boolean handleRequest(final ChannelHandlerContext ctx, final Object msg) {
         if (msg instanceof FullHttpRequest) {
-            final HttpServerRequest request = HttpServerRequest.create(ctx, ssl, ((AggHttpServerRequest) msg), serializer);
+            final HttpServerRequest request = HttpServerRequest.create(ctx, ssl, ((AggHttpServerRequest) msg), serializer, serverOrigin);
             final HttpServerResponse response = HttpServerResponse.create(ctx.channel(), request);
 
             try {

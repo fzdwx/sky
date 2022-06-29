@@ -23,19 +23,7 @@ public class SkyResponseRequestResultHandler implements RequestResultHandler {
     @Override
     public void apply(final Object result, final SkyRouteDefinition definition, final HttpServerResponse response) {
         final HttpResponse<?> httpResponse = (HttpResponse<?>) result;
-
-        response.status(httpResponse.status());
-
-        int type = httpResponse.type();
-        if (type == HttpResponse.Type.TO_STRING) {
-            if (httpResponse.body() == null) {
-                response.end();
-            } else {
-                response.end(httpResponse.body().toString());
-            }
-        } else if (type == HttpResponse.Type.JSON) {
-            response.json(httpResponse.body());
-        }
+        response.end(httpResponse);
     }
 
     @Override

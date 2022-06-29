@@ -129,7 +129,7 @@ public class HttpServer implements Transport<HttpServer> {
                     }
 
                     p.addLast(new HttpObjectAggregator(maxContentLength));
-                    p.addLast(new HttpServerHandler(httpHandler, exceptionHandler, sslFlag, jsonSerializer()));
+                    p.addLast(new HttpServerHandler(httpHandler, exceptionHandler, sslFlag, jsonSerializer(), serverOrigin));
                 })
                 .listen(address);
 

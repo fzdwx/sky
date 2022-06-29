@@ -46,29 +46,25 @@ public class WebSocketHandler extends SimpleChannelInboundHandler<WebSocketFrame
 
     @Override
     protected void channelRead0(final ChannelHandlerContext ctx, final WebSocketFrame msg) throws Exception {
-        try {
-            if (msg instanceof TextWebSocketFrame) {
-                listener.onText(session, ((TextWebSocketFrame) msg).text());
-            } else {
+        if (msg instanceof TextWebSocketFrame) {
+            listener.onText(session, ((TextWebSocketFrame) msg).text());
+        } else {
 
-                if (msg instanceof BinaryWebSocketFrame) {
-                    listener.onBinary(session, Netty.readBytes(msg.content()));
-                } else if (msg instanceof PingWebSocketFrame) {
-                    listener.onPing(Netty.readBytes(msg.content()));
-                } else if (msg instanceof PongWebSocketFrame) {
-                    listener.onPong(Netty.readBytes(msg.content()));
-                }
-
-                // TODO
-                //  1.是否需要让服务端手动处理  close frame
-                //  2.客户端是否会通过close frame 来传递数据?
-                if (msg instanceof CloseWebSocketFrame) {
-                    listener.onclose(session);
-                    ctx.channel().close();
-                }
+            if (msg instanceof BinaryWebSocketFrame) {
+                listener.onBinary(session, Netty.readBytes(msg.content()));
+            } else if (msg instanceof PingWebSocketFrame) {
+                listener.onPing(Netty.readBytes(msg.content()));
+            } else if (msg instanceof PongWebSocketFrame) {
+                listener.onPong(Netty.readBytes(msg.content()));
             }
-        } finally {
-            msg.release();
+
+            // TODO
+            //  1.是否需要让服务端手动处理  close frame
+            //  2.客户端是否会通过close frame 来传递数据?
+            if (msg instanceof CloseWebSocketFrame) {
+                listener.onclose(session);
+                ctx.channel().close();
+            }
         }
     }
 }
