@@ -6,7 +6,7 @@
 
 - [x] Http Server
 - [x] Websocket Server
-- [ ] Spring boot starter [in development](https://github.com/fzdwx/sky/tree/dev-springboot-starter) （已经基本可用）
+- [ ] Spring boot starter [in development](https://github.com/fzdwx/sky/issues/11) （已经基本可用）
 - [ ] 😙give me some issue!
 
 ## Showcase
