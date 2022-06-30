@@ -7,7 +7,7 @@
 - [x] Http Server
 - [x] Websocket Server
 - [ ] Spring boot starter [in development](https://github.com/fzdwx/sky/issues/11) （已经基本可用）
-- [ ] 😙give me some issue!
+- [ ] more...
 
 ## Showcase
 
@@ -39,10 +39,33 @@ public class BurstServerApplication {
     // upgrade to websocket
     @GetMapping("connect")
     public void connect(@RequestParam String name, HttpServerRequest request) {
+        // Can be authenticated here
+        // There is no websocket connection established here, the consumption is small,
+        // and it is adapted to spring's annotations for taking parameters.
+        
         request.upgradeToWebSocket(ws->{
+            // When a connection is successfully established with the client
             ws.mountOpen(h -> {
                 ws.send("Hello " + name);
             });
+
+            // Process the binary data sent by the client
+            ws.mountBinary(b -> {
+                
+            });
+
+            // Process the text data sent by the client
+            ws.mountText(s -> {
+
+            });
+
+            // For example, read idle or write idle events
+            ws.mountEvent(e -> {
+
+            });
+            
+            
+            // ...
         });
     }
 }
