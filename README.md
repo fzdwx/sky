@@ -21,9 +21,11 @@
 
 ```java
 import http.HttpServerRequest;
-
+import sky.starter.UseSkyWebServer;
+        
 @SpringBootApplication
 @RestController
+@UseSkyWebServer
 public class BurstServerApplication {
 
     public static void main(String[] args) {
@@ -36,7 +38,7 @@ public class BurstServerApplication {
         return "Hello " + name;
     }
 
-    // upgrade to websocket
+    // Upgrade to websocket
     @GetMapping("connect")
     public void connect(@RequestParam String name, HttpServerRequest request) {
         // Can be authenticated here
